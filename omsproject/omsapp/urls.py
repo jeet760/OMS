@@ -1,0 +1,67 @@
+from django.urls import path
+from . import views
+from django.conf import settings
+from django.conf.urls.static import static
+
+urlpatterns = [
+    path('', views.landing_page, name='index'),
+    path('home', views.landing_page, name='index'),
+    path('home/cat/<str:category>', views.landing_page, name='index'),
+    path('shop', views.shop, name='shop'),
+    path('shop/cat/<str:category>', views.shop, name='shop-cat'),
+    path('shop/fpo/<str:fpo>', views.shop, name='shop-fpo'),
+    path('shopdetails/<str:item_id>',views.shop_details, name='shopdetails'),
+    path('shoppingcart', views.shopping_cart, name='shoppingcart'),
+    path('contact', views.contact, name='contact'),
+    path('blog', views.blog, name='blog'),
+    path('checkout', views.checkout, name='checkout'),
+    path('invoices/<int:order_id>', views.order_invoices, name='invoices'),
+    
+
+    path('register/', views.register, name='register'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('resetpassword/', views.reset_password, name='resetpassword'),
+    
+    # path('products', views.index, name='index'),
+    # path('products/cat/<str:category>', views.index, name='selectedcat'),
+    # path('products/fpo/<str:fpo>', views.index, name='selectedfpo'),
+    # path('products/region/<str:region>', views.index, name='selectedregion'),
+    path('accounts/login/', views.login_required, name='login'),
+    path('items/', views.item_list, name='item_list'),
+    path('item/entry/', views.item_entry, name='item_entry'),
+    path('item/create/', views.create_item, name='create_item'),
+    path('item/<int:item_id>/edit/', views.edit_item, name='edit_item'),
+    path('item/<int:item_id>/change/', views.change_item_status, name='change_item_status'),
+    path('item/<int:item_id>/stock/', views.item_stockout, name='change_item_stock'),
+    path('cart/', views.cart_view, name='cart_view'),
+    path('cart/add/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
+    path('cart/update/<int:product_id>/', views.update_cart, name='update_cart'),
+    path('cart/remove/<int:product_id>/', views.remove_from_cart, name='remove_from_cart'),
+    path('error/', views.error_404_view, name='error'),
+    path('search/', views.SearchItems, name='SearchItems'),
+    path('search/results/', views.SearchItemView, name='SearchItemView'),
+    path('createorder/<str:param_total_quantity>/<str:param_total_price>/<str:param_gst_amount>/<str:param_deduction>', views.CreateOrder, name='createorder'),
+    path('placedorders', views.PlacedOrders, name='orders'),
+    path('placedorders/<int:orderID>/view', views.placed_order_details, name='orderdetails'),
+    path('success',views.order_successful, name='order_successful'),
+    path('billing/', views.register, name='billing'),
+    path('profile/', views.profile, name='profile'),
+    path('profile/sellerprofile', views.seller_profile, name='sellerprofile'),
+    path('profile/update/', views.register, name='profileedit'),
+    path('profile/dashboard', views.dashboard, name='dashboard'),
+
+    path('receivedorders/', views.ReceivedOrders, name='receivedorders'),
+    path('invoicedorders/', views.invoiced_orders, name='invoicedorders'),
+    path('confirm/<int:order_id>', views.confirm_delivery_order, name='confirmdelivery'),
+    path('deliveredorders/', views.delivered_orders, name='deliveredorders'),
+    path('rejectedorders/', views.rejected_orders, name='rejectedorders'),
+    path('pendingorders/', views.pending_orders, name='pendingorders'),
+    path('receivedorders/<int:orderID>/view', views.received_orders_details, name='receivedorderdetails'),
+    path('receivedorders/<int:param_sub_order_id>/accept', views.recived_order_status_update, name='acceptorder'),
+    path('receivedorders/<int:param_sub_order_id>/reject', views.recived_order_status_update, name='rejectorder'),
+    path('receivedorders/<int:param_order_id>/acceptall', views.received_order_status_all, name='acceptall'),
+    path('receivedorders/<int:param_order_id>/rejectall', views.received_order_status_all, name='rejectall'),
+    path('uploadinvoice/<int:orderID>', views.upload_invoice, name='uploadinvoice'),
+
+]

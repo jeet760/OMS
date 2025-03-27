@@ -1,0 +1,101 @@
+* {
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.sticky-top {
+  background-color: #eff1f4; 
+  box-shadow: inset; 
+  border-radius: 5px; 
+  box-shadow: 2px 2px 2px rgb(119, 117, 117);
+}
+
+.container{
+  height: auto;
+  overflow-y: auto;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  background-color: transparent;
+  padding: 0.5rem;
+  height: auto;
+  overflow-y: auto;
+}
+  
+.grid-container > div {
+  background-color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  padding: 20px 0;
+  font-size: 16px;
+}
+
+@media only screen and (max-width: 600px) {
+  .grid-container{
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+.cart-container {
+  height:40rem;
+  width: 100%;
+  overflow-y: auto;
+}
+
+.dropdown-container {
+  display: flex;
+  gap: 10px;
+}
+select {
+    padding: 5px;
+    font-size: 16px;
+}
+
+.inputmodels{
+  border-radius: 20px;
+  border: 2px solid #f8f8f8;
+  padding: 5px 5px 5px 5px;
+  width: 200px;
+  box-shadow: 10px 10px 5px rgb(222, 228, 230);
+  width: 100%;
+  height:50rem;
+}
+
+#cartEmptyAlert {
+  display: none;
+  height: 20rem;
+  position: relative;
+  margin-top: -35rem;
+  margin-left: 10rem;
+  margin-right: 10rem;
+  text-align: center; 
+  box-shadow: inset; 
+  border-radius: 5px; 
+  box-shadow: 2px 2px 2px rgb(119, 117, 117);
+}
+
+/*Cart Item row*/
+.cartitem-row{
+  margin-top: 10px;
+  margin-bottom: 20px;
+  height: 4rem;
+  box-shadow: inset; 
+  border-radius: 10px; 
+  box-shadow: 1px 1px 1px rgb(119, 117, 117);
+}
+.cartitem-row:hover{
+  background-color: rgb(224, 224, 224);
+}
+/*************************************************/
+
+/*Disable the inputs*/
+.disabled-inputs{
+  pointer-events: none;
+  opacity: 0.5;
+}
+.hidden-inputs{
+  opacity: 0;
+}
+/************************/

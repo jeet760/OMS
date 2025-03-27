@@ -1,0 +1,32 @@
+{% extends 'index.html' %}
+{% block login %}
+<script src="https://cdn.tailwindcss.com"></script>
+<div class="bg-gray-100 flex items-center justify-center min-h-screen flex-col">
+    <div class="bg-white shadow-lg rounded-lg p-6 w-96">
+        <h2 class="text-2xl font-bold text-center mb-4">Login</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="block text-gray-700">Username</label>
+                {{loginform.username}}
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Password</label>
+                {{loginform.password}}
+            </div>
+            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Login</button>
+        </form>
+        <div class="text-center mt-4">
+            <a href="{% url 'resetpassword' %}" class="text-blue-500 hover:underline">Reset Password?</a>
+        </div>
+        <div class="text-center mt-4">
+            <a class="btn w-full bg-green-500 text-white py-2 rounded hover:bg-green-600" href="{% url 'register' %}">Register</a>
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'index' %}" class="btn w-full bg-red-500 text-white py-2 rounded hover:bg-red-600">Cancel</a>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,10 @@
+1. Vegetables
+2. Fruits
+3. Dairy
+4. Spices
+5. Cereals
+6. Pulses
+7. Animal Sourced
+8. Forest Produces
+9. Packaged Foods
+10. Others

@@ -1,0 +1,10 @@
+{% extends 'index.html' %}
+{% block success %}
+
+<div class="alert alert-info" role="alert" id="orderSuccessful">
+    <h2>Order Placed Successfully with Order No.<a href="{% url 'orderdetails' orderID %}">{{orderNo}}</a>!</h2>
+    <a class='btn btn-secondary' href="{% url 'index' %}">
+        Go Back to Homepage.
+    </a>
+</div>
+{% endblock %}

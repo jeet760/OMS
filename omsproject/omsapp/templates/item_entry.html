@@ -1,0 +1,114 @@
+{% extends 'profile.html' %}
+{% load static %}
+{% block item_entry %}
+<div class="container mx-auto mt-10" style="background-color: transparent;">
+    <form id="itemForm" action="{% if is_edit %}{% url 'edit_item' form.instance.itemID %}{% else %}{% url 'create_item' %}{% endif %}" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="card">
+            <h5 class="card-header text-align-left">{{ is_edit|yesno:"Edit Item,Add Item" }}({{login_user}})</h5>
+            <div class="card-body text-left">
+               <div class="row">
+                  <div class="col-20">
+                    <label for="itemType">Item Type</label>
+                  </div>
+                  <div class="col-30">
+                    {{form.itemType}}
+                  </div>
+                  <div class="col-20">
+                    <label for="itemName">Item Name</label>
+                  </div>
+                  <div class="col-30">
+                    {{form.itemName}}
+                  </div>
+               </div>
+               <div class="row">
+                     <div class="col-20">
+                        <label for="itemCat">Item Category</label>
+                     </div>
+                     <div class="col-30">
+                        {{form.itemCat}}
+                     </div>
+                     <div class="col-20">
+                        <label for="itemSku">Item SKU</label>
+                     </div>
+                     <div class="col-30">
+                        {{form.itemSku}}
+                     </div>
+               </div>
+               <div class="row">
+                  <div class="col-20">
+                     <label for="itemHSNCode">HSN Code</label>
+                  </div>
+                  <div class="col-30">
+                     {{form.itemHSNCode}}
+                  </div>
+                  <div class="col-20">
+                     <label for="itemUnit">Unit</label>
+                  </div>
+                  <div class="col-30">
+                     {{form.itemUnit}}
+                  </div>
+               </div>
+               <div class="row">
+                  <div class="col-20">
+                     <label for="itemTaxPref">Tax Preference</label>
+                  </div>
+                  <div class="col-30">
+                     {{form.itemTaxPref}}
+                  </div>
+                  <div class="col-20">
+                    <label for="itemTaxRate">GST Rate</label>
+                 </div>
+                 <div class="col-30">
+                    {{form.itemTaxRate}}
+                 </div>
+               </div>
+               <div class="row">
+                  <div class="col-20">
+                     <label for="itemCostPrice">Cost Price</label>
+                  </div>
+                  <div class="col-30">
+                     {{form.itemCostPrice}}
+                  </div>
+                  <div class="col-20">
+                     <label for="itemPrice">Sale Price</label>
+                  </div>
+                  <div class="col-30">
+                     {{form.itemPrice}}
+                  </div>
+               </div>
+               <div class="row">
+                    <div class="col-20">
+                        <label for="itemImg">Photo</label>
+                    </div>
+                    <div class="col-30">
+                        {{form.itemImg}}
+                    </div>
+                    <div class="col-20">
+                        <label for="stockValue">Opening Stock</label>
+                    </div>
+                    <div class="col-30">
+                        {{form.stockValue}}
+                    </div>
+               </div>
+               <div class="row">
+                  <div class="col-20">
+                     Item Description
+                  </div>
+                  <div class="col-30">
+                     {{form.itemDesc}}
+                 </div>
+               </div>
+            </div>
+         </div>
+        <div class="flex justify-between mt-6">
+            <a type="button" href="{% url 'item_list' %}" class="btn btn-danger">
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-success">
+                Save
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

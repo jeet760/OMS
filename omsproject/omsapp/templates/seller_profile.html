@@ -1,0 +1,168 @@
+{% extends 'profile.html' %}
+{% load static %}
+{% block seller_profile %}
+{% for userform in user_details %}
+<div class="container">
+    <div class="card">
+        <h5 class="card-header text-align-left">Basic Details</h5>
+        <div class="card-body text-left">
+            <div class="row">
+            <div class="col-20">
+                <label for="userType">User Type</label>
+            </div>
+            <div class="col-30">
+                {{userform.userType}}
+            </div>
+            <div class="col-20">
+                <label for="first_name">Name</label>
+            </div>
+            <div class="col-30">
+                {{userform.first_name}}
+            </div>
+            </div>
+            <div class="row">
+                <div class="col-20">
+                    <label for="last_name">Display Name</label>
+                </div>
+                <div class="col-30">
+                    {{userform.last_name}}
+                </div>
+                <div class="col-20">
+                    <label for="org_name">Business Name</label>
+                </div>
+                <div class="col-30">
+                    {{userform.org_name}}
+                    <div id="passwordHelpInline" class="form-text">
+                        Note: Organisation/Company/Institution Name
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+            <div class="col-20">
+                <label for="email">Email</label>
+            </div>
+            <div class="col-30">
+                {{userform.email}}
+            </div>
+            <div class="col-20">
+                <label for="phone">Phone No.</label>
+            </div>
+            <div class="col-30">
+                {{userform.phone}}
+            </div>
+            </div>
+            <div class="row">
+            <div class="col-20">
+                <label for="phone1">Alternate Phone No.</label>
+            </div>
+            <div class="col-30">
+                {{userform.phone1}}
+            </div>
+            </div>
+            <div class="row">
+            <div class="col-20">
+                <label for="gstin">GSTIN</label>
+            </div>
+            <div class="col-30">
+                {{userform.gstin}}
+            </div>
+            <div class="col-20">
+                <label for="supply_place">Place of Supply</label>
+            </div>
+            <div class="col-30">
+                {{userform.supply_place}}
+            </div>
+            <div class="col-20">
+                <label for="gst_tmt">GST Treatment</label>
+            </div>
+            <div class="col-30">
+                {{userform.gst_tmt}}
+            </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <h5 class="card-header text-align-left">Billing Address</h5>
+        <div class="card-body text-left">
+            <div class="row">
+            <div class="col-20">
+                <label for="userAddress">Address</label>
+            </div>
+            <div class="col-30">
+                {{userform.userAddress}}
+            </div>
+            <div class="col-20">
+                <label for="userCity">City</label>
+            </div>
+            <div class="col-30">
+                {{userform.userCity}}
+            </div>
+            </div>
+            <div class="row">
+            <div class="col-20">
+                <label for="userState">State</label>
+            </div>
+            <div class="col-30">
+                {{userform.userState}}
+            </div>
+            <div class="col-20">
+                <label for="pinCode">PIN Code</label>
+            </div>
+            <div class="col-30">
+                {{userform.pinCode}}
+            </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <h5 class="card-header text-align-left">Shipping Address</h5>
+        <div class="card-body text-left">
+            <div class="row">
+            <div class="col-20">
+                <label for="userAddress1">Address</label>
+            </div>
+            <div class="col-30">
+                {{userform.userAddress1}}
+            </div>
+            <div class="col-20">
+                <label for="userCity1">City</label>
+            </div>
+            <div class="col-30">
+                {{userform.userCity1}}
+            </div>
+            </div>
+            <div class="row">
+            <div class="col-20">
+                <label for="userState1">State</label>
+            </div>
+            <div class="col-30">
+                {{userform.userState1}}
+            </div>
+            <div class="col-20">
+                <label for="pinCode1">PIN Code</label>
+            </div>
+            <div class="col-30">
+                {{userform.pinCode1}}
+            </div>
+            </div>
+            <div class="row">
+            <div class="col-20">
+                <label for="userNote">Note/Remark/Comment:</label>
+            </div>
+            <div class="col-75">
+                {{userform.userNote}}
+            </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+    <div class="row">
+        <div class="col-10">
+            <a href="{% url 'dashboard' %}" class="btn btn-danger input-button">Cancel</a>
+        </div>
+        <div class="col-10">
+            <a href="{% url 'profileedit' %}" class="btn btn-info">Edit</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

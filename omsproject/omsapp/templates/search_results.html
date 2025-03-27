@@ -1,0 +1,31 @@
+{% load static %}
+<ul class="navbar-nav justify-content-right">
+{% for item in items %}
+  <form action="{% url 'add_to_cart' item.itemID %}?source=landing" method="post">
+    {% csrf_token %}
+      <li class="nav-item">
+          <div class="row" style="width: 540px; background-color: aliceblue; margin-bottom: 5px;">
+            <div class="col-md-2">
+              <img src="{{item.itemImg.url}}" alt="{{item.itemName}}" height="70px" width="70px">
+            </div>
+            <div class="col-md-5" style="text-align: left; font-weight: bold;">
+              {% if item.itemInStock %} {{item.itemName}} {% else %} {{item.itemName}} (Out of Stock) {% endif %}
+              <div class="form-text">
+                Sold By: {{ item.userID.first_name }}
+              </div>
+            </div>
+            <div class="col-md-3">
+              Rs. {{item.itemPrice}}/{{item.itemUnit}}
+            </div>
+            <div class="col-md-2" style="text-align: center;">
+              <button type="submit" id={{item.itemID}} name="liveToastBtn" class="{% if item.itemInStock%}btn btn-primary btn-sm {% else %} btn btn-primary btn-sm disabled{% endif %}" data-bs-toggle="offcanvas" href="#" role="button" aria-controls="offcanvasExample">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
+                  <path d="M440-280h80v-160h160v-80H520v-160h-80v160H280v80h160v160ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+      </li>
+  </form>
+{% endfor %}
+</ul>

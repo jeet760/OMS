@@ -1,0 +1,46 @@
+{% extends 'profile.html' %}
+{% block orders_received %}
+    <table class="table table-primary table-hover caption-top" id="allOrdersTable">
+        <caption><strong>Received Orders</strong></caption>
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Order No.</th>
+            <th scope="col">Order Date</th>
+            <th scope="col">Schedule Delivery Date</th>
+            <th scope="col">Schedule Delivery Time</th>
+            <th scope="col">Delivery Status</th>
+            <th scope="col">Order From</th>
+            <th scope="col">Actions</th>
+        </tr>
+        </thead>
+        <tbody class="table table-hover table-group-divider">
+            {% for order in received_orders %}
+            <tr>
+                <td>{{forloop.counter}}</td>
+                <td>
+                    {{order.0}}
+                </td>
+                <td>
+                    {{order.1}}
+                </td>
+                <td>
+                    {{order.2}}
+                </td>
+                <td>
+                    {{order.3}}
+                </td>
+                <td>
+                    {{order.4}}
+                </td>
+                <td>
+                    {{order.5}}
+                </td>
+                <td>
+                    <a class="btn btn-info btn-sm" href="{% url 'receivedorderdetails' order.6 %}">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
