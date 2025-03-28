@@ -16,6 +16,7 @@ urlpatterns = [
     path('blog', views.blog, name='blog'),
     path('checkout', views.checkout, name='checkout'),
     path('invoices/<int:order_id>', views.order_invoices, name='invoices'),
+    path('about-us', views.aboutus, name='about-us'),
     
 
     path('register/', views.register, name='register'),

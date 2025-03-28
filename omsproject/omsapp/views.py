@@ -55,7 +55,7 @@ def landing_page(request, category=None,fpo=None, region=None):
     if request.user.is_authenticated:
         user_name = request.user.last_name
         user_type = request.user.userType
-        if user_type is '1':
+        if user_type == '1':
             items = items.exclude(userID_id = request.user.pk)
     length = items.__len__()#get the total items
     featureItems = Item.objects.filter(featureItem=True).exclude(userID_id = request.user.pk)
@@ -94,7 +94,7 @@ def shop(request, category=None, fpo=None, region=None):
     if request.user.is_authenticated:
         user_name = request.user.last_name
         user_type = request.user.userType
-        if user_type is '1':
+        if user_type == '1':
             items = items.exclude(userID_id = request.user.pk)
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
@@ -162,6 +162,16 @@ def fpo_list():
 def error_404_view(request):
     return render(request, '404.html', {} )
 
+def aboutus(request):
+    cart = Cart(request)
+    total_qty = cart.__len__()#display total number quantities added in the basket
+    total_price = cart.get_total_price()
+    aboutus_context = {
+        'clicked':'About Us',
+        'total_qty':total_qty,
+        'total_price':total_price
+    }
+    return render(request, 'about-us.html', aboutus_context)
 #endregion
 
 #region Search Items
