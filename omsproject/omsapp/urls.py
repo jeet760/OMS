@@ -17,6 +17,10 @@ urlpatterns = [
     path('checkout', views.checkout, name='checkout'),
     path('invoices/<int:order_id>', views.order_invoices, name='invoices'),
     path('about-us', views.aboutus, name='about-us'),
+    path('privacy-policy', views.privacypolicy, name='privacy-policy'),
+    path('delivery-policy', views.deliverypolicy, name='delivery-policy'),
+    path('return-policy', views.returnpolicy, name='return-policy'),
+    path('eula', views.eula, name='eula'),
     
 
     path('register/', views.register, name='register'),

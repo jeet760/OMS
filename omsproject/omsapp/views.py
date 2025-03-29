@@ -172,6 +172,50 @@ def aboutus(request):
         'total_price':total_price
     }
     return render(request, 'about-us.html', aboutus_context)
+
+def privacypolicy(request):
+    cart = Cart(request)
+    total_qty = cart.__len__()#display total number quantities added in the basket
+    total_price = cart.get_total_price()
+    privacy_context = {
+        'clicked':'Privacy Policy',
+        'total_qty':total_qty,
+        'total_price':total_price
+    }
+    return render(request, 'privacy-policy.html', privacy_context)
+
+def deliverypolicy(request):
+    cart = Cart(request)
+    total_qty = cart.__len__()#display total number quantities added in the basket
+    total_price = cart.get_total_price()
+    delivery_context = {
+        'clicked':'Delivery Policy',
+        'total_qty':total_qty,
+        'total_price':total_price
+    }
+    return render(request, 'delivery-policy.html', delivery_context)
+
+def returnpolicy(request):
+    cart = Cart(request)
+    total_qty = cart.__len__()#display total number quantities added in the basket
+    total_price = cart.get_total_price()
+    return_context = {
+        'clicked':'Return Policy',
+        'total_qty':total_qty,
+        'total_price':total_price
+    }
+    return render(request, 'return-policy.html', return_context)
+
+def eula(request):
+    cart = Cart(request)
+    total_qty = cart.__len__()#display total number quantities added in the basket
+    total_price = cart.get_total_price()
+    eula_context = {
+        'clicked':'End User',
+        'total_qty':total_qty,
+        'total_price':total_price
+    }
+    return render(request, 'eula.html', eula_context)
 #endregion
 
 #region Search Items
