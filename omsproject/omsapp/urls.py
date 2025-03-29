@@ -21,6 +21,7 @@ urlpatterns = [
     path('delivery-policy', views.deliverypolicy, name='delivery-policy'),
     path('return-policy', views.returnpolicy, name='return-policy'),
     path('eula', views.eula, name='eula'),
+    path('testimonials', views.testimonials, name='testimonials'),
     
 
     path('register/', views.register, name='register'),

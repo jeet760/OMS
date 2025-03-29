@@ -216,6 +216,17 @@ def eula(request):
         'total_price':total_price
     }
     return render(request, 'eula.html', eula_context)
+
+def testimonials(request):
+    cart = Cart(request)
+    total_qty = cart.__len__()#display total number quantities added in the basket
+    total_price = cart.get_total_price()
+    testimonials_context = {
+        'clicked':'Testimonials',
+        'total_qty':total_qty,
+        'total_price':total_price
+    }
+    return render(request, 'testimonials.html', testimonials_context)
 #endregion
 
 #region Search Items
