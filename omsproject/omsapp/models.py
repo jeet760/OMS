@@ -225,6 +225,36 @@ class Delivery(Model):
         return self.deliveryID
 #endregion
 
+#region Bulk Buy Model
+class BulkBuy(Model): 
+    bulkBuyID = AutoField(primary_key=True)
+    bulkBuyNo = CharField(max_length=10, default='0000000000')
+    bulkBuyDate = DateField(default=datetime.date.today)
+    userID = ForeignKey(CustomUser, on_delete=CASCADE)
+    def __str__(self):
+        return f"{self.bulkBuyID}"
+    
+class BulkBuyDetails(Model):
+    bbdID = AutoField(primary_key=True)#bbd:bulkbuydetails
+    bulkBuyID = ForeignKey(BulkBuy, on_delete=CASCADE)
+    itemName = CharField(max_length=20)
+    itemSpec = CharField(max_length=100)
+    itemPrice = FloatField()
+    itemQty = IntegerField()
+
+    def __str__(self):
+        return f"{self.bbdID}"
+
+class BulkBuyResponse(Model):
+    bulkBuyID = ForeignKey(BulkBuy, on_delete=CASCADE)
+    bbdID = ForeignKey(BulkBuyDetails, on_delete=CASCADE)
+    response_userID = ForeignKey(CustomUser, on_delete=CASCADE)
+    response_date = DateField(default=datetime.date.today)
+    response_status = BooleanField()
+
+    def __str__(self):
+        return f"{self.bulkBuyID}"
+
 #region Notification Model
 class Notification(Model):
     id=AutoField(primary_key=True)

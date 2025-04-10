@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            width: 90%;
+            max-width: 1200px;
+        }
+        .card {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">Admin Console: FPO Market</div>
+    <div class="dashboard">
+        <div class="card">FPO: {{total_fpo}}<br>Requests: <a href="#">50</a></div>
+        <div class="card">Business: {{total_business}}<br>Requests: <a href="#">50</a></div>
+        <div class="card">Instituion: {{total_institutions}}<br>Requests: <a href="#">50</a></div>
+        <div class="card">Overseas: {{total_overseas}}<br>Requests: <a href="#">50</a></div>
+        <div class="card">Individual: {{total_individual}}<br>Requests: <a href="#">50</a></div>
+        <div class="card">Transactions: {{total_individual}}<br>Bulk Buys: <a href="#">50</a></div>
+    </div>
+</body>
+</html>

@@ -124,6 +124,7 @@
                         <ul>
                             <li class="{% if clicked == 'Home' %} active {% endif %}"><a href="{% url 'index' %}">Home</a></li>
                             <li class="{% if clicked == 'Shop' %} active {% endif %}"><a href="{% url 'shop' %}">Shop</a></li>
+                            <li class="{% if clicked == 'Bulk' %} active {% endif %}"><a href="{% url 'bulk-buy' %}">Bulk Buy</a></li>
                             <!-- <li><a href="#">Pages</a>
                                 <ul class="header__menu__dropdown">
                                     <li><a href="./shop-details.html">Shop Details</a></li>
@@ -132,7 +133,7 @@
                                     <li><a href="./blog-details.html">Blog Details</a></li>
                                 </ul>
                             </li> -->
-                            <li class="{% if clicked == 'Blog' %} active {% endif %}"><a href="{% url 'blog' %}">Blog</a></li>
+                            <!-- <li class="{% if clicked == 'Blog' %} active {% endif %}"><a href="{% url 'blog' %}">Blog</a></li> -->
                             <li class="{% if clicked == 'Contact' %} active {% endif %}"><a href="{% url 'contact' %}">Contact</a></li>
                         </ul>
                     </nav>

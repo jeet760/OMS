@@ -7,7 +7,8 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from datetime import datetime
-from .models import CustomUser, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, Invoice
+import json
+from .models import CustomUser, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, Invoice, BulkBuy, BulkBuyDetails, BulkBuyResponse
 from .forms import ItemForm, UserRegistrationForm, UserLoginForm, OrderForm, OrderDetailsForm, InvoiceForm
 from django.contrib.gis.geoip2 import GeoIP2
 from .cart import Cart
@@ -314,6 +315,23 @@ def logout_view(request):
     return redirect('index')
 #endregion
 
+#region Admin Console
+def admin_console(request):
+    no_of_fpo = CustomUser.objects.filter(userType=1).count
+    no_of_biz = CustomUser.objects.filter(userType=2).count
+    no_of_inst = CustomUser.objects.filter(userType=3).count
+    no_of_overseas = CustomUser.objects.filter(userType=4).count
+    no_of_indv = CustomUser.objects.filter(userType=5).count
+    console_context = {
+        'total_fpo':no_of_fpo,
+        'total_business':no_of_biz,
+        'total_institutions':no_of_inst,
+        'total_overseas':no_of_overseas,
+        'total_individual':no_of_indv,
+    }
+    return render(request, 'admin-console.html', console_context)
+#endregion
+
 #region Items
 @login_required
 def item_entry(request):
@@ -394,7 +412,14 @@ def item_list(request):
     form = ItemForm()
     return render(request, 'item_list.html', {'items': items, 'form': form, 'login_user':user_name})
 
-
+def pincode_item_list(request, pincode):
+    query = f'SELECT A.* FROM omsapp_item AS A INNER JOIN omsapp_customuser AS B ON A.userID_id=B.id AND B.userType=1 AND B.pinCode={pincode};'
+    with connection.cursor as cursor:
+        cursor.execute(query)
+        pincode_items = cursor.fetchall()
+    user_name = request.user.last_name
+    item_context = {'items':pincode_items, 'login_user':user_name}
+    return JsonResponse(item_context)
 #endregion
 
 #region cart management with session id (without login and with login)
@@ -686,7 +711,103 @@ def rejected_orders(request):
             user_name = request.user.last_name
         context = {'rejected_orders': rejected_orders, 'login_user':user_name}
         return render(request, 'orders_rejected.html', context=context)
-        
+
+@login_required
+def bulk_buy(request):
+    if request.user.is_authenticated:
+        user_name = request.user.last_name
+        user_type = USERTYPE_CHOICES(request.user.userType)
+        user_address = f"{request.user.userAddress} {request.user.userCity} {STATE_CHOICES(request.user.userState)} {request.user.pinCode}"
+        user_address1 = f"{request.user.userAddress1} {request.user.userCity1} {STATE_CHOICES(request.user.userState1)} {request.user.pinCode1}"
+        items = Item.objects.filter(itemActive=True).order_by('-itemInStock')
+    context = {
+        'rejected_orders': rejected_orders,
+        'clicked':'Bulk',
+        'login_user':user_name,
+        'user_type':user_type,
+        'user_address':user_address,
+        'user_address1':user_address1,
+        'items':items,
+        }
+    return render(request, 'bulk-buy.html', context=context)
+
+@login_required
+def bulk_buy_order_place(request):
+    if request.user.is_authenticated:
+        #for saving the bulk buy order
+        if request.method == "POST":
+            data = json.loads(request.body)
+            bulkBuyID = BulkBuy.objects.create(userID_id=request.user.pk)
+            for row in data.get("rows", []):
+                itemName = row.get("itemName")
+                itemSpec = row.get("itemSpec")
+                itemQty = row.get("itemQty")
+                itemPrice = row.get("itemPrice")
+                BulkBuyDetails.objects.create(bulkBuyID=bulkBuyID, itemName=itemName, itemSpec=itemSpec,itemQty=itemQty,itemPrice=itemPrice)
+
+        #for the displaying of user and other data in the bulk buy form
+    #     user_name = request.user.last_name
+    #     user_type = USERTYPE_CHOICES(request.user.userType)
+    #     user_address = f"{request.user.userAddress} {request.user.userCity} {STATE_CHOICES(request.user.userState)} {request.user.pinCode}"
+    #     user_address1 = f"{request.user.userAddress1} {request.user.userCity1} {STATE_CHOICES(request.user.userState1)} {request.user.pinCode1}"
+    #     items = Item.objects.filter(itemActive=True).order_by('-itemInStock')
+    # context = {
+    #     'rejected_orders': rejected_orders,
+    #     'clicked':'Bulk',
+    #     'login_user':user_name,
+    #     'user_type':user_type,
+    #     'user_address':user_address,
+    #     'user_address1':user_address1,
+    #     'items':items,
+    #     }
+    return redirect('bulk-buy')
+#endregion
+
+#region dropdown choices
+def USERTYPE_CHOICES(choice):
+    if choice == '1': return 'FPO'
+    elif choice == '2': return 'Business'
+    elif choice == '3': return 'Institution'
+    elif choice == '4': return 'Overseas'
+    else: return 'Individual'
+
+def STATE_CHOICES(state):
+    if state == '1': return 'Andhra Pradesh'
+    elif state == '2': return 'Arunachal Pradesh'
+    elif state == '3': return 'Assam'
+    elif state == '4': return 'Bihar'
+    elif state == '5': return 'Chhattisgarh'
+    elif state == '6': return 'Goa'
+    elif state == '7': return 'Gujarat'
+    elif state == '8': return 'Haryana'
+    elif state == '9': return 'Himachal Pradesh'
+    elif state == '10': return 'Jharkhand'
+    elif state == '11':return 'Karnataka'
+    elif state == '12': return 'Kerala'
+    elif state == '13': return 'Madhya Pradesh'
+    elif state == '14': return 'Maharashtra'
+    elif state == '15': return 'Manipur'
+    elif state == '16': return 'Meghalaya'
+    elif state == '17': return 'Mizoram'
+    elif state == '18': return 'Nagaland'
+    elif state == '19': return 'Odisha'
+    elif state == '20': return 'Punjab'
+    elif state == '21': return 'Rajasthan'
+    elif state == '22': return 'Sikkim'
+    elif state == '23': return 'Tamil Nadu'
+    elif state == '24': return 'Telangana'
+    elif state == '25': return 'Tripura'
+    elif state == '26': return 'Uttar Pradesh'
+    elif state == '27': return 'Uttarakhand'
+    elif state == '28': return 'West Bengal'
+    elif state == '29': return 'Andaman and Nicobar Islands [UT]'
+    elif state == '30': return 'Chandigarh [UT]'
+    elif state == '31': return 'Dadra and Nagar Haveli and Daman and Diu [UT]'
+    elif state == '32': return 'Delhi [UT]'
+    elif state == '33': return 'Jammu and Kashmir [UT]'
+    elif state == '34': return 'Ladakh [UT]'
+    elif state == '35': return 'Lakshadweep [UT]'
+    else: return 'Puducherry [UT]'
 #endregion
 
 #region Displayiing the already placed orders

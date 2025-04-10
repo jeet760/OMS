@@ -22,12 +22,16 @@ urlpatterns = [
     path('return-policy', views.returnpolicy, name='return-policy'),
     path('eula', views.eula, name='eula'),
     path('testimonials', views.testimonials, name='testimonials'),
-    
+
+    path('bulk-buy', views.bulk_buy, name='bulk-buy'),
+    path('bulk-buy/order', views.bulk_buy_order_place, name='bulk-buy-order'),
 
     path('register/', views.register, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('resetpassword/', views.reset_password, name='resetpassword'),
+    #path('admin-console/', views.admin_console, name='admin-console'),
+
     
     # path('products', views.index, name='index'),
     # path('products/cat/<str:category>', views.index, name='selectedcat'),

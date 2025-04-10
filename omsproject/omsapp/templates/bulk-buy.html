@@ -1,0 +1,159 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block bulk_buy %}
+<div class="contact-form spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="contact__form__title">
+                    <h2>Bulk Buy</h2>
+                </div>
+            </div>
+        </div>
+        <form action="#" method="post">
+          {% csrf_token %}
+            <div class="row">
+                <div class="col-lg-6 col-md-6">
+                    <input type="text" placeholder="Customer Name" value="{{login_user}}">
+                </div>
+                <div class="col-lg-6 col-md-6">
+                    <input type="text" placeholder="Customer Type" value="{{user_type}}">
+                </div>
+                <div class="col-lg-6 text-center">
+                    <textarea placeholder="Shipping Address" id="txtShipping">{{user_address}}</textarea>
+                    <label for="cb_sameAddress">
+                      <input type="checkbox" id="cb_sameAddress" onclick="addressClick()" style="height: 15px; width: 15px;">
+                      Bill to same address?                      
+                      <span class="checkmark"></span>
+                    </label>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <textarea placeholder="Billing Address" id="txtBilling">{{user_address1}}</textarea>
+                </div>
+                <div class="col-lg-12 text-center">
+                    <table id="itemsTable" style="border-style: solid; border: 1;">
+                        <thead  style="border-style: solid;">
+                          <tr>
+                            <th>Item Name</th>
+                            <th>Specification</th>
+                            <th>Quantity</th>
+                            <th>Indicative Price</th>
+                            <th>Actions</th>
+                          </tr>
+                          <tr>
+                            <th>
+                              <select id="selectItems" name="selectItems" style="font-size: 12px; height: 30px; width: 130px;">
+                                  {% for item in items %}
+                                  <option value="{{item.itemName}}">
+                                      {{item.itemName}}
+                                  </option>
+                                  {% endfor %}
+                              </select>
+                            </th>
+                            <th>
+                              <input type="text" id="txtSpec">
+                            </th>
+                            <th>
+                              <input type="text" id="txtQty">
+                            </th>
+                            <th>
+                              <input type="text" id="txtPrice">
+                            </th>
+                            <th>
+                              <button type="button" onclick="addRow()">Add Item</button>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                          <!-- Dynamic rows will be added here -->
+                        </tbody>
+                      </table>
+                </div>
+                <div class="col-lg-12 text-center">
+                    <button class="site-btn" onclick="sendTableToServer()">SUBMIT</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+  function sendTableToServer() {
+    const table = document.getElementById("itemsTable").getElementsByTagName("tbody")[0];
+    const rows = [];
+
+    for (let row of table.rows) {
+      const itemName = row.cells[0].textContent;
+      const itemSpec = row.cells[1].textContent;
+      const itemQty = row.cells[2].textContent;
+      const itemPrice = row.cells[3].textContent;
+      rows.push({ itemName, itemSpec, itemQty, itemPrice });
+    }
+
+    fetch('bulk-buy/order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')  // use this in production
+      },
+      body: JSON.stringify({ rows })
+    })
+    .then(response => response.json())
+    .then(data => alert(data.message))
+    .catch(error => console.error('Error:', error));
+  }
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+
+
+
+    function addRow() {
+      const item = document.getElementById('selectItems');
+      const spec = document.getElementById('txtSpec');
+      const qty = document.getElementById('txtQty');
+      const price = document.getElementById('txtPrice');
+      const tableBody = document.getElementById('tableBody');
+      const row = document.createElement('tr');
+      //var item = row.cells[0].value;
+      row.innerHTML = `
+        <td><label>`+item.value+`</label></td>
+        <td><label>`+spec.value+`</label></td>
+        <td><label>`+qty.value+`</label></td>
+        <td><label>`+price.value+`</label></td>
+        <td><button type="button" onclick="removeRow(this)">Delete</button></td>
+      `;
+      tableBody.appendChild(row);
+    }
+
+    function removeRow(button) {
+      const row = button.closest('tr');
+      row.remove();
+    }
+
+    function addressClick(){      
+       var cb_sameAddress = document.getElementById('cb_sameAddress');
+       if(cb_sameAddress.checked)
+          {
+            document.getElementById('txtBilling').value = document.getElementById('txtShipping').value;
+          }
+       else
+          {
+            document.getElementById('txtBilling').value = "";
+          }
+    }
+  </script>
+
+{% endblock %}
