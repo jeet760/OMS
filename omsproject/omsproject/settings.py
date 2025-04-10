@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-&l%@!&l0bq-ab^rvj_&se)2pkv)a+uv$#fdo5x$fn@maze42h!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1','3.7.69.40']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','3.7.69.40', 'farmerharvest.in', 'www.farmerharvest.in']
 
 
 # Application definition
@@ -122,6 +122,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'omsapp/templates/static')]
 
 # Default primary key field type
