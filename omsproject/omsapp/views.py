@@ -744,22 +744,6 @@ def bulk_buy_order_place(request):
                 itemQty = row.get("itemQty")
                 itemPrice = row.get("itemPrice")
                 BulkBuyDetails.objects.create(bulkBuyID=bulkBuyID, itemName=itemName, itemSpec=itemSpec,itemQty=itemQty,itemPrice=itemPrice)
-
-        #for the displaying of user and other data in the bulk buy form
-    #     user_name = request.user.last_name
-    #     user_type = USERTYPE_CHOICES(request.user.userType)
-    #     user_address = f"{request.user.userAddress} {request.user.userCity} {STATE_CHOICES(request.user.userState)} {request.user.pinCode}"
-    #     user_address1 = f"{request.user.userAddress1} {request.user.userCity1} {STATE_CHOICES(request.user.userState1)} {request.user.pinCode1}"
-    #     items = Item.objects.filter(itemActive=True).order_by('-itemInStock')
-    # context = {
-    #     'rejected_orders': rejected_orders,
-    #     'clicked':'Bulk',
-    #     'login_user':user_name,
-    #     'user_type':user_type,
-    #     'user_address':user_address,
-    #     'user_address1':user_address1,
-    #     'items':items,
-    #     }
     return redirect('bulk-buy')
 #endregion
 
