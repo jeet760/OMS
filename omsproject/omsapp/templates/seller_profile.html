@@ -11,7 +11,12 @@
                 <label for="userType">User Type</label>
             </div>
             <div class="col-30">
-                {{userform.userType}}
+                {% if userform.userType == '1' %}FPO
+                {% elif userform.userType == '2' %}Business
+                {% elif userform.userType == '3' %}Institution
+                {% elif userform.userType == '4' %}Overseas
+                {% else %}Individual
+                {% endif %}
             </div>
             <div class="col-20">
                 <label for="first_name">Name</label>
@@ -70,13 +75,54 @@
                 <label for="supply_place">Place of Supply</label>
             </div>
             <div class="col-30">
-                {{userform.supply_place}}
+                {% if userform.supply_place == '1' %}Andhra Pradesh
+                {% elif userform.supply_place == '2' %}Arunachal Pradesh
+                {% elif userform.supply_place == '3' %}Assam
+                {% elif userform.supply_place == '4' %}Bihar
+                {% elif userform.supply_place == '5' %}Chhattisgarh
+                {% elif userform.supply_place == '6' %}Goa
+                {% elif userform.supply_place == '7' %}Gujarat
+                {% elif userform.supply_place == '8' %}Haryana
+                {% elif userform.supply_place == '9' %}Himachal Pradesh
+                {% elif userform.supply_place == '10' %}Jharkhand
+                {% elif userform.supply_place == '11' %}Karnataka
+                {% elif userform.supply_place == '12' %}Kerala
+                {% elif userform.supply_place == '13' %}Madhya Pradesh
+                {% elif userform.supply_place == '14' %}Maharashtra
+                {% elif userform.supply_place == '15' %}Manipur
+                {% elif userform.supply_place == '16' %}Meghalaya
+                {% elif userform.supply_place == '17' %}Mizoram
+                {% elif userform.supply_place == '18' %}Nagaland
+                {% elif userform.supply_place == '19' %}Odisha
+                {% elif userform.supply_place == '20' %}Punjab
+                {% elif userform.supply_place == '21' %}Rajasthan
+                {% elif userform.supply_place == '22' %}Sikkim
+                {% elif userform.supply_place == '23' %}Tamil Nadu
+                {% elif userform.supply_place == '24' %}Telangana
+                {% elif userform.supply_place == '25' %}Tripura
+                {% elif userform.supply_place == '26' %}Uttar Pradesh
+                {% elif userform.supply_place == '27' %}Uttarakhand
+                {% elif userform.supply_place == '28' %}West Bengal
+                {% elif userform.supply_place == '29' %}Andaman and Nicobar Islands [UT]
+                {% elif userform.supply_place == '30' %}Chandigarh [UT]
+                {% elif userform.supply_place == '31' %}Dadra and Nagar Haveli and Daman and Diu [UT]
+                {% elif userform.supply_place == '32' %}Delhi [UT]
+                {% elif userform.supply_place == '33' %}Jammu and Kashmir [UT]
+                {% elif userform.supply_place == '34' %}Ladakh [UT]
+                {% elif userform.supply_place == '35' %}Lakshadweep [UT]
+                {% else %}Puducherry [UT]
+                {% endif %}
             </div>
             <div class="col-20">
                 <label for="gst_tmt">GST Treatment</label>
             </div>
             <div class="col-30">
-                {{userform.gst_tmt}}
+                {{userform.}}
+                {% if userform.gst_tmt == '1' %}Registered Business (Regular)
+                {% elif userform.gst_tmt == '2' %}Registered Business (Composition)
+                {% elif userform.gst_tmt == '3' %}Unregistered Business
+                {% else %} Individual
+                {% endif %}
             </div>
             </div>
         </div>
@@ -103,7 +149,43 @@
                 <label for="userState">State</label>
             </div>
             <div class="col-30">
-                {{userform.userState}}
+                {% if userform.userState == '1' %}Andhra Pradesh
+                {% elif userform.userState == '2' %}Arunachal Pradesh
+                {% elif userform.userState == '3' %}Assam
+                {% elif userform.userState == '4' %}Bihar
+                {% elif userform.userState == '5' %}Chhattisgarh
+                {% elif userform.userState == '6' %}Goa
+                {% elif userform.userState == '7' %}Gujarat
+                {% elif userform.userState == '8' %}Haryana
+                {% elif userform.userState == '9' %}Himachal Pradesh
+                {% elif userform.userState == '10' %}Jharkhand
+                {% elif userform.userState == '11' %}Karnataka
+                {% elif userform.userState == '12' %}Kerala
+                {% elif userform.userState == '13' %}Madhya Pradesh
+                {% elif userform.userState == '14' %}Maharashtra
+                {% elif userform.userState == '15' %}Manipur
+                {% elif userform.userState == '16' %}Meghalaya
+                {% elif userform.userState == '17' %}Mizoram
+                {% elif userform.userState == '18' %}Nagaland
+                {% elif userform.userState == '19' %}Odisha
+                {% elif userform.userState == '20' %}Punjab
+                {% elif userform.userState == '21' %}Rajasthan
+                {% elif userform.userState == '22' %}Sikkim
+                {% elif userform.userState == '23' %}Tamil Nadu
+                {% elif userform.userState == '24' %}Telangana
+                {% elif userform.userState == '25' %}Tripura
+                {% elif userform.userState == '26' %}Uttar Pradesh
+                {% elif userform.userState == '27' %}Uttarakhand
+                {% elif userform.userState == '28' %}West Bengal
+                {% elif userform.userState == '29' %}Andaman and Nicobar Islands [UT]
+                {% elif userform.userState == '30' %}Chandigarh [UT]
+                {% elif userform.userState == '31' %}Dadra and Nagar Haveli and Daman and Diu [UT]
+                {% elif userform.userState == '32' %}Delhi [UT]
+                {% elif userform.userState == '33' %}Jammu and Kashmir [UT]
+                {% elif userform.userState == '34' %}Ladakh [UT]
+                {% elif userform.userState == '35' %}Lakshadweep [UT]
+                {% else %}Puducherry [UT]
+                {% endif %}
             </div>
             <div class="col-20">
                 <label for="pinCode">PIN Code</label>
@@ -136,7 +218,43 @@
                 <label for="userState1">State</label>
             </div>
             <div class="col-30">
-                {{userform.userState1}}
+                {% if userform.userState1 == '1' %}Andhra Pradesh
+                {% elif userform.userState1 == '2' %}Arunachal Pradesh
+                {% elif userform.userState1 == '3' %}Assam
+                {% elif userform.userState1 == '4' %}Bihar
+                {% elif userform.userState1 == '5' %}Chhattisgarh
+                {% elif userform.userState1 == '6' %}Goa
+                {% elif userform.userState1 == '7' %}Gujarat
+                {% elif userform.userState1 == '8' %}Haryana
+                {% elif userform.userState1 == '9' %}Himachal Pradesh
+                {% elif userform.userState1 == '10' %}Jharkhand
+                {% elif userform.userState1 == '11' %}Karnataka
+                {% elif userform.userState1 == '12' %}Kerala
+                {% elif userform.userState1 == '13' %}Madhya Pradesh
+                {% elif userform.userState1 == '14' %}Maharashtra
+                {% elif userform.userState1 == '15' %}Manipur
+                {% elif userform.userState1 == '16' %}Meghalaya
+                {% elif userform.userState1 == '17' %}Mizoram
+                {% elif userform.userState1 == '18' %}Nagaland
+                {% elif userform.userState1 == '19' %}Odisha
+                {% elif userform.userState1 == '20' %}Punjab
+                {% elif userform.userState1 == '21' %}Rajasthan
+                {% elif userform.userState1 == '22' %}Sikkim
+                {% elif userform.userState1 == '23' %}Tamil Nadu
+                {% elif userform.userState1 == '24' %}Telangana
+                {% elif userform.userState1 == '25' %}Tripura
+                {% elif userform.userState1 == '26' %}Uttar Pradesh
+                {% elif userform.userState1 == '27' %}Uttarakhand
+                {% elif userform.userState1 == '28' %}West Bengal
+                {% elif userform.userState1 == '29' %}Andaman and Nicobar Islands [UT]
+                {% elif userform.userState1 == '30' %}Chandigarh [UT]
+                {% elif userform.userState1 == '31' %}Dadra and Nagar Haveli and Daman and Diu [UT]
+                {% elif userform.userState1 == '32' %}Delhi [UT]
+                {% elif userform.userState1 == '33' %}Jammu and Kashmir [UT]
+                {% elif userform.userState1 == '34' %}Ladakh [UT]
+                {% elif userform.userState1 == '35' %}Lakshadweep [UT]
+                {% else %}Puducherry [UT]
+                {% endif %}
             </div>
             <div class="col-20">
                 <label for="pinCode1">PIN Code</label>

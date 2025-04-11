@@ -855,13 +855,15 @@ def dashboard(request):
     invoiced_orders = Order.objects.filter(orderStatus = 'Invoiced').__len__()
     delivered_orders = Order.objects.filter(orderStatus = 'Delivered').__len__()
     rejected_orders = Order.objects.filter(orderStatus = 'Rejected').__len__()
+    bulk_buy_orders = BulkBuy.objects.all().__len__()
     dashboard_context = {
         'total_items':total_items,
         'total_orders_made':total_orders_made,
         'invoiced_orders': invoiced_orders,
         'pending_orders':pending_orders,
         'rejected_orders':rejected_orders,
-        'delivered_orders':delivered_orders
+        'delivered_orders':delivered_orders,
+        'bulk_buy':bulk_buy_orders
     }
     return render(request, 'dashboard.html', {'dashboard':dashboard_context, 'login_user':user_name})
 
