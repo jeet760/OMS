@@ -44,7 +44,7 @@
                         <li><a href="./blog-details.html">Blog Details</a></li>
                     </ul>
                 </li> -->
-                <li class="{% if clicked == 'Blog' %} active {% endif %}"><a href="{% url 'blog' %}">Blog</a></li>
+                <li class="{% if clicked == 'Bulk' %} active {% endif %}"><a href="{% url 'bulk-buy' %}">Bulk Buy</a></li>
                 <li class="{% if clicked == 'Contact' %} active {% endif %}"><a href="{% url 'contact' %}">Contact</a></li>
             </ul>
         </nav>
@@ -141,6 +141,7 @@
                 <div class="col-lg-3">
                     <div class="header__cart">
                         <ul>
+                            <li><a onclick="getPinCode()"><i class="fa fa-map-marker"></i> Select Location</a></li>
                             <li><a href="{% url 'shoppingcart' %}"><i class="fa fa-shopping-bag"></i> <span>{{total_qty}}</span></a></li>
                         </ul>
                         <div class="header__cart__price">Amount: <span>₹ {{total_price}}/-</span></div>
@@ -153,4 +154,16 @@
         </div>
     </header>
     <!-- Header Section End -->
+     <script>
+        function getPinCode(){
+            pinCode = prompt('Please enter Pin Code:');
+            if(pinCode != '' && pinCode!= null){
+                var baseURL = window.location.origin+"/shop/zip/";
+                //alert(baseURL);
+                var newURL = baseURL+pinCode;
+                //alert(newURL);
+                window.location.href = newURL;
+            }
+        }
+     </script>
  {% endblock %}

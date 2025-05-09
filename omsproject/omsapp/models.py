@@ -174,8 +174,8 @@ class CartItem(Model):
 #region Order Model, Invoice Model, Delivery Model
 class Order(Model):
     orderID = AutoField(primary_key=True)
-    orderNo = CharField(max_length=10)
-    orderDate = DateField(default=datetime.date.today)
+    orderNo = CharField(max_length=11)
+    orderDate = DateTimeField(auto_now_add=True)
     orderStatus = CharField(max_length=25, default='Pending Order')
     orderAmount = FloatField()
     orderGSTAmount = FloatField()
@@ -184,13 +184,24 @@ class Order(Model):
     schDeliveryDate = CharField(max_length=10, default=None, null=True)
     schDeliveryTime = CharField(max_length=10, default=None, null=True)
     remark = CharField(max_length=20, default=None, null=True)
-    userID = ForeignKey(CustomUser, on_delete=CASCADE)
+    userID = ForeignKey(CustomUser, on_delete=CASCADE, related_name='customer')#customer who ordered
     def __str__(self):
         return f"{self.orderID}"
-    
+
+class SubOrder(Model):
+    suborderID = AutoField(primary_key=True)
+    orderID = ForeignKey(Order, on_delete=CASCADE, related_name='suborders')
+    vendorID = ForeignKey(CustomUser, on_delete=CASCADE, related_name='vendor_orders')
+    customerID = ForeignKey(CustomUser, on_delete=CASCADE, related_name='customer_orders')
+    orderStatus = CharField(max_length=25, default='Pending Order')
+    remark = CharField(max_length=20, default=None, null=True)
+    def __str__(self):
+        return self.suborderID
+
 class OrderDetails(Model):
-    orderID = ForeignKey(Order, on_delete=CASCADE)
-    itemID = ForeignKey(Item, on_delete=CASCADE)
+    orderID = ForeignKey(Order, on_delete=CASCADE,related_name='orderdetails')
+    suborderID = ForeignKey(SubOrder, on_delete=CASCADE, null=True, related_name='orderdetails')
+    itemID = ForeignKey(Item, on_delete=CASCADE, related_name='orderdetails')
     itemQty = IntegerField()
     itemPrice = FloatField()
     itemGST = FloatField()
@@ -228,32 +239,49 @@ class Delivery(Model):
 #region Bulk Buy Model
 class BulkBuy(Model): 
     bulkBuyID = AutoField(primary_key=True)
-    bulkBuyNo = CharField(max_length=10, default='0000000000')
+    bulkBuyNo = CharField(max_length=11, default='0000000000')
     bulkBuyDate = DateField(default=datetime.date.today)
-    userID = ForeignKey(CustomUser, on_delete=CASCADE)
+    bulkBuyExpDate = DateField(null=True)
+    userID = ForeignKey(CustomUser, on_delete=CASCADE) #customer who has placed the bulk order
+    response_accept = BooleanField(null=True) #True when bulk buy offer of the vendor is accepted by the customer
     def __str__(self):
         return f"{self.bulkBuyID}"
     
 class BulkBuyDetails(Model):
     bbdID = AutoField(primary_key=True)#bbd:bulkbuydetails
-    bulkBuyID = ForeignKey(BulkBuy, on_delete=CASCADE)
+    bulkBuyID = ForeignKey(BulkBuy, on_delete=CASCADE, related_name='bulkbuyid_bbd')
     itemName = CharField(max_length=20)
     itemSpec = CharField(max_length=100)
     itemPrice = FloatField()
     itemQty = IntegerField()
+    itemUnit=CharField(max_length=10, null=True)
 
     def __str__(self):
         return f"{self.bbdID}"
 
 class BulkBuyResponse(Model):
-    bulkBuyID = ForeignKey(BulkBuy, on_delete=CASCADE)
-    bbdID = ForeignKey(BulkBuyDetails, on_delete=CASCADE)
+    bbrID = AutoField(primary_key=True)
+    bulkBuyID = ForeignKey(BulkBuy, on_delete=CASCADE, related_name='bulkbuyid_bbr')
     response_userID = ForeignKey(CustomUser, on_delete=CASCADE)
     response_date = DateField(default=datetime.date.today)
-    response_status = BooleanField()
+    response_remark = CharField(max_length=250, default='Pending') #response from the customer whether to accept or not
+    response_status = BooleanField() #responded from the vendor
+    response_remark_date=DateTimeField(null=True)
 
     def __str__(self):
-        return f"{self.bulkBuyID}"
+        return f"{self.bbrID}"
+
+class BulkBuyResponseDetails(Model):
+    bbrdID = AutoField(primary_key=True)
+    bbrID = ForeignKey(BulkBuyResponse, on_delete=CASCADE, related_name='bulkbuyid_bbrd')
+    bbdID = ForeignKey(BulkBuyDetails, on_delete=CASCADE)
+    itemPrice_indicative = FloatField()
+    itemPrice_response = FloatField()
+    itemQty_indicative = IntegerField(default=0)
+    itemQty_response = IntegerField(default=0)
+    
+    def __str__(self):
+        return f"{self.bbrdID}"
 
 #region Notification Model
 class Notification(Model):

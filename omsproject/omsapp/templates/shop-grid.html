@@ -121,6 +121,7 @@
                     </div>
                 </div>
                 <div class="col-lg-9 col-md-7">
+                    {% if pincode_area != '' %}<p>Showing Products from <strong>{{pincode_area}}</strong></p>{% else %}{% endif %}
                     <!-- <div class="product__discount">
                         <div class="section-title product__discount__title">
                             <h2>Sale Off</h2>
@@ -153,10 +154,11 @@
                         <div class="row">
                             <div class="col-lg-4 col-md-5">
                                 <div class="filter__sort">
-                                    <span>Sort By</span>
+                                    <span>Sort By Price</span>
                                     <select>
                                         <option value="0">Default</option>
-                                        <option value="0">Default</option>
+                                        <option value="1">Low to High</option>
+                                        <option value="2">High to Low</option>
                                     </select>
                                 </div>
                             </div>

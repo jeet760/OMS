@@ -10,6 +10,7 @@ urlpatterns = [
     path('shop', views.shop, name='shop'),
     path('shop/cat/<str:category>', views.shop, name='shop-cat'),
     path('shop/fpo/<str:fpo>', views.shop, name='shop-fpo'),
+    path('shop/zip/<str:region>', views.shop, name='shop-zip'),
     path('shopdetails/<str:item_id>',views.shop_details, name='shopdetails'),
     path('shoppingcart', views.shopping_cart, name='shoppingcart'),
     path('contact', views.contact, name='contact'),
@@ -25,6 +26,15 @@ urlpatterns = [
 
     path('bulk-buy', views.bulk_buy, name='bulk-buy'),
     path('bulk-buy/order', views.bulk_buy_order_place, name='bulk-buy-order'),
+    path('bulk-buy/response/<int:bulkBuyID>/', views.bulk_buy_order_response, name='bulk-buy-order-response'),
+    path('bulk-buy/response/details/<int:bulkBuyID>/<int:response_userID>', views.bulk_buy_order_response_details, name='bulk-buy-order-response-details'),
+    path('bulk-buy-supply/', views.bulk_buy_supply, name='bulk-buy-supply'),
+    path('bulk-buy-supply/<int:bulk_order_id>/', views.bulk_buy_details, name='bulk-buy-details'),
+    path('bulk-buy-bid', views.bulk_buy_supply_bid, name='bulk-buy-bid'),
+    path('bulk-buy-orders', views.bulk_buy_orders, name='bulk-buy-orders'),
+    path('bulk-buy-response/', views.bulk_buy_response, name='bulk-buy-response'),
+    path('bulk-buy-response/<int:bbr_id>/', views.bulk_buy_response_details, name='bulk-buy-response-details'),
+    path('bulk-buy/response/accept/<int:bulkBuyID>/<int:response_userID>', views.bulk_buy_response_accept, name='bulk-buy-response-accept'),
 
     path('register/', views.register, name='register'),
     path('login/', views.login_view, name='login'),

@@ -19,25 +19,25 @@
             <tr>
                 <td>{{forloop.counter}}</td>
                 <td>
-                    {{order.0}}
+                    {{order.orderNo}}
                 </td>
                 <td>
-                    {{order.1}}
+                    {{order.orderDate}}
                 </td>
                 <td>
-                    {{order.2}}
+                    {{order.schDeliveryDate}}
                 </td>
                 <td>
-                    {{order.3}}
+                    {{order.schDeliveryTime}}
                 </td>
                 <td>
-                    {{order.4}}
+                    {{order.orderStatus}}
                 </td>
                 <td>
-                    {{order.5}}
+                    {{order.userID.first_name}}
                 </td>
                 <td>
-                    <a class="btn btn-info btn-sm" href="{% url 'receivedorderdetails' order.6 %}">View</a>
+                    <a class="btn btn-info btn-sm" href="{% url 'receivedorderdetails' order.orderID %}">View</a>
                 </td>
             </tr>
             {% endfor %}

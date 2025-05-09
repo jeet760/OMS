@@ -2,13 +2,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.contrib import messages
 from django.db import connection
-from django.db.models import Q, Max, Min, Sum
+from django.db.models import Q, Max, Min, Sum, Count, OuterRef, Subquery, F
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from datetime import datetime
 import json
-from .models import CustomUser, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, Invoice, BulkBuy, BulkBuyDetails, BulkBuyResponse
+import requests
+from .models import CustomUser, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, Invoice, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder
 from .forms import ItemForm, UserRegistrationForm, UserLoginForm, OrderForm, OrderDetailsForm, InvoiceForm
 from django.contrib.gis.geoip2 import GeoIP2
 from .cart import Cart
@@ -81,15 +82,14 @@ def landing_page(request, category=None,fpo=None, region=None):
 
 def shop(request, category=None, fpo=None, region=None):
     items = Item.objects.filter(itemActive=True).order_by('-itemInStock')
+    pincode_area = ''
     if category is not None:
         items = Item.objects.filter(itemCat=category)
     if fpo is not None:
         items = Item.objects.filter(userID_id=fpo)
     if region is not None:
-        regionQuery = f"SELECT A.* FROM omsapp_item A INNER JOIN omsapp_customuser B ON A.userID_id = B.id AND B.userCity='{region}'"
-        with connection.cursor() as regionCursor:
-            regionCursor.execute(regionQuery)
-            items = regionCursor.fetchall()
+        items = Item.objects.filter(userID_id__pinCode=region)
+        pincode_area = PinCodeAPI(region)
     form = ItemForm()
     user_name = 'Guest!'#display the username
     if request.user.is_authenticated:
@@ -112,8 +112,15 @@ def shop(request, category=None, fpo=None, region=None):
                         'total_price':total_price,
                         'min_price':min_price,
                         'max_price':max_price,
+                        'pincode_area':pincode_area,
                         'clicked':'Shop'}
     return render(request, 'shop-grid.html', shop_page_context)
+
+def PinCodeAPI(pincode):
+    api_response = requests.get(f'https://api.postalpincode.in/pincode/{pincode}') 
+    postalData = api_response.json()
+    postoffice_data = postalData[0]['PostOffice']
+    return postoffice_data[0]['Name']+", "+postoffice_data[0]['Block']
 
 def shop_details(request, item_id):
     item = get_object_or_404(Item,pk=item_id)
@@ -129,16 +136,29 @@ def shopping_cart(request):
     user_name = 'Guest!'
     if request.user.is_authenticated:
         user_name = request.user.last_name
-    return render(request, 'shopping-cart.html', {'cart': cart, 'total_qty':total_qty, 'total_price':total_price, 'user_authenticated':request.user.is_authenticated, 'dateSeries':ds.dateSeries, 'timeSeries':ds.timeSeries, 'login_user':user_name})
+    shopping_cart_context = {
+        'cart': cart, 
+        'total_qty':total_qty, 
+        'total_price':total_price, 
+        'user_authenticated':request.user.is_authenticated, 
+        'dateSeries':ds.dateSeries, 
+        'timeSeries':ds.timeSeries, 
+        'login_user':user_name
+    }
+    return render(request, 'shopping-cart.html', context=shopping_cart_context)
 
 def contact(request):
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
     total_price = cart.get_total_price()
+    user_name = 'Guest!'
+    if request.user.is_authenticated:
+        user_name = request.user.last_name
     contact_context = {
         'clicked':'Contact',
         'total_qty':total_qty,
-        'total_price':total_price
+        'total_price':total_price,
+        'login_user':user_name
     }
     return render(request, 'contact.html', contact_context)
 
@@ -276,7 +296,17 @@ def register(request):
             form = UserRegistrationForm()#new register point: opening the registratino page without login
             user_name = 'Guest!'
             pass    
-    return render(request, 'register.html', {'userform': form, 'login_user':user_name})
+    
+    cart = Cart(request)
+    total_qty = cart.__len__()#display total number quantities added in the basket
+    total_price = cart.get_total_price()
+    register_context = {
+        'userform': form,
+        'login_user':user_name,
+        'total_qty':total_qty,
+        'total_price':total_price
+    }
+    return render(request, 'register.html', context=register_context)
 
 def login_view(request):
     if request.method == 'POST':
@@ -507,8 +537,8 @@ def CreateOrder(request, param_total_quantity, param_total_price, param_gst_amou
                 fetched_order_id = 1
 
             dict_order_invoice = create_order_invoice(fetched_order_id, fetched_invoice_no, user_id)
-            view_orderNo = dict_order_invoice['orderNo']
-            view_orderDate = datetime.today()
+            view_orderNo = dict_order_invoice['orderNo']+'N'
+            view_orderDate = datetime.now()
             view_orderStatus = 'Pending Order'
             view_orderAmount = param_total_price
             view_orderGSTAmount = param_gst_amount
@@ -546,8 +576,21 @@ def SaveOrderDetails(request,param_orderID,param_user_id):
         #cart_id = Cart.objects.filter(user_id=param_user_id)[0]
         cart_items =  Cart(request) #CartItem.objects.filter(cart_id=cart_id)
         try:
+            vendor_ids = []
+            suborderID=0
             for eachitem in cart_items:
+                if [param_orderID, eachitem['product'].userID_id, param_user_id.pk] not in vendor_ids:
+                    vendor_ids.append([param_orderID, eachitem['product'].userID_id, param_user_id.pk])
+                    SubOrder.objects.create(
+                        orderID_id = param_orderID,
+                        vendorID_id = eachitem['product'].userID_id,
+                        customerID_id = param_user_id.pk
+                    )
+                    suborderID = SubOrder.objects.all().latest('suborderID').suborderID
+                else:
+                    suborderID = SubOrder.objects.get(orderID_id = param_orderID, vendorID_id = eachitem['product'].userID_id, customerID_id=param_user_id.pk).suborderID
                 OrderDetails.objects.create(
+                    suborderID_id = suborderID,
                     orderID_id = param_orderID,
                     itemID_id = eachitem['product'].itemID,
                     itemQty = eachitem['quantity'],
@@ -580,11 +623,8 @@ def billing(request):
 @login_required
 def ReceivedOrders(request):    
     if request.user.pk is not None:
-        query = f"SELECT DISTINCT orderNo, orderDate, schDeliveryDate, schDeliveryTime, A.orderStatus, first_name, orderID FROM omsapp_order AS A INNER JOIN omsapp_orderdetails AS B ON A.orderID=B.orderID_id INNER JOIN omsapp_item AS C ON B.itemID_id=C.itemID AND C.userID_id={request.user.id} INNER JOIN omsapp_customuser AS D ON D.id=A.userID_id"
-        with connection.cursor() as cursor:
-            cursor.execute(query)
-            received_orders = cursor.fetchall()
-            user_name = request.user.last_name
+        received_orders = Order.objects.all()
+        user_name = request.user.last_name
         context = {'received_orders': received_orders, 'login_user':user_name}
         return render(request, 'orders_received.html', context=context)
     else:
@@ -592,14 +632,18 @@ def ReceivedOrders(request):
 
 def received_orders_details(request, orderID):
     if request.user.pk is not None:
-        query = f"SELECT C.itemName, B.itemQty, B.itemPrice, B.id, B.orderID_id, B.remark, A.orderNo, A.remark, B.itemPricewithGST FROM omsapp_order AS A INNER JOIN omsapp_orderdetails AS B ON A.orderID=B.orderID_id AND A.orderID={orderID} INNER JOIN omsapp_item AS C ON B.itemID_id=C.itemID AND C.userID_id={request.user.id} INNER JOIN omsapp_customuser AS D ON D.id=A.userID_id"
-        with connection.cursor() as cursor:
-            cursor.execute(query)
-            received_orders = cursor.fetchall()
+        orderNo = Order.objects.get(orderID=orderID).orderNo
+        suborderID = SubOrder.objects.get(orderID_id=orderID, vendorID_id=request.user.pk).suborderID
+        received_orders = OrderDetails.objects.filter(suborderID_id=suborderID).select_related('itemID')
+        #received_orders = OrderDetails.objects.filter(orderdetails__orderID_id=orderID, orders__orderdetails__vendorID_id=request.user.pk)
+        # query = f"SELECT C.itemName, B.itemQty, B.itemPrice, B.id, B.orderID_id, B.remark, A.orderNo, A.remark, B.itemPricewithGST FROM omsapp_order AS A INNER JOIN omsapp_orderdetails AS B ON A.orderID=B.orderID_id AND A.orderID={orderID} INNER JOIN omsapp_item AS C ON B.itemID_id=C.itemID AND C.userID_id={request.user.id} INNER JOIN omsapp_customuser AS D ON D.id=A.userID_id"
+        # with connection.cursor() as cursor:
+        #     cursor.execute(query)
+        #     received_orders = cursor.fetchall()
         existing_invoices = Invoice.objects.filter(orderID=orderID)
         user_name = request.user.last_name
         invoiceForm = InvoiceForm()
-        context = {'received_orders': received_orders, 'login_user':user_name,'orderID':orderID, 'invoice':invoiceForm, 'existing_invoices':existing_invoices}
+        context = {'received_orders': received_orders, 'login_user':user_name, 'orderNo':orderNo, 'orderID':orderID, 'suborderID':suborderID, 'invoice':invoiceForm, 'existing_invoices':existing_invoices}
         return render(request, 'rcv_orderdetails.html', context=context)
     else:
         return render(request, 'rcv_orderdetails.html', {})
@@ -621,29 +665,30 @@ def recived_order_status_update(request, param_sub_order_id):
         else:
             jsonData = {'Success':False}
         
-        userID=request.user.pk
-        query_no_of_order_status = f"SELECT COUNT(B.orderStatus) FROM omsapp_order AS A INNER JOIN omsapp_orderdetails AS B ON A.orderID=B.orderID_id AND A.orderID=2 AND B.orderStatus<>'' INNER JOIN omsapp_item AS C ON B.itemID_id=C.itemID AND C.userID_id={userID} INNER JOIN omsapp_customuser AS D ON D.id=A.userID_id;"
-        query_no_of_items = f"SELECT COUNT(B.id) FROM omsapp_order AS A INNER JOIN omsapp_orderdetails AS B ON A.orderID=B.orderID_id AND A.orderID=2 INNER JOIN omsapp_item AS C ON B.itemID_id=C.itemID AND C.userID_id={userID} INNER JOIN omsapp_customuser AS D ON D.id=A.userID_id;"
-        with connection.cursor() as cursor:
-            cursor.execute(query_no_of_items)
-            no_of_items_fetched = cursor.fetchone()[0]
-            cursor.execute(query_no_of_order_status)
-            no_of_order_status = cursor.fetchone()[0]
-        if no_of_order_status == no_of_items_fetched:
-            order_update_status = Order.objects.filter(orderID=mainOrderID).update(remark='CheckedAll')
+        # userID=request.user.pk
+        # query_no_of_order_status = f"SELECT COUNT(B.orderStatus) FROM omsapp_order AS A INNER JOIN omsapp_orderdetails AS B ON A.orderID=B.orderID_id AND A.orderID=2 AND B.orderStatus<>'' INNER JOIN omsapp_item AS C ON B.itemID_id=C.itemID AND C.userID_id={userID} INNER JOIN omsapp_customuser AS D ON D.id=A.userID_id;"
+        # query_no_of_items = f"SELECT COUNT(B.id) FROM omsapp_order AS A INNER JOIN omsapp_orderdetails AS B ON A.orderID=B.orderID_id AND A.orderID=2 INNER JOIN omsapp_item AS C ON B.itemID_id=C.itemID AND C.userID_id={userID} INNER JOIN omsapp_customuser AS D ON D.id=A.userID_id;"
+        # with connection.cursor() as cursor:
+        #     cursor.execute(query_no_of_items)
+        #     no_of_items_fetched = cursor.fetchone()[0]
+        #     cursor.execute(query_no_of_order_status)
+        #     no_of_order_status = cursor.fetchone()[0]
+        # if no_of_order_status == no_of_items_fetched:
+        #     order_update_status = Order.objects.filter(orderID=mainOrderID).update(remark='CheckedAll')
         return JsonResponse(jsonData)#redirect('receivedorderdetails', orderID=mainOrderID)
 
 def received_order_status_all(request, param_order_id):
     if request.user.is_authenticated:
+        userid = request.user.pk
         status = request.resolver_match.url_name
         if status == 'acceptall':
-            update_status = OrderDetails.objects.filter(orderID=param_order_id).update(orderStatus='Accepted', remark='Accepted')
-            order_update_status = Order.objects.filter(orderID=param_order_id).update(orderStatus='Accepted', remark='CheckedAll')
+            update_status = OrderDetails.objects.filter(suborderID=param_order_id).select_related('itemID').filter(itemID__userID=userid).update(orderStatus='Accepted', remark='Accepted')
+            #order_update_status = Order.objects.filter(orderID=param_order_id).update(orderStatus='Accepted', remark='CheckedAll')
             return JsonResponse({'Success': True})
         elif status == 'rejectall':
             reject_remark = request.GET.get('reject_remark')
-            update_status = OrderDetails.objects.filter(orderID=param_order_id).update(orderStatus='Rejected', remark=reject_remark)
-            order_update_status = Order.objects.filter(orderID=param_order_id).update(orderStatus='Rejected', remark='CheckedAll')
+            update_status = OrderDetails.objects.filter(suborderID=param_order_id).select_related('itemID').filter(itemID__userID=userid).update(orderStatus='Rejected', remark=reject_remark)
+            #order_update_status = Order.objects.filter(orderID=param_order_id).update(orderStatus='Rejected', remark='CheckedAll')
             return JsonResponse({'Success':True})
         else:
             return JsonResponse({'Success':False})
@@ -719,7 +764,12 @@ def bulk_buy(request):
         user_type = USERTYPE_CHOICES(request.user.userType)
         user_address = f"{request.user.userAddress} {request.user.userCity} {STATE_CHOICES(request.user.userState)} {request.user.pinCode}"
         user_address1 = f"{request.user.userAddress1} {request.user.userCity1} {STATE_CHOICES(request.user.userState1)} {request.user.pinCode1}"
-        items = Item.objects.filter(itemActive=True).order_by('-itemInStock')
+        user_phone = request.user.phone
+        items = Item.objects.filter(itemActive=True).order_by('-itemInStock').values('itemName').distinct().order_by('itemName')
+        distinct_units = items.values('itemUnit').distinct().order_by('itemUnit')
+        cart = Cart(request)
+        total_qty = cart.__len__()#display total number quantities added in the basket
+        total_price = cart.get_total_price()
     context = {
         'rejected_orders': rejected_orders,
         'clicked':'Bulk',
@@ -727,7 +777,11 @@ def bulk_buy(request):
         'user_type':user_type,
         'user_address':user_address,
         'user_address1':user_address1,
+        'user_phone':user_phone,
+        'total_qty':total_qty,
+        'total_price':total_price,
         'items':items,
+        'distinct_units':distinct_units
         }
     return render(request, 'bulk-buy.html', context=context)
 
@@ -736,15 +790,166 @@ def bulk_buy_order_place(request):
     if request.user.is_authenticated:
         #for saving the bulk buy order
         if request.method == "POST":
+            user_id = request.user.pk
             data = json.loads(request.body)
-            bulkBuyID = BulkBuy.objects.create(userID_id=request.user.pk)
+            delivery_date = data.get('delivery_date')
+            try:
+                fetched_bulkbuy_id = BulkBuy.objects.all().latest('bulkBuyID').bulkBuyID
+            except:
+                fetched_bulkbuy_id = 1
+            dict_order_invoice = create_order_invoice(fetched_bulkbuy_id, 0, user_id)
+            bulk_buy_order_no = dict_order_invoice['orderNo']+'B'
+            bulkBuyID = BulkBuy.objects.create(userID_id=request.user.pk, bulkBuyExpDate=delivery_date, bulkBuyNo=bulk_buy_order_no)
             for row in data.get("rows", []):
                 itemName = row.get("itemName")
                 itemSpec = row.get("itemSpec")
                 itemQty = row.get("itemQty")
+                itemUnit = row.get("itemUnit")
                 itemPrice = row.get("itemPrice")
-                BulkBuyDetails.objects.create(bulkBuyID=bulkBuyID, itemName=itemName, itemSpec=itemSpec,itemQty=itemQty,itemPrice=itemPrice)
+                BulkBuyDetails.objects.create(bulkBuyID=bulkBuyID, itemName=itemName, itemSpec=itemSpec,itemQty=itemQty, itemUnit=itemUnit, itemPrice=itemPrice)
     return redirect('bulk-buy')
+
+def bulk_buy_order_response(request, bulkBuyID):
+    if request.user.is_authenticated:
+        user_name = request.user.last_name
+        bulkbuyresponses = BulkBuyResponse.objects.annotate(count_enquired_items=Count('bulkBuyID__bulkbuyid_bbd',distinct=True),count_response_items=Count('bulkbuyid_bbrd',distinct=True)).filter(bulkBuyID_id = bulkBuyID)
+        cart = Cart(request)
+        total_qty = cart.__len__()#display total number quantities added in the basket
+        total_price = cart.get_total_price()
+
+    response_context = {
+        'bulkbuyresponses':bulkbuyresponses,
+        'login_user':user_name,
+        'total_qty':total_qty,
+        'total_price':total_price,
+    }
+    return render(request, 'bulk-buy-order-response.html', context=response_context)
+
+def bulk_buy_order_response_details(request, bulkBuyID, response_userID):
+    if request.user.is_authenticated:
+        user_name = request.user.last_name
+        cart = Cart(request)
+        total_qty = cart.__len__()#display total number quantities added in the basket
+        total_price = cart.get_total_price()
+        order_details = BulkBuyResponse.objects.filter(bulkBuyID_id=bulkBuyID, response_userID_id=response_userID)[0]
+        response_remark = BulkBuyResponse.objects.get(bulkBuyID_id=bulkBuyID, response_userID_id=response_userID).response_remark
+        if BulkBuyResponse.objects.filter(bulkBuyID_id=bulkBuyID, response_remark='Accepted').__len__() > 0:
+            response_accepted = 'Yes'
+        else:
+            response_accepted = 'No'
+
+        # Filter BulkBuyResponse for matching bulkBuyID and response_userID
+        bulkbuy_response_qs = BulkBuyResponse.objects.filter(
+            bulkBuyID=bulkBuyID,
+            response_userID=response_userID)
+        # Prepare Subquery for response details → filter by bbrID (from response) & bbdID (from current detail)
+        response_details_qs = BulkBuyResponseDetails.objects.filter(
+            bbrID__in=bulkbuy_response_qs,
+            bbdID=OuterRef('pk')
+        ).values('itemPrice_response')[:response_userID]
+        # Main query: fetch BulkBuyDetails + annotate response price
+        response_details = BulkBuyDetails.objects.filter(
+            bulkBuyID=bulkBuyID
+        ).annotate(
+            itemPrice_response=Subquery(response_details_qs)
+        ).values(
+            'itemName', 'itemQty', 'itemUnit', 'itemPrice', 'itemPrice_response'
+        )
+        for row in response_details:
+            row['price_difference'] = (row['itemPrice_response'] or 0) - (row['itemPrice'] or 0)
+
+        response_details_context = {
+            'order_details':order_details,
+            'response_details':response_details,
+            'login_user':user_name,
+            'total_qty':total_qty,
+            'total_price':total_price,
+            'bulkBuyID':bulkBuyID,
+            'response_userID':response_userID,
+            'response_remark':response_remark,
+            'response_accepted':response_accepted
+        }
+    return render(request, 'bulk-buy-order-response-details.html', context=response_details_context)
+
+def bulk_buy_response_accept(request, bulkBuyID, response_userID):
+    BulkBuyResponse.objects.filter(bulkBuyID_id=bulkBuyID, response_userID_id=response_userID).update(response_remark='Accepted',response_remark_date=datetime.today())
+    BulkBuyResponse.objects.filter(bulkBuyID_id=bulkBuyID).exclude(response_userID_id=response_userID).update(response_remark='Not Accepted',response_remark_date=datetime.today())
+    return redirect('bulk-buy-orders')
+
+def bulk_buy_details(request, bulk_order_id):
+    if request.user.is_authenticated:
+        user_name = request.user.last_name
+        bulkbuy = BulkBuy.objects.filter(bulkBuyID=bulk_order_id)
+        bulkbuy_details = BulkBuyDetails.objects.filter(bulkBuyID=bulk_order_id)
+    bulk_buy_context = {
+        'bulkbuy':bulkbuy,
+        'bulk_buy_details':bulkbuy_details,
+        'login_user':user_name,
+        'bulkBuyID':bulk_order_id,
+        'user_id':request.user.pk
+    }
+    return render(request, 'bulk-buy-details.html', context = bulk_buy_context)
+
+def bulk_buy_supply(request):
+    if request.user.is_authenticated:
+        user_name = request.user.last_name
+        bulkorder = BulkBuy.objects.annotate(count_items=Count('bulkbuyid_bbd', distinct=True))
+    bulk_context = {
+        'bulkorders':bulkorder,
+        'login_user':user_name
+    }
+    return render(request, 'bulk-buy-supply.html', context=bulk_context)
+
+def bulk_buy_supply_bid(request):
+    if request.user.is_authenticated:
+        if request.method == 'POST':
+            data = json.loads(request.body)
+            bulkBuyID_id = data.get('bulkBuyID')
+            response_userID_id = request.user.pk
+            bbrobj = BulkBuyResponse.objects.create(bulkBuyID_id=bulkBuyID_id, response_userID_id=response_userID_id, response_status=True)
+            bbrID = bbrobj.pk
+            for row in data.get("rows", []):
+                bbdID_id = row.get('bbdid')
+                bulkBuyID_id =row.get('bulkBuyID')
+                ind_qty = row.get('ind_qty')
+                res_qty=row.get('res_qty')
+                ind_price=row.get('ind_price')
+                res_price=row.get('res_price')
+                BulkBuyResponseDetails.objects.create(bbrID_id=bbrID, bbdID_id=bbdID_id, itemPrice_indicative=ind_price, itemPrice_response=res_price, itemQty_indicative=ind_qty, itemQty_response=res_qty)
+    return JsonResponse({'redirect_url':'/bulk-buy-supply'})
+
+def bulk_buy_orders(request):
+    if request.user.is_authenticated:
+        #bulk_orders = BulkBuy.objects.filter(userID_id=request.user.pk)
+        bulk_orders = BulkBuy.objects.annotate(count_items=Count('bulkbuyid_bbd', distinct=True),count_responses=Count('bulkbuyid_bbr__response_userID_id', distinct=True)).filter(userID_id=request.user.pk)
+        user_name = request.user.last_name
+        cart = Cart(request)
+        total_qty = cart.__len__()#display total number quantities added in the basket
+        total_price = cart.get_total_price()
+        bulk_orders_context = {
+            'bulk_orders':bulk_orders,
+            'login_user':user_name,
+            'total_qty':total_qty,
+            'total_price':total_price
+        }
+    return render(request, 'bulk-buy-orders.html', context=bulk_orders_context)
+
+def bulk_buy_response(request):
+    user_name=request.user.last_name
+    bulkbuyresponse = BulkBuyResponse.objects.annotate(count_enquired_items=Count('bulkBuyID__bulkbuyid_bbd',distinct=True),count_response_items=Count('bulkbuyid_bbrd',distinct=True)).filter(response_userID_id=request.user.pk)
+    bulk_context = {
+        'bulkbuyresponse':bulkbuyresponse,
+        'login_user':user_name
+    }
+    return render(request, 'bulk-buy-response.html', context=bulk_context)
+
+def bulk_buy_response_details(request, bbr_id):
+    user_name=request.user.last_name
+    bulkbuyresponsedetails = BulkBuyResponseDetails.objects.filter(bbrID_id=bbr_id)
+    response_context = {
+        'response_details':bulkbuyresponsedetails
+    }
+    return render(request, 'bulk-buy-response-details.html', response_context)
 #endregion
 
 #region dropdown choices
@@ -801,7 +1006,15 @@ def PlacedOrders(request):
         orders = Order.objects.filter(userID=request.user.id)
         #invoices = Invoice.objects.select_related('orderID')
         user_name = request.user.last_name
-        render_context = {'placed_orders':orders, 'login_user':user_name}
+        cart = Cart(request)
+        total_qty = cart.__len__()#display total number quantities added in the basket
+        total_price = cart.get_total_price()
+        render_context = {
+            'placed_orders':orders,
+            'login_user':user_name,
+            'total_qty':total_qty,
+            'total_price':total_price
+        }
         return render(request, 'orders.html', context=render_context)
     else:
         return render(request,'orders.html',{})
@@ -815,7 +1028,16 @@ def placed_order_details(request,orderID):
     if request.user.is_authenticated:
         user_name = request.user.last_name
         #order_invoices = order_invoices(request, orderID)
-    render_context = {'order_details':order_details, 'login_user':user_name, 'invoices':invoice_details}
+    cart = Cart(request)
+    total_qty = cart.__len__()#display total number quantities added in the basket
+    total_price = cart.get_total_price()
+    render_context = {
+        'order_details':order_details,
+        'login_user':user_name,
+        'invoices':invoice_details,
+        'total_qty':total_qty,
+        'total_price':total_price
+    }
     return render(request, 'orderdetails.html', context=render_context)
 
 def order_invoices(request, order_id):
@@ -848,6 +1070,7 @@ def seller_profile(request):
 @login_required
 def dashboard(request):
     user_name = request.user.last_name
+    user_id = request.user.pk
     total_items = Item.objects.filter(userID_id=request.user.pk).__len__()
     item = Item.objects.filter(userID_id=request.user.pk)
     total_orders_made = Order.objects.all().__len__()
@@ -856,6 +1079,7 @@ def dashboard(request):
     delivered_orders = Order.objects.filter(orderStatus = 'Delivered').__len__()
     rejected_orders = Order.objects.filter(orderStatus = 'Rejected').__len__()
     bulk_buy_orders = BulkBuy.objects.all().__len__()
+    bulk_buy_orders_responded = BulkBuyResponse.objects.filter(response_userID_id=user_id).__len__()
     dashboard_context = {
         'total_items':total_items,
         'total_orders_made':total_orders_made,
@@ -863,7 +1087,8 @@ def dashboard(request):
         'pending_orders':pending_orders,
         'rejected_orders':rejected_orders,
         'delivered_orders':delivered_orders,
-        'bulk_buy':bulk_buy_orders
+        'bulk_buy':bulk_buy_orders,
+        'bulk_buy_response':bulk_buy_orders_responded
     }
     return render(request, 'dashboard.html', {'dashboard':dashboard_context, 'login_user':user_name})
 

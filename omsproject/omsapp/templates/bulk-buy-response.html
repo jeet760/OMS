@@ -1,0 +1,63 @@
+{% extends 'profile.html' %}
+{% load static %}
+{% block bulksupplyresponse %}
+<table class="table table-primary table-hover caption-top" id="allOrdersTable">
+    <caption><strong>Bulk Buy Enquiry Responses</strong></caption>
+    <thead>
+    <tr>
+        <th scope="col">#</th>
+        <th scope="col">Enquiry No.</th>
+        <th scope="col">Enquiry Placed On</th>
+        <th scope="col">Expected Delivery By</th>
+        <th scope="col">Responded On</th>
+        <th scope="col">Enquiry From</th>
+        <th scope="col">Phone</th>
+        <th scope="col">No. of Items Enquired</th>
+        <th scope="col">No. of Items Responded</th>
+        <th scope="col">Actions</th>
+    </tr>
+    </thead>
+    <tbody class="table table-hover table-group-divider">
+        {% for order in bulkbuyresponse %}
+        <tr>
+            <td>
+                {{forloop.counter}}
+            </td>
+            <td>
+                {{order.bulkBuyID.bulkBuyNo}}
+            </td>
+            <td>
+                {{order.bulkBuyID.bulkBuyDate}}
+            </td>
+            <td>
+                {{order.bulkBuyID.bulkBuyExpDate}}
+            </td>
+            <td>
+                {{order.response_date}}
+            </td>
+            <td>
+                {{order.bulkBuyID.userID.first_name}}
+            </td>
+            <td>
+                {{order.bulkBuyID.userID.phone}}
+            </td>
+            <td>
+                {{order.count_enquired_items}}
+            </td>
+            <td>
+                {{order.count_response_items}}
+            </td>
+            <td>
+                <a href="{% url 'bulk-buy-response-details' order.bbrID %}" class="btn btn-sm btn-info">View</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="10">
+                No response has been made for bulk buy yet!
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

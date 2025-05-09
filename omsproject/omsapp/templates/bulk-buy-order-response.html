@@ -1,0 +1,74 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block bulk_buy_orders_response %}
+<p><strong>Order #:{{bulkbuyresponses.0.bulkBuyID.bulkBuyNo}}</strong></p>
+<table class="table table-hover" id="bulkbuyDetailsTable">
+    <thead>
+        <tr>
+            <th>
+                Sl #
+            </th>
+            <th>
+                Responder's Name
+            </th>
+            <th>
+                Responded On
+            </th>
+            <th>
+                Indicative Quantity
+            </th>
+            <th>
+                Responded Quantity
+            </th>
+            <th>
+                Status
+            </th>
+            <th>
+                Action
+            </th>
+        </tr>
+    </thead>
+    <tbody class="table table-hover table-group-divider">
+        {% for response in bulkbuyresponses %}
+        <tr>
+            <td>
+                {{forloop.counter}}
+            </td>
+            <td>
+                {{response.response_userID.last_name}}
+            </td>
+            <td>
+                {{response.response_date}}
+            </td>
+            <td>
+                {{response.count_enquired_items}}
+            </td>
+            <td>
+                {{response.count_response_items}}
+            </td>
+            <td>
+                {{response.response_remark}}
+            </td>
+            <td>
+                <a href="{% url 'bulk-buy-order-response-details' response.bulkBuyID_id response.response_userID_id   %}" class="btn btn-info btn-sm">View</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">
+                No Item is enquired for bulk buy!
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="3"></td>
+            <td>
+                <a href="{% url 'bulk-buy-orders' %}" class="btn btn-sm btn-secondary">Go Back</a>
+            </td>
+            <td colspan="3"></td>
+        </tr>
+    </tfoot>
+</table>
+{% endblock %}

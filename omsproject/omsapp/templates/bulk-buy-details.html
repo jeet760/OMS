@@ -1,0 +1,130 @@
+{% extends 'profile.html' %}
+{% load static %}
+{% block bulkbuydetails %}
+
+<form action="" method="post">
+    {% csrf_token %}
+    <table class="table table-primary table-hover caption-top" id="bulkbuyDetailsTable">
+        <caption>
+            <strong>Order #:{{bulkbuy.0.bulkBuyNo}}</strong>
+            <strong>Order From:{{bulkbuy.0.userID.first_name}}</strong>
+        </caption>
+        <thead>
+            <tr>
+                <th>
+                    Sl #
+                </th>
+                <th>
+                    Item Name
+                </th>
+                <th>
+                    Specification
+                </th>
+                <th>
+                    Quantity (Unit)
+                </th>
+                <th>
+                    Indicative Price (in INR)
+                </th>
+                <th>
+                    Quote Price (in INR)
+                </th>
+                <th>
+                    Action
+                </th>
+            </tr>
+        </thead>
+        <tbody class="table table-hover table-group-divider">
+            {% for item in bulk_buy_details %}
+            <tr>
+                <td>
+                    {{forloop.counter}}
+                </td>
+                <td>
+                    {{item.itemName}}
+                </td>
+                <td>
+                    {{item.itemSpec}}
+                </td>
+                <td>
+                    {{item.itemQty}}
+                </td>
+                <td>
+                    {{item.itemPrice}}
+                </td>
+                <td>
+                    <input type="text" value="{{item.itemPrice}}" style="width: 150px;">
+                </td>
+                <td>
+                    <input type="checkbox" id="{{item.pk}}" checked>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">
+                    No Item is enquired for bulk buy!
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4"></td>
+                <td>
+                    <button type="submit" class="btn btn-sm btn-info" onclick="submitCheckedForBid('{{bulkBuyID}}')">Bid</button>
+                    <!-- <a href="#" class="btn btn-sm btn-info" onclick="submi">Bid</a> -->
+                </td>
+                <td colspan="2"></td>
+            </tr>
+        </tfoot>
+    </table>
+</form>
+<script>
+    function submitCheckedForBid(bulkBuyID){
+        // const table = document.getElementById('bulkbuyDetailsTable').getElementsByTagName('tbody')[0];
+        const rows = [];
+        const bulkTable = document.getElementById('bulkbuyDetailsTable');
+        const checkboxes = bulkTable.querySelectorAll('input[type="checkbox"]:checked');
+        checkboxes.forEach((checkbox) => {
+            const row = checkbox.closest('tr');
+            const bbdid = checkbox.id;
+            const ind_qty = row.cells[3].innerText;
+            const res_qty = ind_qty;
+            const ind_price = row.cells[4].innerText;
+            const res_price = row.querySelector('input[type="text"]').value;
+            //alert(ind_qty+","+res_qty+","+ind_price+","+res_price);
+            rows.push({bbdid, bulkBuyID,ind_qty,res_qty,ind_price,res_price });
+        });
+        const fetchURL = "{% url 'bulk-buy-bid' %}";
+        fetch(fetchURL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')  // use this in production
+        },
+        body: JSON.stringify({ rows, bulkBuyID })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+    function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+</script>
+{% endblock %}

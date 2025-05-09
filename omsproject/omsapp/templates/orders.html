@@ -49,13 +49,21 @@
                                     </a>
                                 </td>
                             </tr>
+                            {% empty %}
+                            <tr><td colspan="7">No order has been placed by you! Want to place orders? <a href="{% url 'shop' %}">Click Here</a> </td></tr>
                             {% endfor %}
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="7" style="text-align: center;">
+                                <td colspan="3" style="text-align: center;">
                                     <a class='btn btn-secondary' href="{% url 'index' %}">
                                         Go Back to Homepage.
+                                    </a>
+                                </td>
+                                <td></td>
+                                <td colspan="3" style="text-align: center;">
+                                    <a class='btn btn-info' href="{% url 'bulk-buy-orders' %}">
+                                        View Bulk Buy Orders
                                     </a>
                                 </td>
                             </tr>

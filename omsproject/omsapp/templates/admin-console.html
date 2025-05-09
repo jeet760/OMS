@@ -1,64 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: #ffffff;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .header {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            width: 90%;
-            max-width: 1200px;
-        }
-        .card {
-            background-color: #1e1e1e;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-        .card:hover {
-            transform: scale(1.05);
-        }
-        @media (max-width: 600px) {
-            body {
-                padding: 10px;
-            }
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel Wireframe</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f3f4f6;
+    }
+    .sidebar {
+      width: 250px;
+      background: #fff;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+    .sidebar h2 {
+      margin: 0;
+      padding: 1rem;
+      background: #f9fafb;
+      border-bottom: 1px solid #ddd;
+    }
+    .sidebar a {
+      display: block;
+      padding: 0.75rem 1rem;
+      color: #333;
+      text-decoration: none;
+    }
+    .sidebar a:hover {
+      background: #f3f4f6;
+    }
+    .main {
+      margin-left: 250px;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .header {
+      background: #fff;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .content {
+      flex: 1;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+    .button {
+      background: #e5e7eb;
+      border: none;
+      padding: 0.5rem 1rem;
+      margin-left: 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .button:hover {
+      background: #d1d5db;
+    }
+  </style>
 </head>
 <body>
-    <div class="header">Admin Console: FPO Market</div>
-    <div class="dashboard">
-        <div class="card">FPO: {{total_fpo}}<br>Requests: <a href="#">50</a></div>
-        <div class="card">Business: {{total_business}}<br>Requests: <a href="#">50</a></div>
-        <div class="card">Instituion: {{total_institutions}}<br>Requests: <a href="#">50</a></div>
-        <div class="card">Overseas: {{total_overseas}}<br>Requests: <a href="#">50</a></div>
-        <div class="card">Individual: {{total_individual}}<br>Requests: <a href="#">50</a></div>
-        <div class="card">Transactions: {{total_individual}}<br>Bulk Buys: <a href="#">50</a></div>
+  <div class="sidebar">
+    <h2>Admin Panel</h2>
+    <a href="#">Dashboard</a>
+    <a href="#">Users</a>
+    <a href="#">Reports</a>
+    <a href="#">Settings</a>
+    <a href="#">Logout</a>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <div>Dashboard</div>
+      <div>
+        <button class="button">Notifications</button>
+        <button class="button">Profile</button>
+      </div>
     </div>
+    <div class="content">
+      <h1>Welcome to the Admin Dashboard of Farmer Harvest</h1>
+      <p>This is your main content area. Select a menu item to get started.</p>
+    </div>
+  </div>
 </body>
 </html>

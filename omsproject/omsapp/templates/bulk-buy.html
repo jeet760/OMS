@@ -1,93 +1,209 @@
 {% extends 'index.html' %}
 {% load static %}
 {% block bulk_buy %}
-<div class="contact-form spad">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>Bulk Buy</h2>
-                </div>
-            </div>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f3f4f6;
+    padding: 20px;
+  }
+  .form-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 80%;
+    margin: auto;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  .form-grid input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+  }
+  .form-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .form-row label {
+    font-weight: bold;
+    min-width: 120px;
+  }
+  .form-row input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  .date-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .date-field label {
+    min-width: 150px;
+  }
+  table input {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 6px;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+  }
+  th {
+    background-color: #f9fafb;
+  }
+  select, input[type=\"text\"] {
+    width: 90%;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  button {
+    padding: 6px 12px;
+    background-color: #4f46e5;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #4338ca;
+  }
+</style>
+<div class="form-container">
+  <form action="#" method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="form-group">
+        <div class="form-row">
+          <label for="name">Name</label>
+          <input type="text" id="name" placeholder="Name" value="{{login_user}}" disabled>
         </div>
-        <form action="#" method="post">
-          {% csrf_token %}
-            <div class="row">
-                <div class="col-lg-6 col-md-6">
-                    <input type="text" placeholder="Customer Name" value="{{login_user}}">
-                </div>
-                <div class="col-lg-6 col-md-6">
-                    <input type="text" placeholder="Customer Type" value="{{user_type}}">
-                </div>
-                <div class="col-lg-6 text-center">
-                    <textarea placeholder="Shipping Address" id="txtShipping">{{user_address}}</textarea>
-                    <label for="cb_sameAddress">
-                      <input type="checkbox" id="cb_sameAddress" onclick="addressClick()" style="height: 15px; width: 15px;">
-                      Bill to same address?                      
-                      <span class="checkmark"></span>
-                    </label>
-                </div>
-                <div class="col-lg-6 text-center">
-                    <textarea placeholder="Billing Address" id="txtBilling">{{user_address1}}</textarea>
-                </div>
-                <div class="col-lg-12 text-center">
-                    <table id="itemsTable" style="border-style: solid; border: 1;">
-                        <thead  style="border-style: solid;">
-                          <tr>
-                            <th>Item Name</th>
-                            <th>Specification</th>
-                            <th>Quantity</th>
-                            <th>Indicative Price</th>
-                            <th>Actions</th>
-                          </tr>
-                          <tr>
-                            <th>
-                              <select id="selectItems" name="selectItems" style="font-size: 12px; height: 30px; width: 130px;">
-                                  {% for item in items %}
-                                  <option value="{{item.itemName}}">
-                                      {{item.itemName}}
-                                  </option>
-                                  {% endfor %}
-                              </select>
-                            </th>
-                            <th>
-                              <input type="text" id="txtSpec">
-                            </th>
-                            <th>
-                              <input type="text" id="txtQty">
-                            </th>
-                            <th>
-                              <input type="text" id="txtPrice">
-                            </th>
-                            <th>
-                              <button type="button" onclick="addRow()">Add Item</button>
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                          <!-- Dynamic rows will be added here -->
-                        </tbody>
-                      </table>
-                </div>
-                <div class="col-lg-12 text-center">
-                    <button class="site-btn" onclick="sendTableToServer()">SUBMIT</button>
-                </div>
-            </div>
-        </form>
+        <div class="form-row">
+          <label for="address1">Address1</label>
+          <input type="text" id="address1" placeholder="Address1" value="{{user_address}}">
+        </div>
+        <div class="form-row">
+          <label for="delivery-date">Select Delivery Date</label>
+          <input type="date" id="delivery-date" name="delivery_date">
+        </div>
+      </div>
+      
+      <!-- Second Column -->
+      <div class="form-group">
+        <div class="form-row">
+          <label for="type">Type</label>
+          <input type="text" id="type" placeholder="Type" value="{{user_type}}" disabled>
+        </div>
+        <div class="form-row">
+          <label for="address2">Address2</label>
+          <input type="text" id="address2" placeholder="Address2" value="{{user_address1}}">
+        </div>
+        <div class="form-row">
+          <label for="phone">Phone</label>
+          <input type="text" id="phone" placeholder="Phone" value="{{user_phone}}">
+        </div>
+      </div>
     </div>
+    
+    <table id="itemsTable" class="table table-hover">
+      <thead>
+        <tr>
+          <th>Item Name</th>
+          <th>Item Specification</th>
+          <th>Quantity</th>
+          <th>Unit</th>
+          <th>Indicative Price/unit</th>
+          <th>Action</th>
+        </tr>
+        <tr>
+          <th>
+            <select id="selectItems" name="selectItems">
+              <option>Select Item</option>
+              {% for item in items %}
+              <option value="{{item.itemName}}">
+                  {{item.itemName}}
+              </option>
+              {% endfor %}
+            </select>
+          </th>
+          <th>
+            <input type="text" placeholder="Specification" id="txtSpec">
+          </th>
+          <th>
+            <input type="text" placeholder="Quantity" id="txtQty">
+          </th>
+          <th>
+            <select id="selectUnit" name="selectUnit">
+              <option>Select Unit</option>
+              {% for item in distinct_units %}
+              <option value="{{item.itemUnit}}">
+                  {{item.itemUnit}}
+              </option>
+              {% endfor %}
+            </select>
+          </th>
+          <th>
+            <input type="text" placeholder="Indicative Price" id="txtPrice">
+          </th>
+          <th>
+            <button type="button" onclick="addRow()">
+              <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
+                <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/>
+              </svg>
+            </button>
+          </th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        
+      </tbody>
+    </table>
+    <div class="col-lg-12 text-center">
+      <button class="site-btn" onclick="sendTableToServer()">SUBMIT</button>
+    </div>
+  </form>
 </div>
 
 <script>
+  // The date selection in the calendar
+  document.addEventListener("DOMContentLoaded", function() {
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById("delivery-date");
+    dateInput.setAttribute('min', today);
+  });
+
+  // sending the item table to the server
   function sendTableToServer() {
     const table = document.getElementById("itemsTable").getElementsByTagName("tbody")[0];
     const rows = [];
+    const delivery_date = document.getElementById('delivery-date').value;
 
     for (let row of table.rows) {
       const itemName = row.cells[0].textContent;
       const itemSpec = row.cells[1].textContent;
       const itemQty = row.cells[2].textContent;
-      const itemPrice = row.cells[3].textContent;
-      rows.push({ itemName, itemSpec, itemQty, itemPrice });
+      const itemUnit = row.cells[3].textContent;
+      const itemPrice = row.cells[4].textContent;
+      rows.push({ itemName, itemSpec, itemQty, itemUnit, itemPrice });
     }
 
     fetch('bulk-buy/order', {
@@ -96,7 +212,7 @@
         'Content-Type': 'application/json',
         'X-CSRFToken': getCookie('csrftoken')  // use this in production
       },
-      body: JSON.stringify({ rows })
+      body: JSON.stringify({ rows, delivery_date })
     })
     .then(response => response.json())
     .then(data => alert(data.message))
@@ -117,43 +233,53 @@
     return cookieValue;
   }
 
+  // Adding a new row in the item table
+  function addRow() {
+    const item = document.getElementById('selectItems');
+    const spec = document.getElementById('txtSpec');
+    const qty = document.getElementById('txtQty');
+    const unit = document.getElementById('selectUnit');
+    const price = document.getElementById('txtPrice');
+    const tableBody = document.getElementById('tableBody');
+    const row = document.createElement('tr');
+    const table = document.getElementById('itemsTable');
+    //const rowNo = table.rows.length-1;
+    //var item = row.cells[0].value; <td><label>`+rowNo+`</label></td>
+    row.innerHTML = `
+      <td><label>`+item.value+`</label></td>
+      <td><label>`+spec.value+`</label></td>
+      <td><label>`+qty.value+`</label></td>
+      <td><label>`+unit.value+`</label></td>
+      <td><label>`+price.value+`</label></td>
+      <td>
+        <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">
+          <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF">
+            <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/>
+          </svg>
+        </button>
+      </td>
+    `;
+    tableBody.appendChild(row);
+  }
 
+  // remove a row
+  function removeRow(button) {
+    const row = button.closest('tr');
+    row.remove();
+  }
 
-
-    function addRow() {
-      const item = document.getElementById('selectItems');
-      const spec = document.getElementById('txtSpec');
-      const qty = document.getElementById('txtQty');
-      const price = document.getElementById('txtPrice');
-      const tableBody = document.getElementById('tableBody');
-      const row = document.createElement('tr');
-      //var item = row.cells[0].value;
-      row.innerHTML = `
-        <td><label>`+item.value+`</label></td>
-        <td><label>`+spec.value+`</label></td>
-        <td><label>`+qty.value+`</label></td>
-        <td><label>`+price.value+`</label></td>
-        <td><button type="button" onclick="removeRow(this)">Delete</button></td>
-      `;
-      tableBody.appendChild(row);
-    }
-
-    function removeRow(button) {
-      const row = button.closest('tr');
-      row.remove();
-    }
-
-    function addressClick(){      
-       var cb_sameAddress = document.getElementById('cb_sameAddress');
-       if(cb_sameAddress.checked)
-          {
-            document.getElementById('txtBilling').value = document.getElementById('txtShipping').value;
-          }
-       else
-          {
-            document.getElementById('txtBilling').value = "";
-          }
-    }
-  </script>
+  
+  function addressClick(){      
+      var cb_sameAddress = document.getElementById('cb_sameAddress');
+      if(cb_sameAddress.checked)
+        {
+          document.getElementById('txtBilling').value = document.getElementById('txtShipping').value;
+        }
+      else
+        {
+          document.getElementById('txtBilling').value = "";
+        }
+  }
+</script>
 
 {% endblock %}

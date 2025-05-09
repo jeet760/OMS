@@ -1,0 +1,81 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block bulk_buy_orders_response_details %}
+<p>Order #:<strong>{{order_details.bulkBuyID.bulkBuyNo}}</strong><br>
+    Response Date:<strong>{{order_details.response_date}}</strong><br>
+    Response From: <strong>{{order_details.response_userID.last_name}}</strong><br>
+    Responder's Contact:<strong>{{order_details.response_userID.phone}}</strong><br>
+    Status of Order:<strong>{{response_remark}}</strong>
+</p>
+<table class="table table-hover" id="bulkbuyDetailsTable">
+    <thead>
+        <tr>
+            <th>
+                Sl #
+            </th>
+            <th>
+                Item Name
+            </th>
+            <th>
+                Indicative Quantity
+            </th>
+            <th>
+                Unit
+            </th>
+            <th>
+                Indicative Price
+            </th>
+            <th>
+                Responded Price
+            </th>
+            <th>
+                Price Difference
+            </th>
+        </tr>
+    </thead>
+    <tbody class="table table-hover table-group-divider">
+        {% for response in response_details %}
+        <tr>
+            <td>
+                {{forloop.counter}}
+            </td>
+            <td>
+                {{response.itemName}}
+            </td>
+            <td>
+                {{response.itemQty}}
+            </td>
+            <td>
+                {{response.itemUnit}}
+            </td>
+            <td>
+                {{response.itemPrice}}
+            </td>
+            <td>
+                {{response.itemPrice_response}}
+            </td>
+            <td>
+                {% if response.itemPrice_response %}
+                    {{response.price_difference}}
+                {% else %}
+                    Not Responded
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">
+                No Item is enquired for bulk buy!
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="2"></td>
+            <td colspan="2"><a href="{% url 'bulk-buy-order-response' bulkBuyID %}" class="btn btn-sm btn-secondary">Go Back</a></td>
+            <td colspan="3"><a href="{% url 'bulk-buy-response-accept' bulkBuyID response_userID%}" class="btn btn-sm btn-info {% if response_accepted == 'Yes'%}disabled{% endif %}">Accept</a></td>
+        </tr>
+    </tfoot>
+</table>
+{% endblock %}
