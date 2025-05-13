@@ -499,6 +499,17 @@ def item_stockout(request, item_id):
         pass
     return redirect('item_list')
 
+@login_required
+def item_feature(request,item_id):
+    item = get_object_or_404(Item, pk=item_id)
+    if item.featureItem == False:
+        Item.objects.filter(itemID=item_id).update(featureItem=True)
+        pass
+    else:
+        Item.objects.filter(itemID=item_id).update(featureItem=False)
+        pass
+    return redirect('item_list')
+
 def item_list(request):
     login_user_id = request.user.pk
     if request.user.is_authenticated:
@@ -715,7 +726,7 @@ def received_orders_details(request, orderID):
         orderNo = Order.objects.get(orderID=orderID).orderNo
         suborderID = SubOrder.objects.get(orderID_id=orderID, vendorID_id=request.user.pk).suborderID
         received_orders = OrderDetails.objects.filter(suborderID_id=suborderID).select_related('itemID')
-        #received_orders = OrderDetails.objects.filter(orderdetails__orderID_id=orderID, orders__orderdetails__vendorID_id=request.user.pk)
+        # received_orders = OrderDetails.objects.filter(orderdetails__orderID_id=orderID, orders__orderdetails__vendorID_id=request.user.pk)
         # query = f"SELECT C.itemName, B.itemQty, B.itemPrice, B.id, B.orderID_id, B.remark, A.orderNo, A.remark, B.itemPricewithGST FROM omsapp_order AS A INNER JOIN omsapp_orderdetails AS B ON A.orderID=B.orderID_id AND A.orderID={orderID} INNER JOIN omsapp_item AS C ON B.itemID_id=C.itemID AND C.userID_id={request.user.id} INNER JOIN omsapp_customuser AS D ON D.id=A.userID_id"
         # with connection.cursor() as cursor:
         #     cursor.execute(query)
@@ -1126,7 +1137,7 @@ def order_invoices(request, order_id):
     pass
 #endregion
 
-#region Profile Settings, User Profile and Dashboard
+#region Profile Settings, User Profile
 @login_required
 def profile(request):
     user_name = request.user.last_name
@@ -1147,23 +1158,29 @@ def seller_profile(request):
     user_name = request.user.last_name
     userDetails = CustomUser.objects.filter(pk = request.user.pk)
     return render(request, 'seller_profile.html', {'user_details':userDetails, 'login_user':user_name})
+#endregion
 
 #region Dashboard
 @login_required
 def dashboard(request):
     user_name = request.user.last_name
     user_id = request.user.pk
-    total_items = Item.objects.filter(userID_id=request.user.pk).__len__()
-    item = Item.objects.filter(userID_id=request.user.pk)
-    total_orders_made = Order.objects.all().__len__()
-    pending_orders = Order.objects.filter(orderStatus = 'Under Process').__len__()
-    invoiced_orders = Order.objects.filter(orderStatus = 'Invoiced').__len__()
-    delivered_orders = Order.objects.filter(orderStatus = 'Delivered').__len__()
-    rejected_orders = Order.objects.filter(orderStatus = 'Rejected').__len__()
+    total_items = Item.objects.filter(userID_id=request.user.pk).__len__()#total items placed by the vendor/FPO
+    featured_items = Item.objects.filter(userID_id=request.user.pk, featureItem=True).__len__()#featured items as set by the FPO
+    total_item_categories = Item.objects.filter(userID_id=request.user.pk).values('itemCat').distinct().__len__()#distinct categories of items stored by the FPO
+    total_orders_made = Order.objects.filter(userID_id=request.user.pk).__len__()#total orders placed by the FPO to other entities
+    received_orders = SubOrder.objects.filter(vendorID=request.user.pk).__len__()#total orders received by the FPO
+    pending_orders = SubOrder.objects.filter(orderStatus = 'Pending Order', vendorID=request.user.pk).__len__()
+    invoiced_orders = SubOrder.objects.filter(orderStatus = 'Invoiced').__len__()
+    delivered_orders = SubOrder.objects.filter(orderStatus = 'Delivered').__len__()
+    rejected_orders = SubOrder.objects.filter(orderStatus = 'Rejected').__len__()
     bulk_buy_orders = BulkBuy.objects.all().__len__()
     bulk_buy_orders_responded = BulkBuyResponse.objects.filter(response_userID_id=user_id).__len__()
     dashboard_context = {
         'total_items':total_items,
+        'featured_items':featured_items,
+        'total_item_categories':total_item_categories,
+        'received_orders':received_orders,
         'total_orders_made':total_orders_made,
         'invoiced_orders': invoiced_orders,
         'pending_orders':pending_orders,
@@ -1173,6 +1190,4 @@ def dashboard(request):
         'bulk_buy_response':bulk_buy_orders_responded
     }
     return render(request, 'dashboard.html', {'dashboard':dashboard_context, 'login_user':user_name})
-
-#endregion
 #endregion

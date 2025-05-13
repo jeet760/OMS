@@ -12,8 +12,9 @@
                 <th>Item Category</th>
                 <th>Item Price/Unit (in Rs.)</th>
                 <th>Edit</th>
-                <th>Stock</th>
-                <th>Status</th>
+                <th>Stock<br>(Instock/Out of Stock)</th>
+                <th>Status<br>(Active/Inactive)</th>
+                <th>Feature<br>(In/Out)</th>
             </tr>
         </thead>
         <tbody>
@@ -51,6 +52,17 @@
                             M560-80v-80h160v80H560Zm-240 0v-80h160v80H320ZM160-560H80v-160h80v160Zm0 240H80v-160h80v160Zm80 240h-80q-33 0-56.5-23.5T80-160v-80h80v80h80v80Zm236-340 84-84 84 84 56-56-84-84 84-84-56-56-84 84-84-84-56 56 84 84-84 84 56 56ZM320-240q-33 0-56.5-23.5T240-320v-480q0-33 23.5-56.5T320-880h480q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H320Zm0-80h480v-480H320v480Zm0-480v480-480Z
                             {% else %} 
                             M320-80q-33 0-56.5-23.5T240-160v-80h-80q-33 0-56.5-23.5T80-320v-80h80v80h80v-320q0-33 23.5-56.5T320-720h320v-80h-80v-80h80q33 0 56.5 23.5T720-800v80h80q33 0 56.5 23.5T880-640v480q0 33-23.5 56.5T800-80H320Zm0-80h480v-480H320v480ZM80-480v-160h80v160H80Zm0-240v-80q0-33 23.5-56.5T160-880h80v80h-80v80H80Zm240-80v-80h160v80H320Zm0 640v-480 480Z
+                            {% endif %}"/>
+                        </svg>
+                    </a>
+                </td>
+                <td>
+                    <a href="{% url 'change_item_feature' item.itemID %}" class="btn btn-light btn-sm" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-custom-class="custom-tooltip" data-bs-title="Feature Out {{item.itemName}}">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="35px" viewBox="0 -960 960 960" width="35px" fill="#5985E1">
+                            <path d="{% if item.featureItem %}
+                            M280-240q-100 0-170-70T40-480q0-100 70-170t170-70h400q100 0 170 70t70 170q0 100-70 170t-170 70H280Zm0-80h400q66 0 113-47t47-113q0-66-47-113t-113-47H280q-66 0-113 47t-47 113q0 66 47 113t113 47Zm400-40q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM480-480Z
+                            {% else %}
+                            M280-240q-100 0-170-70T40-480q0-100 70-170t170-70h400q100 0 170 70t70 170q0 100-70 170t-170 70H280Zm0-80h400q66 0 113-47t47-113q0-66-47-113t-113-47H280q-66 0-113 47t-47 113q0 66 47 113t113 47Zm0-40q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Zm200-120
                             {% endif %}"/>
                         </svg>
                     </a>
