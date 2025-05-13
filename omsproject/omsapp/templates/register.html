@@ -32,7 +32,11 @@
     <section class="checkout spad">
         <div class="container">
             <div class="checkout__form">
+                {% if user.is_authenticated %}
                 <h4><a href="{% url 'resetpasswordform' %}">Reset Password</a></h4>
+                {% else %}
+                <p></p>
+                {% endif %}
                 <div class="row">
                     <div class="col-lg-12">
                     </div>

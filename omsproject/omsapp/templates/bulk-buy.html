@@ -197,6 +197,10 @@
     const rows = [];
     const delivery_date = document.getElementById('delivery-date').value;
 
+    if(table.rows.length < 1){
+      alert('Please add items to for bulkbuy!\n After entering item details, click on Add (+) icon.');
+      return;
+    }
     for (let row of table.rows) {
       const itemName = row.cells[0].textContent;
       const itemSpec = row.cells[1].textContent;

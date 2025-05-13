@@ -149,12 +149,12 @@ def PinCodeAPI(pincode):
     return postoffice_data[0]['Name']+", "+postoffice_data[0]['Block']
 
 def shop_details(request, item_id):
-    user_name=request.user.last_name
     item = get_object_or_404(Item,pk=item_id)
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
     total_price = cart.get_total_price()
     if request.user.is_authenticated:
+        user_name=request.user.last_name
         pincode = request.session.get('pincode') #get the logged in user's pincode
         related_items = Item.objects.filter(itemCat = item.itemCat).filter(userID_id__pinCode=pincode)
     else:
