@@ -10,10 +10,10 @@
              document.getElementById('userCity1').value = document.getElementById('userCity').value;
              document.getElementById('userState1').value = document.getElementById('userState').value;
              document.getElementById('pinCode1').value = document.getElementById('pinCode').value;
-            //  document.getElementById('userAddress1').disabled = true;
-            //  document.getElementById('userCity1').disabled = true;
-            //  document.getElementById('userState1').disabled = true;
-            //  document.getElementById('pinCode1').disabled = true;
+             document.getElementById('userAddress1').readOnly = true;
+             document.getElementById('userCity1').readOnly = true;
+             document.getElementById('userState1').readOnly = true;
+             document.getElementById('pinCode1').readOnly = true;
           }
        else
           {
@@ -21,10 +21,10 @@
              document.getElementById('userCity1').value = "";
              document.getElementById('userState1').value = "";
              document.getElementById('pinCode1').value = "";
-            //  document.getElementById('userAddress1').disabled = false;
-            //  document.getElementById('userCity1').disabled = false;
-            //  document.getElementById('userState1').disabled = false;
-            //  document.getElementById('pinCode1').disabled = false;
+             document.getElementById('userAddress1').readOnly = false;
+             document.getElementById('userCity1').readOnly = false;
+             document.getElementById('userState1').readOnly = false;
+             document.getElementById('pinCode1').readOnly = false;
           }
     }
  </script>
@@ -32,6 +32,11 @@
     <section class="checkout spad">
         <div class="container">
             <div class="checkout__form">
+                <h4><a href="{% url 'resetpasswordform' %}">Reset Password</a></h4>
+                <div class="row">
+                    <div class="col-lg-12">
+                    </div>
+                </div>
                 <h4>Basic Details</h4>
                 <form method="POST" action="{% if user.is_authenticated %}{% url 'register' %}{% else %}{% url 'register' %}{% endif %}">
                     {% csrf_token %}
@@ -178,8 +183,12 @@
                                     </div>
                                 </div>
                             </div>
-                            <button type="button" class="site-btn" style="background-color: red;">CANCEL</button>
-                            <button type="submit" class="site-btn">{% if user.is_authenticated %}UPDATE{% else %}REGISTER{% endif %}</button>
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <button type="button" class="site-btn" style="background-color: red;">CANCEL</button>
+                                    <button type="submit" class="site-btn">{% if user.is_authenticated %}UPDATE{% else %}REGISTER{% endif %}</button>
+                                </div>
+                            </div>
                         </div>
                         
                         <!-- <div class="col-lg-4 col-md-6">

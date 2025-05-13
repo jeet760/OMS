@@ -9,6 +9,7 @@ from django.http import JsonResponse, HttpResponse
 from datetime import datetime
 import json
 import requests
+import requests.cookies
 from .models import CustomUser, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, Invoice, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder
 from .forms import ItemForm, UserRegistrationForm, UserLoginForm, OrderForm, OrderDetailsForm, InvoiceForm
 from django.contrib.gis.geoip2 import GeoIP2
@@ -52,15 +53,25 @@ def landing_page(request, category=None,fpo=None, region=None):
             regionCursor.execute(regionQuery)
             items = regionCursor.fetchall()
     form = ItemForm()
-    user_name = 'Guest!'#display the username
     user_type = ''
+    user_name = 'Guest!'#display the username
+    pincode = 'Delivery Pincode'
+    if request.session.get('pincode') != '' and request.session.get('pincode') != None:
+        pincode = request.session.get('pincode')
+
+    featureItems = Item.objects.filter(featureItem=True).exclude(userID_id = request.user.pk)
     if request.user.is_authenticated:
         user_name = request.user.last_name
         user_type = request.user.userType
+        #if pincode == 'Delivery Pincode':
+        pincode = request.user.pinCode
+        request.session['pincode'] = pincode
         if user_type == '1':
             items = items.exclude(userID_id = request.user.pk)
+        featureItems = Item.objects.filter(featureItem=True).exclude(userID_id = request.user.pk).filter(userID_id__pinCode=pincode)
+    
     length = items.__len__()#get the total items
-    featureItems = Item.objects.filter(featureItem=True).exclude(userID_id = request.user.pk)
+
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
     total_price = cart.get_total_price()
@@ -76,12 +87,15 @@ def landing_page(request, category=None,fpo=None, region=None):
         'regions':region_list,
         'total_price':total_price,
         'featureItems':featureItems,
-        'clicked':'Home'
+        'clicked':'Home',
+        'pincode':pincode
     }
     return render(request, 'landing.html', landing_page_context)
 
 def shop(request, category=None, fpo=None, region=None):
     items = Item.objects.filter(itemActive=True).order_by('-itemInStock')
+    user_name = 'Guest!'#display the username
+    pincode='Delivery Pincode'
     pincode_area = ''
     if category is not None:
         items = Item.objects.filter(itemCat=category)
@@ -90,13 +104,23 @@ def shop(request, category=None, fpo=None, region=None):
     if region is not None:
         items = Item.objects.filter(userID_id__pinCode=region)
         pincode_area = PinCodeAPI(region)
+        pincode=region
     form = ItemForm()
-    user_name = 'Guest!'#display the username
+
     if request.user.is_authenticated:
         user_name = request.user.last_name
         user_type = request.user.userType
+        pincode = request.session.get('pincode') #get the logged in user's pincode
+        if region is not None: #if the user is logged in and explicitly enters a pincode, then the items of that pincode will be displayed, not the user's own pincode
+            pincode = region
+            request.session['pincode'] = pincode
+        items = Item.objects.filter(userID_id__pinCode=pincode) #if the user is logged in, then only the items available in user's pincode will be available to it.
         if user_type == '1':
             items = items.exclude(userID_id = request.user.pk)
+    else:#if the user is not logged in and explicitly enters the pincode
+        pincode = region
+        request.session['pincode'] = pincode
+
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
     total_price = cart.get_total_price()
@@ -113,7 +137,9 @@ def shop(request, category=None, fpo=None, region=None):
                         'min_price':min_price,
                         'max_price':max_price,
                         'pincode_area':pincode_area,
-                        'clicked':'Shop'}
+                        'clicked':'Shop',
+                        'pincode':pincode
+                        }
     return render(request, 'shop-grid.html', shop_page_context)
 
 def PinCodeAPI(pincode):
@@ -123,9 +149,30 @@ def PinCodeAPI(pincode):
     return postoffice_data[0]['Name']+", "+postoffice_data[0]['Block']
 
 def shop_details(request, item_id):
+    user_name=request.user.last_name
     item = get_object_or_404(Item,pk=item_id)
-    related_items = Item.objects.filter(itemCat = item.itemCat)
-    shop_details_context = {'item':item, 'related_items':related_items}
+    cart = Cart(request)
+    total_qty = cart.__len__()#display total number quantities added in the basket
+    total_price = cart.get_total_price()
+    if request.user.is_authenticated:
+        pincode = request.session.get('pincode') #get the logged in user's pincode
+        related_items = Item.objects.filter(itemCat = item.itemCat).filter(userID_id__pinCode=pincode)
+    else:
+        related_items = Item.objects.filter(itemCat = item.itemCat)
+    user_name = 'Guest!'#display the username
+    pincode='Delivery Pincode'
+    if request.user.is_authenticated:
+        user_name=request.user.last_name
+        pincode = request.session.get('pincode')
+    shop_details_context = {
+        'item':item,
+        'related_items':related_items,
+        'login_user':user_name,
+        'pincode':pincode,
+        'clicked':'Shop',
+        'total_qty':total_qty,
+        'total_price':total_price
+    }
     return render(request, 'shop-details.html', shop_details_context)
 
 def shopping_cart(request):
@@ -133,9 +180,11 @@ def shopping_cart(request):
     total_qty = cart.__len__()
     total_price = cart.get_total_price()
     ds = DeliverySchedule()
-    user_name = 'Guest!'
+    user_name = 'Guest!'#display the username
+    pincode='Delivery Pincode'
     if request.user.is_authenticated:
         user_name = request.user.last_name
+        pincode = request.session.get('pincode')
     shopping_cart_context = {
         'cart': cart, 
         'total_qty':total_qty, 
@@ -143,7 +192,8 @@ def shopping_cart(request):
         'user_authenticated':request.user.is_authenticated, 
         'dateSeries':ds.dateSeries, 
         'timeSeries':ds.timeSeries, 
-        'login_user':user_name
+        'login_user':user_name,
+        'pincode':pincode
     }
     return render(request, 'shopping-cart.html', context=shopping_cart_context)
 
@@ -151,14 +201,17 @@ def contact(request):
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
     total_price = cart.get_total_price()
-    user_name = 'Guest!'
+    user_name = 'Guest!'#display the username
+    pincode='Delivery Pincode'
+    pincode = request.session.get('pincode')
     if request.user.is_authenticated:
         user_name = request.user.last_name
     contact_context = {
         'clicked':'Contact',
         'total_qty':total_qty,
         'total_price':total_price,
-        'login_user':user_name
+        'login_user':user_name,
+        'pincode':pincode
     }
     return render(request, 'contact.html', contact_context)
 
@@ -248,6 +301,7 @@ def testimonials(request):
         'total_price':total_price
     }
     return render(request, 'testimonials.html', testimonials_context)
+
 #endregion
 
 #region Search Items
@@ -326,10 +380,30 @@ def login_view(request):
         form = UserLoginForm()
     return render(request, 'login.html', {'loginform': form})
 
+def forgot_password(request):
+    return render(request, 'reset_password.html', {})
+
+def reset_password_form(request):
+    if request.user.is_authenticated:
+        username = request.user.username
+        password = request.user.password
+        phone = request.user.phone
+        email = request.user.email
+        reset_password_context = {
+            'username':username,
+            'password':password,
+            'phone':phone,
+            'email':email,
+        }
+        return render(request, 'reset_password.html', context=reset_password_context)
+    else:
+        return render(request, 'reset_password.html', {})
+    
+
 def reset_password(request):
     if request.method == 'POST':
-        param_username = request.POST['username']
-        param_password = request.POST['password']
+        param_username = request.POST.get('username')
+        param_password = request.POST.get('password')
         user = get_object_or_404(CustomUser,username=param_username)
         user.set_password(param_password)
         user.save()
@@ -337,7 +411,6 @@ def reset_password(request):
     else:
         return render(request, 'reset_password.html', {})
     
-
 
 @login_required
 def logout_view(request):
@@ -608,7 +681,14 @@ def SaveOrderDetails(request,param_orderID,param_user_id):
             #print(ex)
 
 def order_successful(request):
-    success_context = {'orderID': Order.objects.all().latest('orderID').orderID,'orderNo': Order.objects.all().latest('orderID').orderNo }
+    user_name = request.user.last_name
+    pincode = request.session.get('pincode')
+    success_context = {
+        'orderID': Order.objects.all().latest('orderID').orderID,
+        'orderNo': Order.objects.all().latest('orderID').orderNo,
+        'login_user': user_name,
+        'pincode':pincode
+    }
     return render(request,'success.html',success_context)
 #endregion
 
@@ -770,6 +850,7 @@ def bulk_buy(request):
         cart = Cart(request)
         total_qty = cart.__len__()#display total number quantities added in the basket
         total_price = cart.get_total_price()
+        pincode = request.session.get('pincode')
     context = {
         'rejected_orders': rejected_orders,
         'clicked':'Bulk',
@@ -781,7 +862,8 @@ def bulk_buy(request):
         'total_qty':total_qty,
         'total_price':total_price,
         'items':items,
-        'distinct_units':distinct_units
+        'distinct_units':distinct_units,
+        'pincode':pincode
         }
     return render(request, 'bulk-buy.html', context=context)
 

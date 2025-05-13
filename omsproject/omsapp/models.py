@@ -8,6 +8,7 @@ import datetime
 
 #region Registration
 USERTYPE_CHOICES = [
+    ('', 'Select Usertype'),
     ('1', 'FPO'),
     ('2', 'Business'),
     ('3', 'Institution'),
@@ -15,6 +16,7 @@ USERTYPE_CHOICES = [
     ('5', 'Individual'),
 ]
 STATES=[
+    ('', 'Select State'),
     ('1', 'Andhra Pradesh'),
     ('2', 'Arunachal Pradesh'),
     ('3', 'Assam'),
@@ -53,6 +55,7 @@ STATES=[
     ('36', 'Puducherry [UT]'),
 ]
 GST_TREATMENT=[
+    ('', 'Select GST Treatment'),
     ('1', 'Registered Business (Regular)'),
     ('2', 'Registered Business (Composition)'),
     ('3', 'Unregistered Business'),
@@ -282,6 +285,8 @@ class BulkBuyResponseDetails(Model):
     
     def __str__(self):
         return f"{self.bbrdID}"
+
+#endregion
 
 #region Notification Model
 class Notification(Model):

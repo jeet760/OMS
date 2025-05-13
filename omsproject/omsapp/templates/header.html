@@ -28,7 +28,7 @@
                 <ul>
                     <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>{% if user_type == '1' %}Seller Hub{% else %}My Profile{% endif %}</a></li>
                     <li><a href="{% url 'orders' %}">My Orders</a></li>
-                    <li><a href="{% url 'logout' %}">Log Out</a></li>
+                    <li style="display: none;"><a href="{% url 'logout' %}">Log Out</a></li>
                 </ul>
             </div>
         </div>
@@ -101,7 +101,11 @@
                                             <ul class="header__menu__dropdown">
                                                 <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>{% if user_type == '1' %}Seller Hub{% else %}My Profile{% endif %}</a></li>
                                                 <li><a href="{% url 'orders' %}">My Orders</a></li>
-                                                <li><a href="{% url 'logout' %}">Log Out</a></li>
+                                                {% if login_user == 'Guest!' %}{% url 'login' %}
+                                                <li style="display: none;"><a href="{% url 'logout' %}">Log Out</a></li>
+                                                {% else %}
+                                                <li style="display: block;"><a href="{% url 'logout' %}">Log Out</a></li>
+                                                {% endif %}
                                             </ul>
                                         </li>
                                     </ul>
@@ -141,7 +145,7 @@
                 <div class="col-lg-3">
                     <div class="header__cart">
                         <ul>
-                            <li><a onclick="getPinCode()"><i class="fa fa-map-marker"></i> Select Location</a></li>
+                            <li><a onclick="getPinCode()" id="delivery"><i class="fa fa-map-marker"></i>{% if pincode %}{{pincode}}{% else %}Delivery Pincode{% endif %}</a></li>
                             <li><a href="{% url 'shoppingcart' %}"><i class="fa fa-shopping-bag"></i> <span>{{total_qty}}</span></a></li>
                         </ul>
                         <div class="header__cart__price">Amount: <span>₹ {{total_price}}/-</span></div>
@@ -156,13 +160,19 @@
     <!-- Header Section End -->
      <script>
         function getPinCode(){
-            pinCode = prompt('Please enter Pin Code:');
-            if(pinCode != '' && pinCode!= null){
-                var baseURL = window.location.origin+"/shop/zip/";
-                //alert(baseURL);
-                var newURL = baseURL+pinCode;
-                //alert(newURL);
-                window.location.href = newURL;
+            let input;
+            while (true) {
+                input = prompt("Please enter delivery pincode:");
+                if (input !== null && input.trim() !== "" && !isNaN(input) && input.length == 6) {
+                    var baseURL = window.location.origin+"/shop/zip/";
+                    var newURL = baseURL+input;
+                    window.location.href = newURL;
+                    document.getElementById('delivery').innerText=input;
+                    break; // exit the loop if valid
+                } else {
+                    alert("Invalid input. Please enter a valid pincode.");
+                    break;
+                }
             }
         }
      </script>

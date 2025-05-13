@@ -128,7 +128,7 @@ class UserRegistrationForm(ModelForm):
             }, choices=STATES),
             'pinCode':TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'PIN Code',
+                'placeholder': 'Pincode',
                 'id':'pinCode'
             }),
             'userAddress1':TextInput(attrs={
@@ -147,7 +147,7 @@ class UserRegistrationForm(ModelForm):
             }, choices=STATES),
             'pinCode1':TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'PIN Code',
+                'placeholder': 'Pincode',
                 'id':'pinCode1'
             }),
             'userNote':Textarea(attrs={
@@ -157,7 +157,6 @@ class UserRegistrationForm(ModelForm):
                 'id':'userNote'
             })
         }
-    
     def save(self, commit=True, param_password=None):
         user = super().save(commit=False)
         user.set_password(param_password)

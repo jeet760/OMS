@@ -39,7 +39,9 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
-    path('resetpassword/', views.reset_password, name='resetpassword'),
+    path('resetpassword/', views.reset_password_form, name='resetpasswordform'),
+    path('resetpassword/forget', views.reset_password_form, name='forgetpassword'),
+    path('resetpassword/submit', views.reset_password, name='resetpassword'),
     #path('admin-console/', views.admin_console, name='admin-console'),
 
     
