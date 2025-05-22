@@ -1,0 +1,446 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Tailwind CSS Webform</title>-->
+  <!-- Tailwind CSS CDN 
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 py-10"> -->
+{% extends 'admin-console.html' %}
+{% load static %}
+{% block user_form%}
+
+<h2 class="text-xl font-semibold mb-4">Settings</h2>
+<div class="bg-white p-4 shadow rounded border border-gray-300">
+    <h1 class="text-2xl font-bold mb-6 text-gray-800">Registration Form</h1>
+    <form class="space-y-8" method="post" action="{% if userform.is_authenticated %}{% url 'register' %}{% else %}{% url 'register' %}{% endif %}">
+        {% csrf_token %}
+      <!-- Basic Details -->
+      <section id="basicdetails">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">1. Basic Details</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Usertype -->
+          <div>
+            <label for="userType" class="block text-gray-600 mb-2">Usertype</label>
+            {% for user_type in user_types %}
+            {% if user_type.0 == user.userType %}
+            {{ user_type.1}}
+            {% endif %}
+            {% endfor %}
+          </div>
+          <!-- Name -->
+          <div>
+            <label for="first_name" class="block text-gray-600 mb-2">Name</label>
+            {{user.first_name}}
+          </div>
+          <!-- Display Name -->
+          <div>
+            <label for="last_name" class="block text-gray-600 mb-2">Display Name</label>
+            {{user.last_name}}
+          </div>
+          <!-- Business Name -->
+          <div>
+            <label for="org_name" class="block text-gray-600 mb-2">Business Name</label>
+            {{user.org_name}}
+          </div>
+          <!-- Email -->
+          <div>
+            <label for="email" class="block text-gray-600 mb-2">Email</label>
+            {{user.email}}
+          </div>
+          <!-- Phone Number -->
+          <div>
+            <label for="phone" class="block text-gray-600 mb-2">Phone Number</label>
+            {{user.phone}}
+          </div>
+          <!-- Alternate Phone No. -->
+          <div>
+            <label for="phone1" class="block text-gray-600 mb-2">Alternate Phone No.</label>
+            {% if user.phone1 == "" %}None{% else %}{{user.phone1}}{% endif %}
+          </div>
+          <!-- GSTIN -->
+          <div>
+            <label for="gstin" class="block text-gray-600 mb-2">GSTIN</label>
+            {{user.gstin}}
+          </div>
+          <!-- Place of Supply -->
+          <div>
+            <label for="supply_place" class="block text-gray-600 mb-2">Place of Supply</label>
+            {% for state in states %}
+            {% if state.0 == user.supply_place %}
+            {{state.1}}
+            {% endif %}
+            {% endfor %}
+          </div>
+          <!-- GST Treatment -->
+          <div>
+            <label for="gst_tmt" class="block text-gray-600 mb-2">GST Treatment</label>
+            {% for gst in gst_tmts %}
+            {% if gst.0 == user.gst_tmt%}
+            {{gst.1}}
+            {% endif %}
+            {% endfor %}
+          </div>
+          <div class="flex justify-end space-x-4 pt-4">
+            <button type="button" class="px-6 py-2 bg-yellow-600 rounded hover:bg-yellow-700" onclick="openModal('modalBasicDetails')">Edit</button>
+          </div>
+        </div>
+      </section>
+      <!-- Billing Details -->
+      <section id="billingdetails">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">2. Billing Details</h2>
+        <table id="billingAddressTable" class="w-full text-left text-sm border border-gray-300 bg-white">
+          <thead class="text-gray-700 border-b border-gray-300">
+          <tr>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'billingAddressTable')">#</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(1, 'billingAddressTable')">Address</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(2, 'billingAddressTable')">Town</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(3, 'billingAddressTable')">State</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(4, 'billingAddressTable')">Post Code</th>
+              <th class="py-2 px-3">Action</th>
+          </tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+              <td class="py-2 px-3">1</td>
+              <td class="py-2 px-3">{{user.userAddress}}</td>
+              <td class="py-2 px-3">{{user.userCity}}</td>
+              <td class="py-2 px-3">
+                {% for state in states %}
+                {% if state.0 == user.userState%}
+                {{state.1}}
+                {% endif %}
+                {% endfor %}
+              </td>
+              <td class="py-2 px-3">{{user.pinCode}}</td>
+              <td class="py-2 px-3">
+                <button type="button" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white" onclick="openModal('modalAddressDetails')">Edit</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+      <!-- Shipping Details -->
+      <section id="addressdetails">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">3. Shipping Details</h2>
+        <div class="flex justify-between items-center mb-4">
+          <button type="button" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" onclick="openModal('modalAddAddress')">Add Address</button>
+        </div>
+        <table id="shippingAddressTable" class="w-full text-left text-sm border border-gray-300 bg-white">
+          <thead class="text-gray-700 border-b border-gray-300">
+          <tr>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'shippingAddressTable')">#</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(1, 'shippingAddressTable')">Address</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(2, 'shippingAddressTable')">Town</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(3, 'shippingAddressTable')">State</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(4, 'shippingAddressTable')">Post Code</th>
+              <th class="py-2 px-3">Status</th>
+              <th class="py-2 px-3">Action</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for address in addresses %}
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+              <td class="py-2 px-3">{{forloop.counter}}</td>
+              <td class="py-2 px-3">{{address.userAddress1}}</td>
+              <td class="py-2 px-3">{{address.userCity1}}</td>
+              <td class="py-2 px-3">
+                {% for state in states %}
+                {% if state.0 == address.userState1%}
+                {{state.1}}
+                {% endif %}
+                {% endfor %}
+              </td>
+              <td class="py-2 px-3">{{address.pinCode1}}</td>
+              <td class="py-2 px-3">
+                {% if address.setDefault %}
+                <a class="px-2 py-1 text-xs rounded bg-green-600 text-white" href="{% url 'update-default-address' address.pk %}">Default</a>
+                {% else %}
+                <a class="px-2 py-1 text-xs rounded bg-red-600 text-white" href="{% url 'update-default-address' address.pk %}">Make Default</a>
+                {% endif %}
+              </td>
+              <td class="py-2 px-3">
+                <button type="button" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white" onclick="openShippingAddressModal('{{address.id}}')">Edit</button>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </section>
+    </form>
+  </div>
+  <!-- Basic Details -->
+  <div class="modal-overlay" id="modalBasicDetails">
+    <div class="modal-box">
+      <div id="modal-content">
+        <section id="basicdetailsedit">
+          <h2 class="text-xl font-semibold mb-4 text-gray-700">1. Basic Details</h2>
+          <form method="post" action="{% url 'update-profile' %}">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Usertype -->
+              <div>
+                <label for="userType" class="block text-gray-600 mb-2">Usertype</label>
+                {{userform.userType}}
+              </div>
+              <!-- Name -->
+              <div>
+                <label for="first_name" class="block text-gray-600 mb-2">Name</label>
+                {{userform.first_name}}
+                <!-- <input type="text" id="name" name="name" value="{{userform.first_name}}" placeholder="Your full name" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" /> -->
+              </div>
+              <!-- Display Name -->
+              <div>
+                <label for="last_name" class="block text-gray-600 mb-2">Display Name</label>
+                {{userform.last_name}}
+                <!-- <input type="text" id="displayName" name="displayName" value="{{userform.last_name}}" placeholder="Name to display" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" /> -->
+              </div>
+              <!-- Business Name -->
+              <div>
+                <label for="org_name" class="block text-gray-600 mb-2">Business Name</label>
+                {{userform.org_name}}
+                <!-- <input type="text" id="businessName" name="businessName" value="{{userform.org_name}}" placeholder="Business or company name" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" /> -->
+              </div>
+              <!-- Email -->
+              <div>
+                <label for="email" class="block text-gray-600 mb-2">Email</label>
+                {{userform.email}}
+                <!-- <input type="email" id="email" name="email" placeholder="you@example.com" value="{{userform.email}}" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" /> -->
+              </div>
+              <!-- Phone Number -->
+              <div>
+                <label for="phone" class="block text-gray-600 mb-2">Phone Number</label>
+                {{userform.phone}}
+                <!-- <input type="tel" id="phone" name="phone" placeholder="+91 98765 43210" value="{{userform.phone}}" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" /> -->
+              </div>
+              <!-- Alternate Phone No. -->
+              <div>
+                <label for="phone1" class="block text-gray-600 mb-2">Alternate Phone No.</label>
+                {{userform.phone1}}
+                <!-- <input type="tel" id="altPhone" name="altPhone" placeholder="Alternate contact" value="{{userform.phone1}}" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" /> -->
+              </div>
+              <!-- GSTIN -->
+              <div>
+                <label for="gstin" class="block text-gray-600 mb-2">GSTIN</label>
+                {{userform.gstin}}
+                <!-- <input type="text" id="gstin" name="gstin" placeholder="GST Identification Number" value="{{userform.gstin}}" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" /> -->
+              </div>
+              <!-- Place of Supply -->
+              <div>
+                <label for="supply_place" class="block text-gray-600 mb-2">Place of Supply</label>
+                {{userform.supply_place}}
+              </div>
+              <!-- GST Treatment -->
+              <div>
+                <label for="gst_tmt" class="block text-gray-600 mb-2">GST Treatment</label>
+                {{userform.gst_tmt}}
+              </div>
+            </div>
+            <div class="flex justify-end space-x-4 pt-4">
+              <button type="button" class="px-6 py-2 bg-red-600 text-white border border-gray-300 rounded hover:bg-red-700" onclick="closeModal('modalBasicDetails')">Cancel</button>
+              <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">Submit</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+  </div>
+  <!-- Billing Addresses -->
+  <div class="modal-overlay" id="modalAddressDetails">
+    <div class="modal-box">
+      <div id="modal-content">
+        <section id="billingdetailsedit">
+          <h2 class="text-xl font-semibold mb-4 text-gray-700">2. Billing Details</h2>
+          <form method="post" action="{% url 'update-billing' %}">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="md:col-span-2">
+                <label for="userAddress" class="block text-gray-600 mb-2">Address</label>
+                {{userform.userAddress}}
+              </div>
+              <div>
+                <label for="userCity" class="block text-gray-600 mb-2">Town</label>
+                {{userform.userCity}}
+              </div>
+              <div>
+                <label for="userState" class="block text-gray-600 mb-2">State</label>
+                {{userform.userState}}
+              </div>
+              <div>
+                <label for="pinCode" class="block text-gray-600 mb-2">Postcode</label>
+                {{userform.pinCode}}
+              </div>
+            </div>
+            <div class="flex justify-end space-x-4 pt-4">
+              <button type="button" class="px-6 py-2 bg-red-600 text-white border border-gray-300 rounded hover:bg-red-700" onclick="closeModal('modalAddressDetails')">Cancel</button>
+              <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">Submit</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+  </div>
+  <!-- Shipping Addresses -->
+  <div class="modal-overlay" id="modalShippingAddressDetails">
+    <div class="modal-box">
+      <div id="modal-content">
+        <section id="shippingdetailsedit">
+          <h2 class="text-xl font-semibold mb-4 text-gray-700">3. Shipping Details</h2>
+          <form method="post" action="{% url 'update-shipping' 0 %}">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="md:col-span-2">
+                <label for="userAddress1" class="block text-gray-600 mb-2">Address</label>
+                {{userform.userAddress1}}
+              </div>
+              <div>
+                <label for="userCity1" class="block text-gray-600 mb-2">Town</label>
+                {{userform.userCity1}}
+              </div>
+              <div>
+                <label for="userState1" class="block text-gray-600 mb-2">State</label>
+                {{userform.userState1}}
+              </div>
+              <div>
+                <label for="pinCode1" class="block text-gray-600 mb-2">Postcode</label>
+                {{userform.pinCode1}}
+              </div>
+            </div>
+            <div class="flex justify-end space-x-4 pt-4">
+              <button type="button" class="px-6 py-2 bg-red-600 text-white border border-gray-300 rounded hover:bg-red-700" onclick="closeModal('modalShippingAddressDetails')">Cancel</button>
+              <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">Submit</button>
+              <input type="hidden" name="addressID" id="addressID">
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Add New Address-->
+  <div class="modal-overlay" id="modalAddAddress">
+    <div class="modal-box">
+      <div id="modal-content">
+        <section>
+          <h2 class="text-xl font-semibold mb-4 text-gray-700">Add Address</h2>
+          <form method="post" action="{% url 'add-address' %}" >
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="md:col-span-2">
+                <label for="userAddress1" class="block text-gray-600 mb-2">Address</label>
+                <input type="text" id="shippingAddress" name="shippingAddress" placeholder="Street address, P.O. box" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label for="userCity1" class="block text-gray-600 mb-2">Town</label>
+                <input type="text" id="shippingTown" name="shippingTown" placeholder="City or Town" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label for="userState1" class="block text-gray-600 mb-2">State</label>
+                <select name="shippingState" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                  {% for state in states %}
+                  <option value="{{state.0}}">{{state.1}}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label for="pinCode1" class="block text-gray-600 mb-2">Postcode</label>
+                <input type="text" id="shippingPostcode" name="shippingPostcode" placeholder="PIN code" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+            </div>
+            <br>  
+            <div>
+              <button type="button" class="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700" onclick="closeModal('modalAddAddress')">Close</button>
+              <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+  </div>
+  <style>
+    /* Modal background */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Modal box */
+    .modal-box {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 1000px;
+        text-align: center;
+        position: relative;
+    }
+
+    .modal-box h2 {
+        margin-top: 0;
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 10px; right: 15px;
+        cursor: pointer;
+        font-size: 20px;
+        border: none;
+        background: none;
+        background: #ef0808;
+    }
+
+    .btn {
+        padding: 8px 16px;
+        margin-top: 10px;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background: #2980b9;
+    }
+</style>
+<script>
+  function openModal(modalID) {
+      document.getElementById(modalID).style.display = 'flex';
+  }
+
+  function closeModal(modalID) {
+      document.getElementById(modalID).style.display = 'none';
+  }
+
+  function openShippingAddressModal(addressID){
+    document.getElementById('modalShippingAddressDetails').style.display = 'flex';
+    url = "{% url 'fetch-address' 0 %}".replace('0',addressID);
+    fetch(url)
+    .then(response => response.json())
+        .then(data => {
+            if (data.address_context) {
+                const addr = data.address_context;
+                document.getElementById('userAddress1').value = addr.userAddress;
+                document.getElementById('userCity1').value = addr.userCity;
+                document.getElementById('userState1').value = addr.userState;
+                document.getElementById('pinCode1').value = addr.pinCode;
+                document.getElementById('addressID').value = addr.addressID;
+            } else {
+                alert('Failed to load address!');
+            }
+        })
+    .catch(error => {
+      alert(error);
+    });
+  }
+</script>
+  {% endblock %}
+<!-- </body>
+</html> -->

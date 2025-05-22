@@ -1,7 +1,6 @@
 {% extends 'index.html' %}
 {% load static %}
 {% block bulk_buy_orders %}
-{% for order in bulk_orders %}
 <table class="table table-hover">
     <thead>
       <tr>
@@ -9,20 +8,29 @@
         <th>Order #</th>
         <th>Order Placed On</th>
         <th>Expected Delivery Date</th>
+        <th>No. of Vendors Responded</th>
         <th>No. of Items Placed</th>
-        <th>No. of Vendor Responses</th>
-        <th>View</th>
+        <th>View Items</th>
+        <th>View Responses</th>
         <th>Bulk Buy Accepted?</th>
       </tr>
     </thead>
     <tbody id="tableBody">
+      {% for order in bulk_orders %}
         <tr>
             <td>{{forloop.counter}}</td>
             <td>{{order.bulkBuyNo}}</td>
             <td>{{order.bulkBuyDate}}</td>
             <td>{{order.bulkBuyExpDate}}</td>
-            <td>{{order.count_items}}</td>
             <td>{{order.count_responses}}</td>
+            <td>{{order.count_items}}</td>
+            <td>
+              <button class='btn btn-info btn-sm' onclick="openModal('{{order.bulkBuyID}}')">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
+                  <path d="M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-146 0-266-81.5T40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200Zm0-300Zm0 220q113 0 207.5-59.5T832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280Z"/>
+                </svg>
+              </button>
+            </td>
             <td>
                 <a class='btn btn-info btn-sm' href="{% url 'bulk-buy-order-response' order.bulkBuyID %}">
                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
@@ -32,9 +40,127 @@
             </td>
             <td>{{order.response_accept}}</td>
         </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8">
+            No bulk buy order has been placed by you! Want to Bulk Buy? <a href="{% url 'bulk-buy' %}">Click here</a>
+          </td>
+        </tr>
+        {% endfor %}
     </tbody>
   </table>
-{% empty %}
-<p>No bulk buy order has been placed by you! Want to Bulk Buy? <a href="{% url 'bulk-buy' %}">Click here</a></p>
-{% endfor %}
+  <style>
+    /* Modal background */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Modal box */
+    .modal-box {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 400px;
+        text-align: center;
+        position: relative;
+    }
+
+    .modal-box h2 {
+        margin-top: 0;
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 10px; right: 15px;
+        cursor: pointer;
+        font-size: 20px;
+        border: none;
+        background: none;
+        background: #ef0808;
+    }
+
+    .btn {
+        padding: 8px 16px;
+        margin-top: 10px;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background: #2980b9;
+    }
+</style>
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+      <button class="close-btn" onclick="closeModal()"><strong>X</strong></button>
+      <label><strong>Bulk Buy Items</strong></label>
+      <div id="modal-content">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Specs.</th>
+              <th>Qty.</th>
+              <th>Price</th>
+              <th>Unit</th>
+            </tr>
+          </thead>
+          <tbody id="modal-table-body">
+          </tbody>
+        </table>
+      </div>
+      <button class="btn" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script>
+  function openModal(bulkbuyID) {
+      document.getElementById('modal').style.display = 'flex';
+      const tableBody = document.getElementById('modal-table-body');
+      tableBody.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
+      // Fetch dynamic content via AJAX
+      url = "{% url 'bulk-buy-order-details' 0 %}".replace('0',bulkbuyID);
+      //alert(url);
+      fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            const details = data.bulkbuy_details;
+            if (!details || details.length === 0) {
+              tableBody.innerHTML = '<tr><td colspan="3">No data found.</td></tr>';
+              return;
+            }
+
+              let rows = '';
+              details.forEach(item => {
+                rows += `
+                  <tr>
+                    <td>${item.itemName}</td>
+                    <td>${item.itemSpec}</td>
+                    <td>${item.itemQty}</td>
+                    <td>${item.itemPrice}</td>
+                    <td>${item.itemUnit}</td>
+                  </tr>
+                `;
+              });
+
+              tableBody.innerHTML = rows;
+            })
+          .catch(error => {
+              document.getElementById('modal-content').innerText = error;
+          });
+  }
+
+  function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+  }
+</script>
 {% endblock %}

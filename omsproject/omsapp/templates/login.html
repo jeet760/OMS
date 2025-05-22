@@ -16,6 +16,13 @@
             </div>
             <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Login</button>
         </form>
+        {% if messages %}
+        {% for message in messages %}
+        <script>
+            alert("{{ message|escapejs }}");
+        </script>
+        {% endfor %}
+        {% endif %}
         <div class="text-center mt-4">
             <a href="{% url 'forgetpassword' %}" class="text-blue-500 hover:underline">Forgot Password?</a>
         </div>

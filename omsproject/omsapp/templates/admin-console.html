@@ -1,93 +1,340 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel Wireframe</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #f3f4f6;
-    }
-    .sidebar {
-      width: 250px;
-      background: #fff;
-      height: 100vh;
-      position: fixed;
-      top: 0;
-      left: 0;
-      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-    }
-    .sidebar h2 {
-      margin: 0;
-      padding: 1rem;
-      background: #f9fafb;
-      border-bottom: 1px solid #ddd;
-    }
-    .sidebar a {
-      display: block;
-      padding: 0.75rem 1rem;
-      color: #333;
-      text-decoration: none;
-    }
-    .sidebar a:hover {
-      background: #f3f4f6;
-    }
-    .main {
-      margin-left: 250px;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
-    .header {
-      background: #fff;
-      padding: 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .content {
-      flex: 1;
-      padding: 2rem;
-      overflow-y: auto;
-    }
-    .button {
-      background: #e5e7eb;
-      border: none;
-      padding: 0.5rem 1rem;
-      margin-left: 0.5rem;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .button:hover {
-      background: #d1d5db;
-    }
-  </style>
-</head>
-<body>
-  <div class="sidebar">
-    <h2>Admin Panel</h2>
-    <a href="#">Dashboard</a>
-    <a href="#">Users</a>
-    <a href="#">Reports</a>
-    <a href="#">Settings</a>
-    <a href="#">Logout</a>
-  </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Farmer Harvest: Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-  <div class="main">
-    <div class="header">
-      <div>Dashboard</div>
-      <div>
-        <button class="button">Notifications</button>
-        <button class="button">Profile</button>
+    <style>
+      .sidebar-transition {
+        transition: transform 0.3s ease-in-out;
+      }
+    </style>
+    <script>
+      let currentPage = 1;
+      const rowsPerPage = 10;
+
+      function toggleDropdown() {
+        document.getElementById("dropdownMenu").classList.toggle("hidden");
+      }
+      window.addEventListener('click', function(e) {
+          if (!document.getElementById("dropdownBtn").contains(e.target)) {
+          document.getElementById("dropdownMenu").classList.add("hidden");
+          }
+      });
+
+      // Close dropdown if user clicks outside
+      window.onclick = function(event) {
+        if (!event.target.matches('.dropdown-btn')) {
+          var dropdowns = document.getElementsByClassName("dropdown-content");
+          for (var i = 0; i < dropdowns.length; i++) {
+            dropdowns[i].classList.remove('show');
+          }
+        }
+      }
+
+      function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const isOpen = !sidebar.classList.contains('-translate-x-full');
+
+        if (isOpen) {
+          sidebar.classList.add('-translate-x-full');
+          overlay.classList.add('hidden');
+        } else {
+          sidebar.classList.remove('-translate-x-full');
+          overlay.classList.remove('hidden');
+        }
+      }
+
+      function closeSidebar() {
+        document.getElementById('sidebar').classList.add('-translate-x-full');
+        document.getElementById('overlay').classList.add('hidden');
+      }
+      // Close sidebar when clicking outside (mobile only)
+      document.addEventListener('click', function (event) {
+        const sidebar = document.getElementById('sidebar');
+        const sidebarButton = event.target.closest('button[onclick="toggleSidebar()"]');
+        const isSidebarOpen = !sidebar.classList.contains('-translate-x-full');
+
+        // Don't close if click is inside sidebar or on toggle button
+        if (
+          isSidebarOpen &&
+          !sidebar.contains(event.target) &&
+          !sidebarButton &&
+          window.innerWidth < 768
+        ) {
+          sidebar.classList.add('-translate-x-full');
+        }
+      });
+
+      //ITEMS
+      function searchItems() {
+        const input = document.getElementById('itemSearch');
+        const filter = input.value.toLowerCase();
+        const rows = document.querySelectorAll('#itemTable tbody tr');
+
+        rows.forEach(row => {
+          const cells = row.getElementsByTagName('td');
+          const match = Array.from(cells).some(cell =>
+            cell.textContent.toLowerCase().includes(filter)
+          );
+          row.dataset.visible = match ? "true" : "false";
+        });
+
+        currentPage = 1;
+        paginate();
+      }
+
+      function paginate() {
+        const rows = document.querySelectorAll('#itemTable tbody tr');
+        const visibleRows = Array.from(rows).filter(row => row.dataset.visible !== "false");
+        const totalPages = Math.ceil(visibleRows.length / rowsPerPage);
+
+        rows.forEach(row => row.style.display = 'none');
+
+        visibleRows.forEach((row, index) => {
+          row.style.display = (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) ? '' : 'none';
+        });
+
+        const pagination = document.getElementById('pagination');
+        if(pagination != null)
+        {
+          pagination.innerHTML = '';
+          for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.textContent = i;
+            btn.className = 'px-3 py-1 rounded bg-gray-700 text-white mx-1';
+            if (i === currentPage) btn.classList.add('bg-blue-600');
+            btn.onclick = () => {
+              currentPage = i;
+              paginate();
+            };
+            pagination.appendChild(btn);
+          }
+        }
+      }
+
+      //ORDERS
+      function searchOrder() {
+        const input = document.getElementById('orderSearch');
+        const filter = input.value.toLowerCase();
+        const rows = document.querySelectorAll('#orderTable tbody tr');
+
+        rows.forEach(row => {
+          const cells = row.getElementsByTagName('td');
+          const match = Array.from(cells).some(cell =>
+            cell.textContent.toLowerCase().includes(filter)
+          );
+          row.dataset.visible = match ? "true" : "false";
+        });
+
+        currentPage = 1;
+        paginateOrderTable();
+      }
+
+      function paginateOrderTable() {
+        const rows = document.querySelectorAll('#orderTable tbody tr');
+        const visibleRows = Array.from(rows).filter(row => row.dataset.visible !== "false");
+        const totalPages = Math.ceil(visibleRows.length / rowsPerPage);
+
+        rows.forEach(row => row.style.display = 'none');
+
+        visibleRows.forEach((row, index) => {
+          row.style.display = (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) ? '' : 'none';
+        });
+
+        const pagination = document.getElementById('paginationOrder');
+        if(pagination != null)
+        {
+          pagination.innerHTML = '';
+          for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.textContent = i;
+            btn.className = 'px-3 py-1 rounded bg-gray-700 text-white mx-1';
+            if (i === currentPage) btn.classList.add('bg-blue-600');
+            btn.onclick = () => {
+              currentPage = i;
+              paginateOrderTable();
+            };
+            pagination.appendChild(btn);
+          }
+        }
+      }
+
+
+      function sortTable(n, tableID) {
+        const table = document.getElementById(tableID);
+        let rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+        switching = true;
+        dir = "asc";
+        while (switching) {
+          switching = false;
+          rows = table.rows;
+          for (i = 1; i < (rows.length - 1); i++) {
+            shouldSwitch = false;
+            x = rows[i].getElementsByTagName("TD")[n];
+            y = rows[i + 1].getElementsByTagName("TD")[n];
+            if (dir == "asc") {
+              if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                shouldSwitch = true;
+                break;
+              }
+            } else if (dir == "desc") {
+              if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                shouldSwitch = true;
+                break;
+              }
+            }
+          }
+          if (shouldSwitch) {
+            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+            switching = true;
+            switchcount++;
+          } else {
+            if (switchcount == 0 && dir == "asc") {
+              dir = "desc";
+              switching = true;
+            }
+          }
+        }
+      }
+      
+      window.onload = () => {
+        // Initialize itemTable visibility
+        const itemRows = document.querySelectorAll('#itemTable tbody tr');
+        itemRows.forEach(row => row.dataset.visible = "true");
+        paginate();
+
+        // Initialize orderTable visibility
+        const orderRows = document.querySelectorAll('#orderTable tbody tr');
+        orderRows.forEach(row => row.dataset.visible = "true");
+        paginateOrderTable();
+      };
+    </script>
+
+
+  </head>
+  <body class="bg-gray-100 font-sans">
+    <div id="main-wrapper" class="flex h-screen overflow-y-auto">
+      <!-- Overlay for mobile -->
+      <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden" onclick="closeSidebar()"></div>
+
+      <!-- Sidebar -->
+      <div id="sidebar" class="fixed md:relative z-40 w-64 bg-white shadow-md sidebar-transition transform -translate-x-full md:translate-x-0 md:block h-full">
+        <!-- Close button for mobile -->
+        <div class="flex justify-between items-center p-4 border-b md:hidden">
+          <button onclick="toggleSidebar()" class="text-xl font-bold text-red-500">X</button>
+        </div>
+        <div class="p-4 text-lg font-bold border-b">
+          <a href="{% url 'index' %}"><img src="{% static 'img/logo.png' %}" alt=""></a>
+        </div>
+        {% if user.userType == '1' %}
+        <nav class="p-4 space-y-2">
+          <a href="{% url 'dashboard' %}" class="block p-2 hover:bg-green-100 rounded">Dashboard</a>
+          <a href="{% url 'item_list' %}" class="block p-2 hover:bg-green-100 rounded">Items</a>
+          <a href="{% url 'receivedorders' %}" class="block p-2 hover:bg-green-100 rounded">Orders</a>
+          <a href="{% url 'bulk-buy-supply' %}" class="block p-2 hover:bg-green-100 rounded">Bulk Buy</a>
+          <a href="{% url 'user-form' %}" class="block p-2 hover:bg-green-100 rounded">Settings</a>
+          <!-- <a href="#customers" class="block p-2 hover:bg-green-100 rounded">Customers</a> -->
+          <!-- <a href="#notifications" class="block p-2 hover:bg-green-100 rounded">Notifications</a> -->
+        </nav>
+        {% else %}
+        <nav class="p-4 space-y-2">
+          <a href="{% url 'user-form' %}" class="block p-2 hover:bg-green-100 rounded">Settings</a>
+        </nav>
+        {% endif %}
+      </div>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col">
+        <!-- Header -->
+        <!-- <div class="p-4 bg-white shadow-md flex justify-between items-center sticky top-0 z-30">
+          <button onclick="toggleSidebar()" class="md:hidden text-black-500 text-2xl font-bold">☰</button>
+          <h1 class="text-xl font-bold">Seller Hub</h1>
+        </div> -->
+        <!-- Header -->
+      <header class="bg-white shadow-md p-4 flex justify-between items-center">
+        <button onclick="toggleSidebar()" class="md:hidden text-black-500 text-2xl font-bold">☰</button>
+        <h1 class="text-xl font-bold">
+          {% if user.userType == '1' %}
+          Seller Hub
+          {% else %}
+          My Profile
+          {% endif %}
+        </h1>
+        <div class="flex items-center space-x-4">
+          <!-- <input type="text" placeholder="Search..." class="px-3 py-1 border rounded" /> -->
+          <div class="flex flex-wrap items-center gap-2 mb-4">
+            <div class="relative inline-block text-left">
+              <button id="dropdownBtn" onclick="toggleDropdown()" class="bg-white-600 text-black px-4 py-2 rounded hover:bg-green-100">
+                <strong>{{login_user}}</strong>▼
+              </button>
+              <div id="dropdownMenu" class="absolute z-10 mt-1 w-40 bg-gray-100 rounded shadow hidden">
+                <a href="{% url 'resetpasswordform' %}"><strong>Update Password</strong></a>
+                <a href="{% url 'logout' %}"><strong>Logout</strong></a>
+              </div>
+            </div>
+          </div>
+          <!-- <button onclick="toggleDropdown()" class="w-8 h-8 bg-gray-300 rounded-full dropdown-btn">{{login_user}}</button>
+            <div id="dropdown-content" class="dropdown-content">
+              <a href="{% url 'logout' %}">Logout</a>
+            </div>
+          <div class="w-8 h-8 bg-gray-300 rounded-full">
+            
+          </div> -->
+        </div>
+      </header>
+
+
+        <!-- Page Content -->
+        <div class="p-6 overflow-y-auto flex-1">
+          <!-- Dashboard -->
+          <section id="dashboard">
+            {% block dashboard %}{% endblock %}
+          </section>
+
+          <!-- Products -->
+          <section id="products">
+            {% block item_list %}{% endblock %}
+            {% block item_entry %}{% endblock %}
+          </section>
+
+          <!-- Orders -->
+          <section id="orders">
+            {% block orders_received %}{% endblock %}
+            {% block receivedorderdetails %}{% endblock %}
+            {% block bulksupply %}{% endblock %}
+            {% block bulkbuydetails %}{% endblock %}
+          </section>
+
+          <!-- Customers -->
+          <!-- <section id="customers" class="mt-10">
+            <h2 class="text-xl font-semibold mb-4">Customers</h2>
+            <div class="bg-white p-4 shadow rounded">
+              <p>Customer list and actions here.</p>
+            </div>
+          </section> -->
+
+          <!-- Settings -->
+          <section id="settings">
+            {% block user_form %}{% endblock %}
+            {% block reset_password %}{% endblock %}
+          </section>
+
+          <!-- Notifications -->
+          <!-- <section id="notifications" class="mt-10">
+            <h2 class="text-xl font-semibold mb-4">Notifications</h2>
+            <div class="bg-white p-4 shadow rounded">
+              <p>System notifications and alerts here.</p>
+            </div>
+          </section> -->
+        </div>
       </div>
     </div>
-    <div class="content">
-      <h1>Welcome to the Admin Dashboard of Farmer Harvest</h1>
-      <p>This is your main content area. Select a menu item to get started.</p>
-    </div>
-  </div>
-</body>
+  </body>
 </html>

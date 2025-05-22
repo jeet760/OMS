@@ -1,55 +1,72 @@
-{% extends 'profile.html' %}
+{% extends 'admin-console.html' %}
 {% load static %}
 {% block bulksupply %}
-<table class="table table-primary table-hover caption-top" id="allOrdersTable">
-    <caption><strong>Received Bulk Buy Enquiries</strong></caption>
-    <thead>
-    <tr>
-        <th scope="col">#</th>
-        <th scope="col">Enquiry No.</th>
-        <th scope="col">Enquiry Placed On</th>
-        <th scope="col">Expected Delivery By</th>
-        <th scope="col">Enquiry From</th>
-        <th scope="col">Phone</th>
-        <th scope="col">No. of Items Enquired</th>
-        <th scope="col">Actions</th>
-    </tr>
-    </thead>
-    <tbody class="table table-hover table-group-divider">
-        {% for order in bulkorders %}
-        <tr>
-            <td>
-                {{forloop.counter}}
-            </td>
-            <td>
-                {{order.bulkBuyNo}}
-            </td>
-            <td>
-                {{order.bulkBuyDate}}
-            </td>
-            <td>
-                {{order.bulkBuyExpDate}}
-            </td>
-            <td>
-                {{order.userID.first_name}}
-            </td>
-            <td>
-                {{order.userID.phone}}
-            </td>
-            <td>
-                {{order.count_items}}
-            </td>
-            <td>
-                <a href="{% url 'bulk-buy-details' order.bulkBuyID %}" class="btn btn-sm btn-info">View</a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="7">
-                No order for bulk buy has been placed yet!
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<h2 class="text-xl font-semibold mb-4">Bulk Buy Requests</h2>
+<div class="bg-white p-4 shadow rounded border border-gray-300">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-blue-500 text-white p-4 rounded shadow">
+            <h3 class="text-sm">Total Queries</h3>
+            <p class="text-2xl font-semibold mt-1">{{no_of_bulk_buy_orders}}</p>
+        </div>
+        <div class="bg-green-500 text-white p-4 rounded shadow">
+            <h3 class="text-sm">Responded</h3>
+            <p class="text-2xl font-semibold mt-1">{{no_bulk_buy_orders_responded}}</p>
+        </div>
+        <div class="bg-yellow-500 text-white p-4 rounded shadow">
+            <h3 class="text-sm">Delivered Orders</h3>
+            <p class="text-2xl font-semibold mt-1">0</p>
+        </div>
+    </div>
+    <br>
+    <table id="bulkorderTable" class="w-full text-left text-sm border border-gray-300 bg-white">
+        <thead class="text-gray-700 border-b border-gray-300">
+            <tr>
+                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'bulkorderTable')">#</th>
+                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(1, 'bulkorderTable')">Enquiry No.</th>
+                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(2, 'bulkorderTable')">Enquiry Placed On</th>
+                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(3, 'bulkorderTable')">Expected Delivery By</th>
+                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(4, 'bulkorderTable')">Enquiry From</th>
+                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(5, 'bulkorderTable')">Phone</th>
+                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(6, 'bulkorderTable')">Responded</th>
+                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(7, 'bulkorderTable')">No. of Items Enquired</th>
+                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(8, 'bulkorderTable')">Accepted</th>
+                <th class="py-2 px-3 cursor-pointer">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in bulkorders %}
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+                <td class="py-2 px-3">{{forloop.counter}}</td>
+                <td class="py-2 px-3">{{order.bulkBuyNo}}</td>
+                <td class="py-2 px-3">{{order.bulkBuyDate}}</td>
+                <td class="py-2 px-3">{{order.bulkBuyExpDate}}</td>
+                <td class="py-2 px-3">{{order.userID.first_name}}</td>
+                <td class="py-2 px-3">{{order.userID.phone}}</td>
+                <td class="py-2 px-3">
+                    {% if order.count_response > 0 %}<label class="px-4 py-2 text-sm text-green-600">Yes</label>{% else %}<label class="px-4 py-2 text-sm text-red-600">No</label>{% endif %}
+                </td>
+                <td class="py-2 px-3">{{order.count_items}}</td>
+                <td>
+                    {% if order.response_accept == True %}
+                    <label class="px-4 py-2 text-sm text-green-600">Yes</label>
+                    {% elif order.response_accept == False %}
+                    <label class="px-4 py-2 text-sm text-red-600">No</label>
+                    {% else %}
+                    <label class="px-4 py-2 text-sm text-yellow-600">None</label>
+                    {% endif %}
+                </td>
+                <td class="py-2 px-3">
+                    <a href="{% url 'bulk-buy-details' order.bulkBuyID %}" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white">View</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td class="py-2 px-3" colspan="7">
+                    No order for bulk buy has been placed yet!
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

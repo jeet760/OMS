@@ -63,95 +63,95 @@ class UserRegistrationForm(ModelForm):
         fields = ['userType','first_name','last_name','org_name','email', 'phone','phone1','gstin','supply_place','gst_tmt','userAddress','userCity','userState','pinCode','userAddress1','userCity1','userState1','pinCode1','userNote']
         widgets = {
             'userType':Select(attrs={
-                'class': 'form-control',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'autofocus': True,
                 'id':'userType',
                 'style':'width:100%',
             }, choices=USERTYPE_CHOICES),
             'first_name': TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Name',
                 'id':'first_name'
             }),#first_name is the name
             'last_name': TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Display Name',
                 'id':'last_name'
             }),#last_name is the display name
             'org_name': TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Business Name (Organisation/Company/Institution Name)',
                 'id':'org_name'
             }),#organisation name
             'email':TextInput(attrs={
                 'type': 'email',
-                'class': 'form-control',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Email',
                 'id':'email'
             }),
             'phone':TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Phone/Mobile Number',
                 'id':'phone'
             }),
             'phone1':TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Phone/Mobile Number',
                 'id':'phone1'
             }),
             'gstin':TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'GSTIN',
                 'id':'gstin'
             }),
             'supply_place':Select(attrs={
-                'class': 'form-control',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'id':'supply_place'
             }, choices=STATES),
             'gst_tmt':Select(attrs={
-                'class': 'form-control registration-select',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 registration-select',
                 'id':'gst_tmt'
             }, choices=GST_TREATMENT),
             'userAddress':TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Address',
                 'id':'userAddress'
             }),
             'userCity':TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'City',
                 'id':'userCity'
             }),
             'userState':Select(attrs={
-                'class': 'form-control registration-select',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 registration-select',
                 'id':'userState'
             }, choices=STATES),
             'pinCode':TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Pincode',
                 'id':'pinCode'
             }),
             'userAddress1':TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Address',
                 'id':'userAddress1'
             }),
             'userCity1':TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'City',
                 'id':'userCity1'
             }),
             'userState1':Select(attrs={
-                'class': 'form-control registration-select',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 registration-select',
                 'id':'userState1'
             }, choices=STATES),
             'pinCode1':TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Pincode',
                 'id':'pinCode1'
             }),
             'userNote':Textarea(attrs={
-                'class': 'form-control',
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Note/Remark/Comment',
                 'style':'height:5rem',
                 'id':'userNote'
@@ -229,52 +229,52 @@ class ItemForm(ModelForm):
         fields = ['itemName', 'itemType', 'itemCat', 'itemSku', 'itemHSNCode', 'itemUnit', 'itemTaxPref', 'itemTaxRate', 'itemCostPrice' ,'itemPrice', 'itemImg', 'stockValue','itemDesc']
         widgets = {
             'itemName': TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
                 'autofocus': True,
                 'placeholder': 'Enter the Item Name'
             }),
             'itemType':Select(attrs={
-                'class': 'form-control',
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
                 'id':'itemType'
             }, choices=ITEM_TYPES),
             'itemCat':Select(attrs={
-                'class': 'form-control',
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
                 'id':'itemCat'
             }, choices=ITEM_CATEGORIES),
             'itemSku': TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
                 'placeholder': 'Enter the Item SKU'
             }),
             'itemHSNCode': TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
                 'placeholder': 'Enter the Item HSN Code'
             }),
             'itemUnit':Select(attrs={
-                'class': 'form-control',
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
                 'id':'itemUnit'
             }, choices=ITEM_UNITS),
             'itemTaxPref':Select(attrs={
-                'class': 'form-control',
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
                 'id':'itemTaxPref'
             }, choices=TAX_PREFERENCES),
             'itemTaxRate':Select(attrs={
-                'class': 'form-control',
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
                 'id':'itemType'
             }, choices=TAX_RATES),
             'itemCostPrice': TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
                 'placeholder': 'Enter the Item Cost Price'
             }),
             'itemPrice': TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
                 'placeholder': 'Enter the Item Sale Price'
             }),
             'stockValue': TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
                 'placeholder': 'Enter the Opening Stock'
             }),
             'itemDesc': Textarea(attrs={
-                'class': 'form-control',
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
                 'placeholder': 'Description',
                 'style':'height:5rem',
                 'id':'itemDesc'
@@ -308,15 +308,15 @@ class InvoiceForm(ModelForm):
         fields = ['invoiceNo', 'invoiceDate', 'invoiceFile']
         widgets = {
             'invoiceNo': TextInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
                 'autofocus': True
             }),
             'invoiceDate': DateInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
                 'type':'date',
             }),
             'invoiceFile': FileInput(attrs={
-                'class': 'form-control',
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
             }),
         }
 

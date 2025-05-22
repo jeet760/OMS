@@ -1,114 +1,106 @@
-{% extends 'profile.html' %}
+{% extends 'admin-console.html' %}
 {% load static %}
 {% block item_entry %}
-<div class="container mx-auto mt-10" style="background-color: transparent;">
-    <form id="itemForm" action="{% if is_edit %}{% url 'edit_item' form.instance.itemID %}{% else %}{% url 'create_item' %}{% endif %}" method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="card">
-            <h5 class="card-header text-align-left">{{ is_edit|yesno:"Edit Item,Add Item" }}({{login_user}})</h5>
-            <div class="card-body text-left">
-               <div class="row">
-                  <div class="col-20">
-                    <label for="itemType">Item Type</label>
-                  </div>
-                  <div class="col-30">
-                    {{form.itemType}}
-                  </div>
-                  <div class="col-20">
-                    <label for="itemName">Item Name</label>
-                  </div>
-                  <div class="col-30">
-                    {{form.itemName}}
-                  </div>
-               </div>
-               <div class="row">
-                     <div class="col-20">
-                        <label for="itemCat">Item Category</label>
-                     </div>
-                     <div class="col-30">
-                        {{form.itemCat}}
-                     </div>
-                     <div class="col-20">
-                        <label for="itemSku">Item SKU</label>
-                     </div>
-                     <div class="col-30">
-                        {{form.itemSku}}
-                     </div>
-               </div>
-               <div class="row">
-                  <div class="col-20">
-                     <label for="itemHSNCode">HSN Code</label>
-                  </div>
-                  <div class="col-30">
-                     {{form.itemHSNCode}}
-                  </div>
-                  <div class="col-20">
-                     <label for="itemUnit">Unit</label>
-                  </div>
-                  <div class="col-30">
-                     {{form.itemUnit}}
-                  </div>
-               </div>
-               <div class="row">
-                  <div class="col-20">
-                     <label for="itemTaxPref">Tax Preference</label>
-                  </div>
-                  <div class="col-30">
-                     {{form.itemTaxPref}}
-                  </div>
-                  <div class="col-20">
-                    <label for="itemTaxRate">GST Rate</label>
-                 </div>
-                 <div class="col-30">
-                    {{form.itemTaxRate}}
-                 </div>
-               </div>
-               <div class="row">
-                  <div class="col-20">
-                     <label for="itemCostPrice">Cost Price</label>
-                  </div>
-                  <div class="col-30">
-                     {{form.itemCostPrice}}
-                  </div>
-                  <div class="col-20">
-                     <label for="itemPrice">Sale Price</label>
-                  </div>
-                  <div class="col-30">
-                     {{form.itemPrice}}
-                  </div>
-               </div>
-               <div class="row">
-                    <div class="col-20">
-                        <label for="itemImg">Photo</label>
-                    </div>
-                    <div class="col-30">
-                        {{form.itemImg}}
-                    </div>
-                    <div class="col-20">
-                        <label for="stockValue">Opening Stock</label>
-                    </div>
-                    <div class="col-30">
-                        {{form.stockValue}}
-                    </div>
-               </div>
-               <div class="row">
-                  <div class="col-20">
-                     Item Description
-                  </div>
-                  <div class="col-30">
-                     {{form.itemDesc}}
-                 </div>
-               </div>
-            </div>
-         </div>
-        <div class="flex justify-between mt-6">
-            <a type="button" href="{% url 'item_list' %}" class="btn btn-danger">
-                Cancel
-            </a>
-            <button type="submit" class="btn btn-success">
-                Save
-            </button>
-        </div>
-    </form>
+<div class="max-w-5xl mx-auto mt-10 bg-transparent">
+   <form id="itemForm"
+       action="{% if is_edit %}{% url 'edit_item' form.instance.itemID %}{% else %}{% url 'create_item' %}{% endif %}"
+       method="POST" enctype="multipart/form-data" class="bg-white shadow-md rounded-lg p-6">
+       {% csrf_token %}
+       <h2 class="text-xl font-semibold mb-6 border-b pb-2">
+           {{ is_edit|yesno:"Edit Item,Add Item" }} ({{ login_user }})
+       </h2>
+
+       <!-- Row 1 -->
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+           <div>
+               <label for="itemType" class="block text-sm font-medium text-gray-700">Item Type</label>
+               {{ form.itemType }}
+           </div>
+           <div>
+               <label for="itemName" class="block text-sm font-medium text-gray-700">Item Name</label>
+               {{ form.itemName }}
+           </div>
+       </div>
+
+       <!-- Row 2 -->
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+           <div>
+               <label for="itemCat" class="block text-sm font-medium text-gray-700">Item Category</label>
+               {{ form.itemCat }}
+           </div>
+           <div>
+               <label for="itemSku" class="block text-sm font-medium text-gray-700">Item SKU</label>
+               {{ form.itemSku }}
+           </div>
+       </div>
+
+       <!-- Row 3 -->
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+           <div>
+               <label for="itemHSNCode" class="block text-sm font-medium text-gray-700">HSN Code</label>
+               {{ form.itemHSNCode }}
+           </div>
+           <div>
+               <label for="itemUnit" class="block text-sm font-medium text-gray-700">Unit</label>
+               {{ form.itemUnit }}
+           </div>
+       </div>
+
+       <!-- Row 4 -->
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+           <div>
+               <label for="itemTaxPref" class="block text-sm font-medium text-gray-700">Tax Preference</label>
+               {{ form.itemTaxPref }}
+           </div>
+           <div>
+               <label for="itemTaxRate" class="block text-sm font-medium text-gray-700">GST Rate</label>
+               {{ form.itemTaxRate }}
+           </div>
+       </div>
+
+       <!-- Row 5 -->
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+           <div>
+               <label for="itemCostPrice" class="block text-sm font-medium text-gray-700">Cost Price</label>
+               {{ form.itemCostPrice }}
+           </div>
+           <div>
+               <label for="itemPrice" class="block text-sm font-medium text-gray-700">Sale Price</label>
+               {{ form.itemPrice }}
+           </div>
+       </div>
+
+       <!-- Row 6 -->
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+           <div>
+               <label for="itemImg" class="block text-sm font-medium text-gray-700">Photo</label>
+               {{ form.itemImg }}
+           </div>
+           <div>
+               <label for="stockValue" class="block text-sm font-medium text-gray-700">Opening Stock</label>
+               {{ form.stockValue }}
+           </div>
+       </div>
+
+       <!-- Description -->
+       <div class="mb-6">
+           <label for="itemDesc" class="block text-sm font-medium text-gray-700">Item Description</label>
+           {{ form.itemDesc }}
+       </div>
+
+       <!-- Buttons -->
+       <div class="flex justify-between">
+           <!-- <a href="{% url 'item_list' %}" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+               Cancel
+           </a> -->
+         <a href="{% url 'item_list' %}" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+            Cancel
+         </a>
+         <button type="submit"
+            class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition duration-200">
+            Save
+         </button>
+       </div>
+   </form>
 </div>
 {% endblock %}

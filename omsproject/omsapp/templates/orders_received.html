@@ -1,46 +1,74 @@
-{% extends 'profile.html' %}
+{% extends 'admin-console.html' %}
 {% block orders_received %}
-    <table class="table table-primary table-hover caption-top" id="allOrdersTable">
-        <caption><strong>Received Orders</strong></caption>
-        <thead>
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Order No.</th>
-            <th scope="col">Order Date</th>
-            <th scope="col">Schedule Delivery Date</th>
-            <th scope="col">Schedule Delivery Time</th>
-            <th scope="col">Delivery Status</th>
-            <th scope="col">Order From</th>
-            <th scope="col">Actions</th>
-        </tr>
-        </thead>
-        <tbody class="table table-hover table-group-divider">
-            {% for order in received_orders %}
+<h2 class="text-xl font-semibold mb-4">Orders</h2>
+<div class="bg-white p-4 shadow rounded border border-gray-300">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-blue-500 text-white p-4 rounded shadow">
+            <h3 class="text-sm">Total Orders</h3>
+            <p class="text-2xl font-semibold mt-1">{{received_sub_orders}}</p>
+        </div>
+        <div class="bg-green-500 text-white p-4 rounded shadow">
+            <h3 class="text-sm">Pending Orders</h3>
+            <p class="text-2xl font-semibold mt-1">{{pending_orders}}</p>
+        </div>
+        <div class="bg-yellow-500 text-white p-4 rounded shadow">
+            <h3 class="text-sm">Delivered Orders</h3>
+            <p class="text-2xl font-semibold mt-1">{{delivered_orders}}</p>
+        </div>
+    </div>
+    <br>
+    <div class="mb-4">
+        <input type="text" id="orderSearch" onkeyup="searchOrder()" placeholder="Search order..." class="w-full p-2 rounded border border-gray-300 focus:outline-none">
+    </div>
+    <table id="orderTable" class="w-full text-left text-sm border border-gray-300 bg-white">
+        <thead class="text-gray-700 border-b border-gray-300">
             <tr>
-                <td>{{forloop.counter}}</td>
-                <td>
-                    {{order.orderNo}}
+            <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'orderTable')">#</th>
+            <th class="py-2 px-3 cursor-pointer" onclick="sortTable(1, 'orderTable')">Order #</th>
+            <th class="py-2 px-3 cursor-pointer" onclick="sortTable(2, 'orderTable')">Date</th>
+            <th class="py-2 px-3 cursor-pointer" onclick="sortTable(3, 'orderTable')">Schedule Delivery Date & Time</th>
+            <th class="py-2 px-3 cursor-pointer" onclick="sortTable(4, 'orderTable')">Order From</th>
+            <th class="py-2 px-3 cursor-pointer" onclick="sortTable(5, 'orderTable')">Status</th>
+            <th class="py-2 px-3 cursor-pointer" onclick="sortTable(6, 'orderTable')">Remark</th>
+            <th class="py-2 px-3 cursor-pointer">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+                <td class="py-2 px-3">{{forloop.counter}}</td>
+                <td class="py-2 px-3">{{order.orderID.orderNo}}</td>
+                <td class="py-2 px-3">{{order.orderID.orderDate}}</td>
+                <td class="py-2 px-3">{{order.orderID.schDeliveryDate}} {{order.orderID.schDeliveryTime}}</td>
+                <!-- <td class="py-2 px-3">{{order.orderID.schDeliveryTime}}</td> -->
+                <td class="py-2 px-3">{{order.orderID.userID.last_name}}</td>
+                <td class="py-2 px-3 space-x-2">
+                    {% if order.orderID.orderStatus == 'Pending Order' %}
+                    <span class="px-2 py-1 text-xs rounded bg-pink-600 text-white">{{order.orderID.orderStatus}}</span>
+                    {% elif order.orderID.orderStatus == 'Under Process' %}
+                    <span class="px-2 py-1 text-xs rounded bg-blue-600 text-white">{{order.orderID.orderStatus}}</span>
+                    {% elif order.orderID.orderStatus == 'Invoiced' %}
+                    <span class="px-2 py-1 text-xs rounded bg-yellow-600 text-white">{{order.orderID.orderStatus}}</span>
+                    {% elif order.orderID.orderStatus == 'Rejected' %}
+                    <span class="px-2 py-1 text-xs rounded bg-red-600 text-white">{{order.orderID.orderStatus}}</span>
+                    {% else %}
+                    <span class="px-2 py-1 text-xs rounded bg-green-600 text-white">{{order.orderStatus}}</span>
+                    {% endif %}
                 </td>
+                <td class="py-2 px-3">{{order.remark}}</td>
                 <td>
-                    {{order.orderDate}}
+                    <a class="px-2 py-1 text-xs rounded bg-yellow-600 text-white" href="{% url 'receivedorderdetails' order.orderID.pk %}">View</a>
                 </td>
-                <td>
-                    {{order.schDeliveryDate}}
-                </td>
-                <td>
-                    {{order.schDeliveryTime}}
-                </td>
-                <td>
-                    {{order.orderStatus}}
-                </td>
-                <td>
-                    {{order.userID.first_name}}
-                </td>
-                <td>
-                    <a class="btn btn-info btn-sm" href="{% url 'receivedorderdetails' order.orderID %}">View</a>
+            </tr>
+            {% empty %}
+            <tr>
+                <td class="py-2 px-3" colspan="8">
+                    No order has been placed yet!
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+    <div id="paginationOrder" class="mt-4 flex justify-center"></div>
+</div>
 {% endblock %}

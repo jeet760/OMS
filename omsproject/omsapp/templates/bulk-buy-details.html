@@ -1,84 +1,63 @@
-{% extends 'profile.html' %}
+{% extends 'admin-console.html' %}
 {% load static %}
 {% block bulkbuydetails %}
 
-<form action="" method="post">
-    {% csrf_token %}
-    <table class="table table-primary table-hover caption-top" id="bulkbuyDetailsTable">
-        <caption>
-            <strong>Order #:{{bulkbuy.0.bulkBuyNo}}</strong>
-            <strong>Order From:{{bulkbuy.0.userID.first_name}}</strong>
-        </caption>
-        <thead>
-            <tr>
-                <th>
-                    Sl #
-                </th>
-                <th>
-                    Item Name
-                </th>
-                <th>
-                    Specification
-                </th>
-                <th>
-                    Quantity (Unit)
-                </th>
-                <th>
-                    Indicative Price (in INR)
-                </th>
-                <th>
-                    Quote Price (in INR)
-                </th>
-                <th>
-                    Action
-                </th>
-            </tr>
-        </thead>
-        <tbody class="table table-hover table-group-divider">
-            {% for item in bulk_buy_details %}
-            <tr>
-                <td>
-                    {{forloop.counter}}
-                </td>
-                <td>
-                    {{item.itemName}}
-                </td>
-                <td>
-                    {{item.itemSpec}}
-                </td>
-                <td>
-                    {{item.itemQty}}
-                </td>
-                <td>
-                    {{item.itemPrice}}
-                </td>
-                <td>
-                    <input type="text" value="{{item.itemPrice}}" style="width: 150px;">
-                </td>
-                <td>
-                    <input type="checkbox" id="{{item.pk}}" checked>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6">
-                    No Item is enquired for bulk buy!
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="4"></td>
-                <td>
-                    <button type="submit" class="btn btn-sm btn-info" onclick="submitCheckedForBid('{{bulkBuyID}}')">Bid</button>
-                    <!-- <a href="#" class="btn btn-sm btn-info" onclick="submi">Bid</a> -->
-                </td>
-                <td colspan="2"></td>
-            </tr>
-        </tfoot>
-    </table>
-</form>
+<div class="bg-white p-4 shadow rounded border border-gray-300">
+    <form action="" method="post">
+        {% csrf_token %}
+        <table class="w-full text-left text-sm border border-gray-300 bg-white" id="bulkbuyDetailsTable">
+            <caption>
+                <strong>Order #: <label class="px-4 py-2 text-sm text-blue-600">{{bulkbuy.0.bulkBuyNo}}</label></strong><br>
+                <strong>Order From: <label class="px-4 py-2 text-sm text-blue-600">{{bulkbuy.0.userID.first_name}}</label></strong>
+            </caption>
+            <thead class="text-gray-700 border-b border-gray-300">
+                <tr>
+                    <th class="py-2 px-3 cursor-pointer">Sl #</th>
+                    <th class="py-2 px-3 cursor-pointer">Item Name</th>
+                    <th class="py-2 px-3 cursor-pointer">Specification</th>
+                    <th class="py-2 px-3 cursor-pointer">Quantity (Unit)</th>
+                    <th class="py-2 px-3 cursor-pointer">Indicative Price (in INR)</th>
+                    <th class="py-2 px-3 cursor-pointer">Quote Price (in INR)</th>
+                    <th class="py-2 px-3 cursor-pointer">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in bulk_buy_details %}
+                <tr class="border-b border-gray-300 hover:bg-gray-100">
+                    <td class="py-2 px-3">{{forloop.counter}}</td>
+                    <td class="py-2 px-3">{{item.itemName}}</td>
+                    <td class="py-2 px-3">{{item.itemSpec}}</td>
+                    <td class="py-2 px-3">{{item.itemQty}}</td>
+                    <td class="py-2 px-3">{{item.itemPrice}}</td>
+                    <td class="py-2 px-3"><input type="text" value="{{item.itemPrice}}" style="width: 100px;" class="w-full p-2 rounded border border-gray-300 focus:outline-none"></td>
+                    <td class="py-2 px-3"><input type="checkbox" id="{{item.pk}}" checked></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td class="py-2 px-3" colspan="6">
+                        No Item is enquired for bulk buy!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4"></td>
+                    <td>
+                        {% if no_of_response_made > 0 %}
+                        <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 pointer-events-none opacity-50" onclick="submitCheckedForBid('{{bulkBuyID}}')">Bid</button>
+                        {% else %}
+                        <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" onclick="submitCheckedForBid('{{bulkBuyID}}')">Bid</button>
+                        {% endif %}
+
+                    </td>
+                    <td colspan="2"></td>
+                </tr>
+            </tfoot>
+        </table>
+    </form>
+</div>
+
 <script>
     function submitCheckedForBid(bulkBuyID){
         // const table = document.getElementById('bulkbuyDetailsTable').getElementsByTagName('tbody')[0];

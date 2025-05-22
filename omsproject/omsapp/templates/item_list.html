@@ -1,97 +1,85 @@
-{% extends 'profile.html' %}
+{% extends 'admin-console.html' %}
 {% load static %}
 {% block item_list %}
-<div class="container mx-auto mt-10" style="background-color: transparent;">
-    <a href="{% url 'item_entry' %}"><i class="fa fa-add"></i>Add Item</a>
-    <table class="table table-hover text-center" id="tableItems">
-        <thead>
-            <tr>
-                <th>Sl #</th>
-                <th>Item Image</th>
-                <th>Item Name</th>
-                <th>Item Category</th>
-                <th>Item Price/Unit (in Rs.)</th>
-                <th>Edit</th>
-                <th>Stock<br>(Instock/Out of Stock)</th>
-                <th>Status<br>(Active/Inactive)</th>
-                <th>Feature<br>(In/Out)</th>
-            </tr>
+<h2 class="text-xl font-semibold mb-4">Items</h2>
+<div class="bg-white p-4 shadow rounded border border-gray-300">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-yellow-500 text-white p-4 rounded shadow">
+            <h3 class="text-sm">Total Categories</h3>
+            <p class="text-2xl font-semibold mt-1">{{total_item_categories}}</p>
+        </div>
+        <div class="bg-blue-500 text-white p-4 rounded shadow">
+            <h3 class="text-sm">Total Items</h3>
+            <p class="text-2xl font-semibold mt-1">{{total_items|length}}</p>
+        </div>
+        <div class="bg-green-500 text-white p-4 rounded shadow">
+            <h3 class="text-sm">Feature Items</h3>
+            <p class="text-2xl font-semibold mt-1">{{total_featured_items}}</p>
+        </div>
+        <div class="bg-green-500 text-white p-4 rounded shadow">
+            <h3 class="text-sm">In Stock Items</h3>
+            <p class="text-2xl font-semibold mt-1">{{total_instock_items}}</p>
+        </div>
+        <div class="bg-green-500 text-white p-4 rounded shadow">
+            <h3 class="text-sm">Active Items</h3>
+            <p class="text-2xl font-semibold mt-1">{{total_active_items}}</p>
+        </div>
+    </div>
+    <br>
+    <div class="flex justify-between items-center mb-4">
+        <a href="{% url 'item_entry' %}" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add Item</a>
+    </div>
+    <div class="mb-4">
+        <input type="text" id="itemSearch" onkeyup="searchItems()" placeholder="Search item..." class="w-full p-2 rounded border border-gray-300 focus:outline-none">
+    </div>
+    <table id="itemTable" class="w-full text-left text-sm border border-gray-300 bg-white">
+        <thead class="text-gray-700 border-b border-gray-300">
+        <tr>
+            <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'itemTable')">#</th>
+            <th class="py-2 px-3 cursor-pointer" onclick="sortTable(1, 'itemTable')">Name</th>
+            <th class="py-2 px-3 cursor-pointer" onclick="sortTable(2, 'itemTable')">Category</th>
+            <th class="py-2 px-3 cursor-pointer" onclick="sortTable(3, 'itemTable')">Price (in ₹)</th>
+            <th class="py-2 px-3 cursor-pointer" onclick="sortTable(4, 'itemTable')">Unit</th>
+            <th class="py-2 px-3 cursor-pointer" onclick="sortTable(5, 'itemTable')">Action</th>
+            <th class="py-2 px-3">Status</th>
+        </tr>
         </thead>
         <tbody>
-            {% for item in items %}
-            <tr>
-                <td>
-                    {{forloop.counter}}
-                </td>
-                <td><img src="{{item.itemImg.url}}" class="card-img-top" alt={{item.itemName}} style="height: 8rem; width: 8rem;"></td>
-                <td>{{ item.itemName }}</td>
-                <td>{{ item.itemCat}}</td>
-                <td>{{item.itemPrice}}/{{item.itemUnit}}</td>
-                <td>
-                    <a href="{% url 'edit_item' item.itemID %}" class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-custom-class="custom-tooltip" data-bs-title="Edit {{item.itemName}}">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
-                            <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/>
-                        </svg>
-                    </a>
-                </td>
-                <td>
-                    <a href="{% url 'change_item_stock' item.itemID %}" class="btn btn-light btn-sm" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-custom-class="custom-tooltip" data-bs-title="Stock Out {{item.itemName}}">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="35px" viewBox="0 -960 960 960" width="35px" fill="#5985E1">
-                            <path d="{% if item.itemInStock %}
-                            M280-240q-100 0-170-70T40-480q0-100 70-170t170-70h400q100 0 170 70t70 170q0 100-70 170t-170 70H280Zm0-80h400q66 0 113-47t47-113q0-66-47-113t-113-47H280q-66 0-113 47t-47 113q0 66 47 113t113 47Zm400-40q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM480-480Z
-                            {% else %}
-                            M280-240q-100 0-170-70T40-480q0-100 70-170t170-70h400q100 0 170 70t70 170q0 100-70 170t-170 70H280Zm0-80h400q66 0 113-47t47-113q0-66-47-113t-113-47H280q-66 0-113 47t-47 113q0 66 47 113t113 47Zm0-40q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Zm200-120
-                            {% endif %}"/>
-                        </svg>
-                    </a>
-                </td>
-                <td>
-                    <a href="{% url 'change_item_status' item.itemID %}" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-custom-class="custom-tooltip" data-bs-title="Change Status of {{item.itemName}}">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
-                            <path d="{% if item.itemActive %}
-                            M560-80v-80h160v80H560Zm-240 0v-80h160v80H320ZM160-560H80v-160h80v160Zm0 240H80v-160h80v160Zm80 240h-80q-33 0-56.5-23.5T80-160v-80h80v80h80v80Zm236-340 84-84 84 84 56-56-84-84 84-84-56-56-84 84-84-84-56 56 84 84-84 84 56 56ZM320-240q-33 0-56.5-23.5T240-320v-480q0-33 23.5-56.5T320-880h480q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H320Zm0-80h480v-480H320v480Zm0-480v480-480Z
-                            {% else %} 
-                            M320-80q-33 0-56.5-23.5T240-160v-80h-80q-33 0-56.5-23.5T80-320v-80h80v80h80v-320q0-33 23.5-56.5T320-720h320v-80h-80v-80h80q33 0 56.5 23.5T720-800v80h80q33 0 56.5 23.5T880-640v480q0 33-23.5 56.5T800-80H320Zm0-80h480v-480H320v480ZM80-480v-160h80v160H80Zm0-240v-80q0-33 23.5-56.5T160-880h80v80h-80v80H80Zm240-80v-80h160v80H320Zm0 640v-480 480Z
-                            {% endif %}"/>
-                        </svg>
-                    </a>
-                </td>
-                <td>
-                    <a href="{% url 'change_item_feature' item.itemID %}" class="btn btn-light btn-sm" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-custom-class="custom-tooltip" data-bs-title="Feature Out {{item.itemName}}">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="35px" viewBox="0 -960 960 960" width="35px" fill="#5985E1">
-                            <path d="{% if item.featureItem %}
-                            M280-240q-100 0-170-70T40-480q0-100 70-170t170-70h400q100 0 170 70t70 170q0 100-70 170t-170 70H280Zm0-80h400q66 0 113-47t47-113q0-66-47-113t-113-47H280q-66 0-113 47t-47 113q0 66 47 113t113 47Zm400-40q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM480-480Z
-                            {% else %}
-                            M280-240q-100 0-170-70T40-480q0-100 70-170t170-70h400q100 0 170 70t70 170q0 100-70 170t-170 70H280Zm0-80h400q66 0 113-47t47-113q0-66-47-113t-113-47H280q-66 0-113 47t-47 113q0 66 47 113t113 47Zm0-40q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Zm200-120
-                            {% endif %}"/>
-                        </svg>
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
+        {% for item in total_items %}
+        <tr class="border-b border-gray-300 hover:bg-gray-100">
+            <td class="py-2 px-3">{{forloop.counter}}</td>
+            <td class="py-2 px-3">{{item.itemName}}</td>
+            <td class="py-2 px-3">{{item.itemCat}}</td>
+            <td class="py-2 px-3">{{item.itemPrice}}</td>
+            <td class="py-2 px-3">{{item.itemUnit}}</td>
+            <td class="py-2 px-3">
+            <a href="{% url 'edit_item' item.itemID %}" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-custom-class="custom-tooltip" data-bs-title="Edit {{item.itemName}}">
+                Edit
+            </a>
+            </td>
+            <td class="py-2 px-3 space-x-2">
+            {% if item.itemActive %}
+            <a class="px-2 py-1 text-xs rounded bg-green-600 text-white" href="{% url 'change_item_status' item.itemID %}">Active</a>
+            {% else %}
+            <a class="px-2 py-1 text-xs rounded bg-red-600 text-white" href="{% url 'change_item_status' item.itemID %}">Inactive</a>
+            {% endif %}
+
+            {% if item.itemInStock %}
+            <a class="px-2 py-1 text-xs rounded bg-green-600 text-white" href="{% url 'change_item_stock' item.itemID %}">In Stock</a>
+            {% else %}
+            <a class="px-2 py-1 text-xs rounded bg-red-600 text-white" href="{% url 'change_item_stock' item.itemID %}">Stock Out</a>
+            {% endif %}
+            
+            {% if item.featureItem %}
+            <a class="px-2 py-1 text-xs rounded bg-green-600 text-white" href="{% url 'change_item_feature' item.itemID %}">Featured</a>
+            {% else %}
+            <a class="px-2 py-1 text-xs rounded bg-red-600 text-white" href="{% url 'change_item_feature' item.itemID %}">Featured Out</a>
+            {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
         </tbody>
     </table>
+    <div id="pagination" class="mt-4 flex justify-center"></div>
 </div>
-<script>
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-
-    function changeStock(itemID)
-    {
-        var svg = document.getElementById(itemID);
-        var svgPath = svg.getAttribute("d");
-        if(svgPath.endsWith("480Z")== true){
-            svg.setAttribute("d", "M280-240q-100 0-170-70T40-480q0-100 70-170t170-70h400q100 0 170 70t70 170q0 100-70 170t-170 70H280Zm0-80h400q66 0 113-47t47-113q0-66-47-113t-113-47H280q-66 0-113 47t-47 113q0 66 47 113t113 47Zm0-40q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Zm200-120")
-        }
-        else{
-            svg.setAttribute("d", "M280-240q-100 0-170-70T40-480q0-100 70-170t170-70h400q100 0 170 70t70 170q0 100-70 170t-170 70H280Zm0-80h400q66 0 113-47t47-113q0-66-47-113t-113-47H280q-66 0-113 47t-47 113q0 66 47 113t113 47Zm400-40q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM480-480Z")
-        }
-    }
-</script>
-<style>
-    .custom-tooltip {
-  --bs-tooltip-bg: var(--bd-violet-bg);
-  --bs-tooltip-color: var(--bs-black);
-}
-</style>
 {% endblock %}

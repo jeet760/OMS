@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Farmer Harvest : Master</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    .sidebar-transition {
+      transition: transform 0.3s ease-in-out;
+    }
+  </style>
+  <script>
+    let currentPage = 1;
+    const rowsPerPage = 10;
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('-translate-x-full');
+    }
+
+    function searchUsers() {
+      const input = document.getElementById('userSearch');
+      const filter = input.value.toLowerCase();
+      const rows = document.querySelectorAll('#userTable tbody tr');
+
+      rows.forEach(row => {
+        const cells = row.getElementsByTagName('td');
+        const match = Array.from(cells).some(cell =>
+          cell.textContent.toLowerCase().includes(filter)
+        );
+        row.dataset.visible = match ? "true" : "false";
+      });
+
+      currentPage = 1;
+      paginate();
+    }
+
+    function paginate() {
+      const rows = document.querySelectorAll('#userTable tbody tr');
+      const visibleRows = Array.from(rows).filter(row => row.dataset.visible !== "false");
+      const totalPages = Math.ceil(visibleRows.length / rowsPerPage);
+
+      rows.forEach(row => row.style.display = 'none');
+
+      visibleRows.forEach((row, index) => {
+        row.style.display = (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) ? '' : 'none';
+      });
+
+      const pagination = document.getElementById('pagination');
+      pagination.innerHTML = '';
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = 'px-3 py-1 rounded bg-gray-700 text-white mx-1';
+        if (i === currentPage) btn.classList.add('bg-blue-600');
+        btn.onclick = () => {
+          currentPage = i;
+          paginate();
+        };
+        pagination.appendChild(btn);
+      }
+    }
+
+
+    function sortTable(n) {
+      const table = document.getElementById("userTable");
+      let rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+      switching = true;
+      dir = "asc";
+      while (switching) {
+        switching = false;
+        rows = table.rows;
+        for (i = 1; i < (rows.length - 1); i++) {
+          shouldSwitch = false;
+          x = rows[i].getElementsByTagName("TD")[n];
+          y = rows[i + 1].getElementsByTagName("TD")[n];
+          if (dir == "asc") {
+            if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+              shouldSwitch = true;
+              break;
+            }
+          } else if (dir == "desc") {
+            if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+              shouldSwitch = true;
+              break;
+            }
+          }
+        }
+        if (shouldSwitch) {
+          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+          switching = true;
+          switchcount++;
+        } else {
+          if (switchcount == 0 && dir == "asc") {
+            dir = "desc";
+            switching = true;
+          }
+        }
+      }
+    }
+    
+    window.onload = () => {
+      const rows = document.querySelectorAll('#userTable tbody tr');
+      rows.forEach(row => row.dataset.visible = "true");
+      paginate();
+    };
+
+  </script>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans">
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <div id="sidebar" class="fixed md:relative z-40 w-64 bg-gray-800 shadow-md sidebar-transition transform -translate-x-full md:translate-x-0 md:block h-full">
+      <div class="p-4 text-lg font-bold border-b border-gray-700">Admin Panel</div>
+      <nav class="p-4 space-y-2">
+        <a href="#dashboard" class="block p-2 hover:bg-gray-700 rounded">Dashboard</a>
+        <a href="#products" class="block p-2 hover:bg-gray-700 rounded">Products</a>
+        <a href="#orders" class="block p-2 hover:bg-gray-700 rounded">Orders</a>
+        <a href="#users" class="block p-2 hover:bg-gray-700 rounded">Users</a>
+        <a href="#settings" class="block p-2 hover:bg-gray-700 rounded">Settings</a>
+        <a href="#notifications" class="block p-2 hover:bg-gray-700 rounded">Notifications</a>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col">
+      <!-- Header -->
+      <div class="p-4 bg-gray-800 shadow-md flex justify-between items-center sticky top-0 z-30">
+        <button onclick="toggleSidebar()" class="md:hidden text-gray-400 text-2xl">☰</button>
+        <h1 class="text-xl font-bold">Farmer Harvest: Master</h1>
+      </div>
+
+      <!-- Page Content -->
+      <div class="p-6 overflow-y-auto flex-1">
+        <!-- Dashboard -->
+        <section id="dashboard">
+          <h2 class="text-xl font-semibold mb-4">Dashboard</h2>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-gray-800 p-4 shadow rounded">Total Sales</div>
+            <div class="bg-gray-800 p-4 shadow rounded">New Orders</div>
+            <div class="bg-gray-800 p-4 shadow rounded">Total Users: <strong>{{total_users|length}}</strong></div>
+            <div class="bg-gray-800 p-4 shadow rounded">Inventory Alerts</div>
+          </div>
+        </section>
+
+        <!-- Products -->
+        <section id="products" class="mt-10">
+          <h2 class="text-xl font-semibold mb-4">Products</h2>
+          <div class="bg-gray-800 p-4 shadow rounded">
+            <p>Product table and management interface goes here.</p>
+          </div>
+        </section>
+
+        <!-- Orders -->
+        <section id="orders" class="mt-10">
+          <h2 class="text-xl font-semibold mb-4">Orders</h2>
+          <div class="bg-gray-800 p-4 shadow rounded">
+            <p>Order tracking and details will be shown here.</p>
+          </div>
+        </section>
+
+        <!-- Users -->
+        <section id="users" class="mt-10">
+          <h2 class="text-xl font-semibold mb-4">Users</h2>
+          <div class="bg-gray-800 p-4 shadow rounded">
+            <div class="mb-4">
+              <input type="text" id="userSearch" onkeyup="searchUsers()" placeholder="Search users..." class="w-full p-2 rounded bg-gray-700 text-gray-100 focus:outline-none">
+            </div>
+            <table id="userTable" class="w-full text-left text-sm">
+              <thead class="text-gray-400 border-b border-gray-700">
+                <tr>
+                  <th class="py-2 cursor-pointer" onclick="sortTable(0)">#</th>
+                  <th class="py-2 cursor-pointer" onclick="sortTable(1)">Name</th>
+                  <th class="py-2 cursor-pointer" onclick="sortTable(2)">Type</th>
+                  <th class="py-2 cursor-pointer" onclick="sortTable(3)">Phone</th>
+                  <th class="py-2 cursor-pointer" onclick="sortTable(4)">Pincode</th>
+                  <th class="py-2 cursor-pointer" onclick="sortTable(5)">Status</th>
+                  <th class="py-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for user in total_users %}
+                {% if user.is_superuser %}
+                <tr class="border-b border-gray-700 hover:bg-gray-700 pointer-events-none opacity-50">
+                {% else %}
+                <tr class="border-b border-gray-700 hover:bg-gray-700">
+                {% endif %}
+                <!-- <tr class="border-b border-gray-700 hover:bg-gray-700"> -->
+                  <td class="py-2">{{forloop.counter}}</td>
+                  <td class="py-2">{{user.first_name}}</td>
+                  <td class="py-2">
+                    {% if user.userType == '1' %}FPO
+                    {% elif user.userType == '2' %}Business
+                    {% elif user.userType == '3' %}Institution
+                    {% elif user.userType == '4' %}Overseas
+                    {% else %}Individual
+                    {% endif %}
+                  </td>
+                  <td class="py-2">{{user.phone}}</td>
+                  <td class="py-2">{{user.pinCode}}</td>
+                  <td class="py-2">
+                    {% if user.isActive %}
+                    <span class="px-2 py-1 text-xs rounded bg-green-600 text-white">Active</span>
+                    {% else %}
+                    <span class="px-2 py-1 text-xs rounded bg-red-600 text-white">Inactive</span>
+                    {% endif %}
+                  </td>
+                  <td class="py-2 space-x-2">
+                    {% if user.userApproved %}
+                    <span class="px-2 py-1 text-xs bg-green-600 rounded">Approved</span>
+                    {% else %}
+                    <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="{% url 'approve-user' user.pk %}">Approve</a>
+                    {% endif %}
+                    {% if user.isActive %}
+                    <a class="px-2 py-1 text-xs bg-red-600 rounded hover:bg-red-700" href="{% url 'activate-user' user.pk 0 %}">Inactivate</a>
+                    {% else %}
+                    <a class="px-2 py-1 text-xs bg-green-600 rounded hover:bg-green-700" href="{% url 'activate-user' user.pk 1 %}">Activate</a>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <div id="pagination" class="mt-4 flex justify-center"></div>
+          </div>
+        </section>
+
+        <!-- Settings -->
+        <section id="settings" class="mt-10">
+          <h2 class="text-xl font-semibold mb-4">Settings</h2>
+          <div class="bg-gray-800 p-4 shadow rounded">
+            <p>Configuration options here.</p>
+          </div>
+        </section>
+
+        <!-- Notifications -->
+        <section id="notifications" class="mt-10">
+          <h2 class="text-xl font-semibold mb-4">Notifications</h2>
+          <div class="bg-gray-800 p-4 shadow rounded">
+            <p>System notifications and alerts here.</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

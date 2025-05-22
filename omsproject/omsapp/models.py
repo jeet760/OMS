@@ -7,7 +7,7 @@ import datetime
 
 
 #region Registration
-USERTYPE_CHOICES = [
+USERTYPES = [
     ('', 'Select Usertype'),
     ('1', 'FPO'),
     ('2', 'Business'),
@@ -68,11 +68,11 @@ GST_TREATMENT=[
 class CustomUser(AbstractUser):
     id=AutoField(primary_key=True)
     """"Basic details"""
-    userType = CharField(max_length=20, choices=USERTYPE_CHOICES)
+    userType = CharField(max_length=20, choices=USERTYPES)
     first_name = CharField(max_length=50)#name
     last_name = CharField(max_length=50)#displayname
     org_name=CharField(max_length=50, default='', blank=True)#business name
-    email = EmailField(max_length=50)#not mandatory
+    email = EmailField(max_length=50, default='', blank=True)#not mandatory
     phone = CharField(max_length=12, unique=True)
     phone1 = CharField(max_length=12, default='', blank=True)
     gstin = CharField(max_length=15, default='', blank=True)
@@ -91,6 +91,10 @@ class CustomUser(AbstractUser):
     userNote = CharField(max_length=300, default='', blank=True)#remarks from user
     """Account attributes"""
     password = CharField(max_length=20, default='Admin@1234')
+    userApproved = BooleanField(null=True)
+    approvedOn = DateField(null=True)
+    isActive=BooleanField(null=True)
+    activatedOn=DateField(null=True)
     USERNAME_FIELD = 'phone'
     REQUIRED_FIELDS=['first_name']
 
@@ -104,6 +108,17 @@ class Login(Model):
     password = CharField(max_length=10)
     def __str__(self):
         return self.id
+
+class UserAddresses(Model):
+    id = AutoField(primary_key=True)
+    userID = ForeignKey(CustomUser, on_delete=CASCADE)
+    userAddress1 = CharField(max_length=200)
+    userCity1 = CharField(max_length=50)
+    userState1 = CharField(max_length=20, choices=STATES)
+    pinCode1 = CharField(max_length=6)
+    setDefault = BooleanField(default=False, null=True)
+    def __str__(self):
+        return self.userID
 
 #endregion
 
@@ -147,7 +162,7 @@ class ItemStock(Model):
 class Cart(Model):
     #user = OneToOneField(User, on_delete=CASCADE, related_name="cart")
     user = OneToOneField(CustomUser, on_delete=CASCADE, related_name="cart")
-    created_at = DateTimeField(default=now)
+    created_at = DateField(default=now)
 
     def __str__(self):
         return f"Cart of {self.user.username}"
@@ -178,7 +193,7 @@ class CartItem(Model):
 class Order(Model):
     orderID = AutoField(primary_key=True)
     orderNo = CharField(max_length=11)
-    orderDate = DateTimeField(auto_now_add=True)
+    orderDate = DateField(auto_now_add=True)
     orderStatus = CharField(max_length=25, default='Pending Order')
     orderAmount = FloatField()
     orderGSTAmount = FloatField()
@@ -269,7 +284,7 @@ class BulkBuyResponse(Model):
     response_date = DateField(default=datetime.date.today)
     response_remark = CharField(max_length=250, default='Pending') #response from the customer whether to accept or not
     response_status = BooleanField() #responded from the vendor
-    response_remark_date=DateTimeField(null=True)
+    response_remark_date=DateField(null=True)
 
     def __str__(self):
         return f"{self.bbrID}"
@@ -291,7 +306,7 @@ class BulkBuyResponseDetails(Model):
 #region Notification Model
 class Notification(Model):
     id=AutoField(primary_key=True)
-    dateTime = DateTimeField(default=now)
+    dateTime = DateField(default=now)
     notificationText = CharField(max_length=200)
     userID = ForeignKey(CustomUser, on_delete=CASCADE)
     def __str__(self):
