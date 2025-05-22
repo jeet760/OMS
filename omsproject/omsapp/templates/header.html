@@ -23,12 +23,12 @@
                     <li><a href="#">English</a></li>
                 </ul> -->
                 <i class="fa fa-user"></i>
-                <div><strong>{% if login_user == 'Guest!' %}Login{% else %}{{login_user}}{% endif %}</strong></div>
+                <div><strong>{% if login_user == 'Guest!' %}<a style="color: black; text-decoration: none;" href="{% url 'login' %}">Login</a>{% else %}{{login_user}}{% endif %}</strong></div>
                 <span class="arrow_carrot-down"></span>
                 <ul>
                     <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>{% if user_type == '1' %}Seller Hub{% else %}My Profile{% endif %}</a></li>
                     <li><a href="{% url 'orders' %}">My Orders</a></li>
-                    <li style="display: none;"><a href="{% url 'logout' %}">Log Out</a></li>
+                    <li><a href="{% url 'logout' %}">Log Out</a></li>
                 </ul>
             </div>
         </div>

@@ -379,11 +379,8 @@ def profile_view(request):
             user_name = request.user.last_name
             userInstance = get_object_or_404(CustomUser, id=request.user.pk)
             form = UserRegistrationForm(instance=userInstance)
-            pass
         else:
-            form = UserRegistrationForm()#new register point: opening the registratino page without login
-            user_name = 'Guest!'
-            pass    
+            return redirect('login')
     
     addresses = UserAddresses.objects.filter(userID = request.user.pk)
     cart = Cart(request)
@@ -526,7 +523,7 @@ def login_view(request):
                     messages.success(request, 'Invalid username or password!')
     else:
         form = UserLoginForm()
-    return render(request, 'login.html', {'loginform': form})
+    return render(request, 'login.html', {'loginform': form, 'login_user':'Guest!'})
 
 def forgot_password(request):
     return render(request, 'reset_password.html', {})
