@@ -41,13 +41,13 @@ def landing_page(request, category=None,fpo=None, region=None):
     if request.user.is_authenticated:
         user_name = request.user.last_name
         user_type = request.user.userType
-        #if pincode == 'Delivery Pincode':
-        pincode = request.user.pinCode1
+        if pincode == 'Delivery Pincode':
+            pincode = request.user.pinCode1
         request.session['pincode'] = pincode
         if user_type == '1':
             items = items.exclude(userID_id = request.user.pk)
         featureItems = Item.objects.filter(featureItem=True).exclude(userID_id = request.user.pk).filter(userID_id__pinCode=pincode)
-    
+    featureItems = featureItems.filter(itemActive=True).order_by('-itemInStock')
     length = items.__len__()#get the total items
 
     cart = Cart(request)
@@ -76,12 +76,12 @@ def shop(request, category=None, fpo=None, region=None):
     pincode='Delivery Pincode'
     pincode_area = ''
     if category is not None:
-        items = Item.objects.filter(itemCat=category)
+        items = Item.objects.filter(itemCat=category).filter(itemActive=True).order_by('-itemInStock')
     if fpo is not None:
-        items = Item.objects.filter(userID_id=fpo)
+        items = Item.objects.filter(userID_id=fpo).filter(itemActive=True).order_by('-itemInStock')
     if region is not None:
-        items = Item.objects.filter(userID_id__pinCode=region)
-        pincode_area = PinCodeAPI(region)
+        items = Item.objects.filter(userID_id__pinCode=region).filter(itemActive=True).order_by('-itemInStock')
+        pincode_area = PinCodeAPI(request, region)
         pincode=region
     form = ItemForm()
 
@@ -92,7 +92,7 @@ def shop(request, category=None, fpo=None, region=None):
         if region is not None: #if the user is logged in and explicitly enters a pincode, then the items of that pincode will be displayed, not the user's own pincode
             pincode = region
             request.session['pincode'] = pincode
-        items = Item.objects.filter(userID_id__pinCode=pincode) #if the user is logged in, then only the items available in user's pincode will be available to it.
+        items = Item.objects.filter(userID_id__pinCode=pincode).filter(itemActive=True).order_by('-itemInStock') #if the user is logged in, then only the items available in user's pincode will be available to it.
         if user_type == '1':
             items = items.exclude(userID_id = request.user.pk)
     else:#if the user is not logged in and explicitly enters the pincode
@@ -105,26 +105,31 @@ def shop(request, category=None, fpo=None, region=None):
     region_list = fpo = fpo_list()
     min_price = items.aggregate(Min('itemPrice'))['itemPrice__min']
     max_price = items.aggregate(Max('itemPrice'))['itemPrice__max']
-    shop_page_context ={'items': items, 
-                        'form': form, 
-                        'login_user':user_name, 
-                        'total_qty':total_qty, 
-                        'fpo_list':fpo, 
-                        'regions':region_list,
-                        'total_price':total_price,
-                        'min_price':min_price,
-                        'max_price':max_price,
-                        'pincode_area':pincode_area,
-                        'clicked':'Shop',
-                        'pincode':pincode
-                        }
+    shop_page_context ={
+        'items': items, 
+        'form': form, 
+        'login_user':user_name, 
+        'total_qty':total_qty, 
+        'fpo_list':fpo, 
+        'regions':region_list,
+        'total_price':total_price,
+        'min_price':min_price,
+        'max_price':max_price,
+        'pincode_area':pincode_area,
+        'clicked':'Shop',
+        'pincode':pincode
+    }
     return render(request, 'shop-grid.html', shop_page_context)
 
-def PinCodeAPI(pincode):
-    api_response = requests.get(f'https://api.postalpincode.in/pincode/{pincode}') 
-    postalData = api_response.json()
-    postoffice_data = postalData[0]['PostOffice']
-    return postoffice_data[0]['Name']+", "+postoffice_data[0]['Block']
+def PinCodeAPI(request, pincode):
+    try:
+        api_response = requests.get(f'https://api.postalpincode.in/pincode/{pincode}') 
+        postalData = api_response.json()
+        postoffice_data = postalData[0]['PostOffice']
+        return postoffice_data[0]['Name']+", "+postoffice_data[0]['Block']
+    except:
+        messages.success(request, 'There has been a connetion failure!')
+        return HttpResponse({})
 
 def shop_details(request, item_id):
     item = get_object_or_404(Item,pk=item_id)
@@ -559,6 +564,7 @@ def reset_password(request):
 
 @login_required
 def logout_view(request):
+
     logout(request)
     return redirect('index')
 #endregion

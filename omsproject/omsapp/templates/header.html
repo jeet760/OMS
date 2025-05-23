@@ -146,6 +146,13 @@
                     <div class="header__cart">
                         <ul>
                             <li><a onclick="getPinCode()" id="delivery"><i class="fa fa-map-marker"></i>{% if pincode %}{{pincode}}{% else %}Delivery Pincode{% endif %}</a></li>
+                            {% if messages %}
+                            {% for message in messages %}
+                            <script>
+                                alert("{{ message|escapejs }}");
+                            </script>
+                            {% endfor %}
+                            {% endif %}
                             <li><a href="{% url 'shoppingcart' %}"><i class="fa fa-shopping-bag"></i> <span>{{total_qty}}</span></a></li>
                         </ul>
                         <div class="header__cart__price">Amount: <span>₹ {{total_price}}/-</span></div>

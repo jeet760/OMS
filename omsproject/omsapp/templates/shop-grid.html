@@ -9,6 +9,11 @@
     li.active{
         font-weight: bold;
     }
+    .out-of-stock{
+        filter: grayscale(100%);
+        opacity: 0.5;
+        position: relative;
+    }
 </style>
     <!-- Product Section Begin -->
     <section class="product spad">
@@ -178,7 +183,11 @@
                     <div class="row featured__filter">
                         {% for item in items %}
                         <div class="col-lg-4 col-md-6 col-sm-6 mix {{item.itemCat|cut:' '}}">
+                            {% if item.itemInStock%}
                             <div class="product__item">
+                            {% else %}
+                            <div class="product__item out-of-stock">
+                            {% endif %}
                                 <div class="product__item__pic set-bg" data-setbg="{{item.itemImg.url}}">
                                     <ul class="product__item__pic__hover">
                                         <li><a href="{% url 'shopdetails' item.itemID %}"><i class="fa fa-list"></i></a></li>
