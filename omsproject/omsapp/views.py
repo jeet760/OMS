@@ -30,6 +30,7 @@ def landing_page(request, category=None,fpo=None, region=None):
         with connection.cursor() as regionCursor:
             regionCursor.execute(regionQuery)
             items = regionCursor.fetchall()
+    
     form = ItemForm()
     user_type = ''
     user_name = 'Guest!'#display the username
@@ -353,13 +354,6 @@ def register(request):
             return redirect('register')
     else:
         return redirect('register')
-        # else:
-        #     userInstance = get_object_or_404(CustomUser, id=request.user.pk)
-        #     form = UserRegistrationForm(request.POST, instance=userInstance)
-        #     user = form.save(param_password=request.POST['phone'])
-        #     login(request, user)
-        #     user_name = request.user.last_name
-        #     return redirect('profile')
 
 def profile_view(request):
     if request.method == 'POST':

@@ -25,11 +25,13 @@
                 <i class="fa fa-user"></i>
                 <div><strong>{% if login_user == 'Guest!' %}<a style="color: black; text-decoration: none;" href="{% url 'login' %}">Login</a>{% else %}{{login_user}}{% endif %}</strong></div>
                 <span class="arrow_carrot-down"></span>
+                {% if login_user != 'Guest!' %}
                 <ul>
                     <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>{% if user_type == '1' %}Seller Hub{% else %}My Profile{% endif %}</a></li>
                     <li><a href="{% url 'orders' %}">My Orders</a></li>
                     <li><a href="{% url 'logout' %}">Log Out</a></li>
                 </ul>
+                {% endif %}
             </div>
         </div>
         <nav class="humberger__menu__nav mobile-menu">
@@ -98,15 +100,13 @@
                                 <nav class="header__menu">
                                     <ul>
                                         <li><a href="{% if login_user == 'Guest!' %}{% url 'login' %}{% endif %}"><i class="fa fa-user"></i> {% if login_user == 'Guest!' %}Login{% else %}{{login_user}}{% endif %}</a>
+                                            {% if login_user != 'Guest!' %}
                                             <ul class="header__menu__dropdown">
                                                 <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>{% if user_type == '1' %}Seller Hub{% else %}My Profile{% endif %}</a></li>
                                                 <li><a href="{% url 'orders' %}">My Orders</a></li>
-                                                {% if login_user == 'Guest!' %}{% url 'login' %}
-                                                <li style="display: none;"><a href="{% url 'logout' %}">Log Out</a></li>
-                                                {% else %}
-                                                <li style="display: block;"><a href="{% url 'logout' %}">Log Out</a></li>
-                                                {% endif %}
+                                                <li><a href="{% url 'logout' %}">Log Out</a></li>
                                             </ul>
+                                            {% endif %}
                                         </li>
                                     </ul>
                                 </nav>
