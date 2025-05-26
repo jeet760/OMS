@@ -510,13 +510,18 @@ def login_view(request):
                     messages.success(request, 'Waiting for Approval!')
             elif user.userType == '0' and user.is_superuser:
                 user_login = authenticate(request, username=username, password=password)
-                login(request, user_login)
-                return redirect('admin-master')
+                if user_login is None:
+                    form.add_error(None, 'Invalid username or password!')
+                    messages.success(request, 'Invalid username or password!')
+                    return redirect('login')
+                else:
+                    login(request, user_login)
+                    return redirect('admin-master')
             else:
                 user_login = authenticate(request, username=username, password=password)
                 if user_login is not None:
-                        login(request, user_login)
-                        return redirect('index')
+                    login(request, user_login)
+                    return redirect('index')
                 else:
                     form.add_error(None, 'Invalid username or password!')
                     messages.success(request, 'Invalid username or password!')
@@ -833,7 +838,7 @@ def CreateOrder(request, param_total_quantity, param_total_price, param_gst_amou
                 order_context.save()
                 order_id = Order.objects.all().latest('orderID').orderID
                 if SaveOrderDetails(request, order_id, user_id) == True:
-                    return redirect('order_successful')
+                    return redirect('order_successful', 'Order')
                     #return render(request,'success.html',success_context)#HttpResponse('<h2>Order Placed Successfully!</h2>')
                 else:
                     return render(request,'404.html',{'source':'Order'})
@@ -880,14 +885,22 @@ def SaveOrderDetails(request,param_orderID,param_user_id):
             return False
             #print(ex)
 
-def order_successful(request):
+def order_successful(request, type):
     user_name = request.user.last_name
     pincode = request.session.get('pincode')
+    if type == 'Bulk':
+        orderID = BulkBuy.objects.all().latest('bulkBuyID').bulkBuyID
+        orderNo = BulkBuy.objects.all().latest('bulkBuyID').bulkBuyNo
+    elif type == 'Order':
+        orderID = Order.objects.all().latest('orderID').orderID
+        orderNo = Order.objects.all().latest('orderID').orderNo
+
     success_context = {
-        'orderID': Order.objects.all().latest('orderID').orderID,
-        'orderNo': Order.objects.all().latest('orderID').orderNo,
+        'orderID': orderID,
+        'orderNo': orderNo,
         'login_user': user_name,
-        'pincode':pincode
+        'pincode':pincode,
+        'orderType':type
     }
     return render(request,'success.html',success_context)
 #endregion
@@ -1133,7 +1146,8 @@ def bulk_buy_order_place(request):
                 itemUnit = row.get("itemUnit")
                 itemPrice = row.get("itemPrice")
                 BulkBuyDetails.objects.create(bulkBuyID=bulkBuyID, itemName=itemName, itemSpec=itemSpec,itemQty=itemQty, itemUnit=itemUnit, itemPrice=itemPrice)
-    return redirect('bulk-buy')
+    return redirect('order_successful', 'Bulk')
+    #return redirect('bulk-buy')
 
 def bulk_buy_order_response(request, bulkBuyID):
     if request.user.is_authenticated:

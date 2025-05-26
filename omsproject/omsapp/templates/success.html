@@ -2,7 +2,11 @@
 {% block success %}
 
 <div class="alert alert-info" role="alert" id="orderSuccessful">
+    {% if orderType == 'Order' %}
     <h2>Order Placed Successfully with Order No.<a href="{% url 'orderdetails' orderID %}">{{orderNo}}</a>!</h2>
+    {% elif orderType == 'Bulk' %}
+    <h2>Bulk Buy Request Placed Successfully with Ref. No.<a href="{% url 'bulk-buy-orders' %}">{{orderNo}}</a>!</h2>
+    {% endif %}
     <a class='btn btn-secondary' href="{% url 'index' %}">
         Go Back to Homepage.
     </a>

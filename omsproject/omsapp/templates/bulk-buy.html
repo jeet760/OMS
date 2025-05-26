@@ -89,7 +89,7 @@
   }
 </style>
 <div class="form-container">
-  <form action="#" method="post">
+  <form action="{% url 'order_successful' 'Bulk' %}" method="post">
     {% csrf_token %}
     <div class="form-grid">
       <div class="form-group">
