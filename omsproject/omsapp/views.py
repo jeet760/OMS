@@ -73,13 +73,16 @@ def landing_page(request, category=None,fpo=None, region=None):
 
 def shop(request, category=None, fpo=None, region=None):
     items = Item.objects.filter(itemActive=True).order_by('-itemInStock')
+    item_sort = request.GET.get('sort')
     user_name = 'Guest!'#display the username
     pincode='Delivery Pincode'
     pincode_area = ''
+    fpo_name = ''
     if category is not None:
         items = Item.objects.filter(itemCat=category).filter(itemActive=True).order_by('-itemInStock')
     if fpo is not None:
         items = Item.objects.filter(userID_id=fpo).filter(itemActive=True).order_by('-itemInStock')
+        fpo_name = get_object_or_404(CustomUser,pk=fpo).last_name
     if region is not None:
         items = Item.objects.filter(userID_id__pinCode=region).filter(itemActive=True).order_by('-itemInStock')
         pincode_area = PinCodeAPI(request, region)
@@ -100,6 +103,11 @@ def shop(request, category=None, fpo=None, region=None):
         pincode = region
         request.session['pincode'] = pincode
 
+    if item_sort == 'price_asc':
+        items = items.order_by('itemPrice')
+    elif item_sort == 'price_desc':
+        items = items.order_by('-itemPrice')
+
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
     total_price = cart.get_total_price()
@@ -112,6 +120,8 @@ def shop(request, category=None, fpo=None, region=None):
         'login_user':user_name, 
         'total_qty':total_qty, 
         'fpo_list':fpo, 
+        'fpo_name':fpo_name,
+        'item_sort':item_sort,
         'regions':region_list,
         'total_price':total_price,
         'min_price':min_price,
@@ -584,20 +594,30 @@ def admin_console(request):
 def admin_master(request):
     if request.user.is_authenticated:
         total_users = CustomUser.objects.all()
+        no_of_users = CustomUser.objects.all().__len__() - 1
         no_of_fpo = CustomUser.objects.filter(userType=1).__len__()
         no_of_biz = CustomUser.objects.filter(userType=2).__len__()
         no_of_inst = CustomUser.objects.filter(userType=3).__len__()
         no_of_overseas = CustomUser.objects.filter(userType=4).__len__()
         no_of_indv = CustomUser.objects.filter(userType=5).__len__()
-        console_context = {
+        no_of_items = Item.objects.all().__len__()
+        no_of_item_cat = Item.objects.values('itemCat').distinct().count()
+        no_of_orders = Order.objects.all().__len__()
+        no_of_bulkbuys = BulkBuy.objects.all().__len__()
+        master_console_context = {
             'total_users':total_users,
+            'total_users_no':no_of_users,
             'total_fpo':no_of_fpo,
             'total_business':no_of_biz,
             'total_institutions':no_of_inst,
             'total_overseas':no_of_overseas,
             'total_individual':no_of_indv,
+            'no_of_items':no_of_items,
+            'no_of_item_cat':no_of_item_cat,
+            'total_orders':no_of_orders,
+            'total_bulkbuys':no_of_bulkbuys
         }
-        return render(request, 'admin-master-console.html', console_context)
+        return render(request, 'admin-master-console.html', context=master_console_context)
     else:
         return redirect('login')
 #endregion

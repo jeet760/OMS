@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Farmer Harvest : Master</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     .sidebar-transition {
       transition: transform 0.3s ease-in-out;
@@ -126,10 +127,20 @@
     <!-- Main Content -->
     <div class="flex-1 flex flex-col">
       <!-- Header -->
-      <div class="p-4 bg-gray-800 shadow-md flex justify-between items-center sticky top-0 z-30">
+      <!-- <div class="p-4 bg-gray-800 shadow-md flex justify-between items-center sticky top-0 z-30">
         <button onclick="toggleSidebar()" class="md:hidden text-gray-400 text-2xl">☰</button>
         <h1 class="text-xl font-bold">Farmer Harvest: Master</h1>
-      </div>
+      </div> -->
+      <header class="p-4 bg-gray-800 shadow-md flex justify-between items-center sticky top-0 z-30">
+        <button onclick="toggleSidebar()" class="md:hidden text-black-500 text-2xl font-bold">☰</button>
+        <h1 class="text-xl font-bold">Farmer Harvest: Master</h1>
+        <div class="flex items-center space-x-4">
+          <div class="relative inline-block text-left">
+            <a href="{% url 'resetpasswordform' %}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"><strong>Update Password</strong></a>
+            <a href="{% url 'logout' %}" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"><strong>Logout</strong></a>
+          </div>
+        </div>
+      </header>
 
       <!-- Page Content -->
       <div class="p-6 overflow-y-auto flex-1">
@@ -137,10 +148,13 @@
         <section id="dashboard">
           <h2 class="text-xl font-semibold mb-4">Dashboard</h2>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-gray-800 p-4 shadow rounded">Total Sales</div>
-            <div class="bg-gray-800 p-4 shadow rounded">New Orders</div>
-            <div class="bg-gray-800 p-4 shadow rounded">Total Users: <strong>{{total_users|length}}</strong></div>
+            <div class="bg-gray-800 p-4 shadow rounded">Total Items: <strong>{{no_of_items}}</strong></div>
+            <div class="bg-gray-800 p-4 shadow rounded">Total Categories: <strong>{{no_of_item_cat}}</strong></div>
+            <div class="bg-gray-800 p-4 shadow rounded">Total Users: <strong>{{total_users_no}}</strong></div>
             <div class="bg-gray-800 p-4 shadow rounded">Inventory Alerts</div>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <canvas id="myChart" width="400" height="200"></canvas>
           </div>
         </section>
 
@@ -155,14 +169,24 @@
         <!-- Orders -->
         <section id="orders" class="mt-10">
           <h2 class="text-xl font-semibold mb-4">Orders</h2>
-          <div class="bg-gray-800 p-4 shadow rounded">
-            <p>Order tracking and details will be shown here.</p>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-gray-800 p-4 shadow rounded">Total Orders: <strong>{{total_orders}}</strong></div>
+            <div class="bg-gray-800 p-4 shadow rounded">Total Bulk Buys: <strong>{{total_bulkbuys}}</strong></div>
           </div>
         </section>
 
         <!-- Users -->
         <section id="users" class="mt-10">
           <h2 class="text-xl font-semibold mb-4">Users</h2>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-gray-800 p-4 shadow rounded">Total Users: <strong>{{total_users_no}}</strong></div>
+            <div class="bg-gray-800 p-4 shadow rounded">Total FPOs: <strong>{{total_fpo}}</strong></div>
+            <div class="bg-gray-800 p-4 shadow rounded">Total Businesses: <strong>{{total_business}}</strong></div>
+            <div class="bg-gray-800 p-4 shadow rounded">Total Institutions: <strong>{{total_institutions}}</strong></div>
+            <div class="bg-gray-800 p-4 shadow rounded">Total Overseas: <strong>{{total_overseas}}</strong></div>
+            <div class="bg-gray-800 p-4 shadow rounded">Total Individuals: <strong>{{total_individual}}</strong></div>
+          </div>
+          <br>
           <div class="bg-gray-800 p-4 shadow rounded">
             <div class="mb-4">
               <input type="text" id="userSearch" onkeyup="searchUsers()" placeholder="Search users..." class="w-full p-2 rounded bg-gray-700 text-gray-100 focus:outline-none">
@@ -175,7 +199,9 @@
                   <th class="py-2 cursor-pointer" onclick="sortTable(2)">Type</th>
                   <th class="py-2 cursor-pointer" onclick="sortTable(3)">Phone</th>
                   <th class="py-2 cursor-pointer" onclick="sortTable(4)">Pincode</th>
-                  <th class="py-2 cursor-pointer" onclick="sortTable(5)">Status</th>
+                  <th class="py-2 cursor-pointer" onclick="sortTable(5)">Date joined</th>
+                  <th class="py-2 cursor-pointer" onclick="sortTable(5)">Date Approved</th>
+                  <th class="py-2 cursor-pointer" onclick="sortTable(6)">Status</th>
                   <th class="py-2">Actions</th>
                 </tr>
               </thead>
@@ -199,6 +225,8 @@
                   </td>
                   <td class="py-2">{{user.phone}}</td>
                   <td class="py-2">{{user.pinCode}}</td>
+                  <td class="py-2">{{user.date_joined}}</td>
+                  <td class="py-2">{{user.approvedOn}}</td>
                   <td class="py-2">
                     {% if user.isActive %}
                     <span class="px-2 py-1 text-xs rounded bg-green-600 text-white">Active</span>

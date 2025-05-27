@@ -11,10 +11,10 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Product</th>
+                                    <th style="width: 300px;">Item Image</th>
                                     <th class="shoping__product">Name</th>
                                     <th>Price (in ₹)</th>
-                                    <th>Quantity</th>
+                                    <th>Qty.</th>
                                     <th>Total (in ₹)</th>
                                     <th>Update</th>
                                     <th>Remove</th>
@@ -28,7 +28,7 @@
                                     <td>{{forloop.counter}}</td>
                                     <td><img src="{{item.product.itemImg.url}}" alt="" height="50px" width="50px" style="padding: 5px 5px 5px 5px;"></td>
                                     <td class="shoping__cart__item">
-                                        <h5>{{item.product.itemName}}</h5>
+                                        {{item.product.itemName}}
                                         <span class="form-text">
                                             Sold By: {{ item.product.userID.first_name }}
                                          </span>

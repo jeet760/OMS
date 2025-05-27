@@ -1,7 +1,6 @@
 {% extends 'index.html' %}
 {% load static %}
 {% block shopgrid %}
-
 <style>
     .mixitup-control-active{
         font-weight: bold;
@@ -34,7 +33,7 @@
                         <div class="sidebar__item">
                             <h4>Shop by FPO</h4>
                             <ul>
-                                <li><strong><a href="{% url 'shop' %}">All FPOs</a></strong></li>
+                                <li class="active"><a href="{% url 'shop' %}">All FPOs</a></li>
                                 {% for fpo in fpo_list %}
                                 <li><a href="{% url 'shop-fpo' fpo.id %}">{{fpo.last_name}}</a></li>
                                 {% endfor %}
@@ -160,11 +159,11 @@
                             <div class="col-lg-4 col-md-5">
                                 <div class="filter__sort">
                                     <span>Sort By Price</span>
-                                    <select>
-                                        <option value="0">Default</option>
-                                        <option value="1">Low to High</option>
-                                        <option value="2">High to Low</option>
-                                    </select>
+                                    <div class="sort-buttons mb-3">
+                                        <a href="?sort=default" class="btn btn-outline-secondary btn-sm {% if not item_sort or item_sort == 'default' %} active {% endif %}">Default</a>
+                                        <a href="?sort=price_asc" class="btn btn-outline-secondary btn-sm {% if item_sort == 'price_asc' %} active {% endif %}">Low to High</a>
+                                        <a href="?sort=price_desc" class="btn btn-outline-secondary btn-sm {% if item_sort == 'price_desc' %} active {% endif %}">High to Low</a>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-lg-4 col-md-4">
@@ -173,9 +172,12 @@
                                 </div>
                             </div>
                             <div class="col-lg-4 col-md-3">
-                                <div class="filter__option">
+                                <!-- <div class="filter__option">
                                     <span class="icon_grid-2x2"></span>
                                     <span class="icon_ul"></span>
+                                </div> -->
+                                <div class="filter__found">
+                                    <h6><span>{{fpo_name}}</span></h6>
                                 </div>
                             </div>
                         </div>
@@ -188,7 +190,7 @@
                             {% else %}
                             <div class="product__item out-of-stock">
                             {% endif %}
-                                <div class="product__item__pic set-bg" data-setbg="{{item.itemImg.url}}">
+                                <div class="product__item__pic set-bg" data-setbg="{{item.itemImg.url}}" onclick="itemRedirect('{{item.itemID}}')" style="cursor: pointer;">
                                     <ul class="product__item__pic__hover">
                                         <li><a href="{% url 'shopdetails' item.itemID %}"><i class="fa fa-list"></i></a></li>
                                     <li><a href="{% url 'add_to_cart' item.itemID %}?source=shop"><i class="fa fa-shopping-cart"></i></a></li>
@@ -202,15 +204,21 @@
                         </div>
                         {% endfor %}
                     </div>
-                    <div class="product__pagination">
+                    <!-- <div class="product__pagination">
                         <a href="#">1</a>
                         <a href="#">2</a>
                         <a href="#">3</a>
                         <a href="#"><i class="fa fa-long-arrow-right"></i></a>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>
     </section>
     <!-- Product Section End -->
+     <script>
+        function itemRedirect(itemID){
+            var url = "{% url 'shopdetails' 0 %}".replace('0', itemID);
+            location.href=url;
+        }
+     </script>
 {% endblock %}

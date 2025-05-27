@@ -59,7 +59,7 @@ Categories Section End -->
                     {% else %}
                     <div class="featured__item out-of-stock">
                     {% endif %}
-                        <div class="featured__item__pic set-bg" data-setbg="{{item.itemImg.url}}">
+                        <div class="featured__item__pic set-bg" data-setbg="{{item.itemImg.url}}" onclick="itemRedirect('{{item.itemID}}')" style="cursor: pointer;">
                             <ul class="featured__item__pic__hover">
                                 <li><a href="{% url 'shopdetails' item.itemID %}"><i class="fa fa-list"></i></a></li>
                                 <li><a href="{% url 'add_to_cart' item.itemID %}?source=landing"><i class="fa fa-shopping-cart"></i></a></li>
@@ -302,6 +302,11 @@ Categories Section End -->
     </div> -->
 </section>
 <!-- Latest Product Section End -->
-    
+<script>
+    function itemRedirect(itemID){
+        var url = "{% url 'shopdetails' 0 %}".replace('0', itemID);
+        location.href=url;
+    }
+ </script>
 {% endblock %}
     
