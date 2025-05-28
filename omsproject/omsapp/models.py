@@ -142,7 +142,7 @@ class Item(Model):
     marketType = CharField(max_length=20, default='All')
     featureItem = BooleanField(default=True)
     itemDesc = CharField(max_length=200, default='')
-    userID = ForeignKey(CustomUser, on_delete=CASCADE)
+    userID = ForeignKey(CustomUser, on_delete=CASCADE, related_name='user')
 
     def __str__(self):
         return self.itemID
@@ -203,6 +203,7 @@ class Order(Model):
     schDeliveryTime = CharField(max_length=10, default=None, null=True)
     remark = CharField(max_length=20, default=None, null=True)
     userID = ForeignKey(CustomUser, on_delete=CASCADE, related_name='customer')#customer who ordered
+    orderNote = CharField(max_length=200, null=True, blank=True)
     def __str__(self):
         return f"{self.orderID}"
 
@@ -213,6 +214,7 @@ class SubOrder(Model):
     customerID = ForeignKey(CustomUser, on_delete=CASCADE, related_name='customer_orders')
     orderStatus = CharField(max_length=25, default='Pending Order')
     remark = CharField(max_length=20, default=None, null=True)
+    orderNote = CharField(max_length=200, null=True, blank=True)
     def __str__(self):
         return self.suborderID
 

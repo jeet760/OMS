@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,9 +17,39 @@
     const rowsPerPage = 10;
 
     function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      sidebar.classList.toggle('-translate-x-full');
-    }
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const isOpen = !sidebar.classList.contains('-translate-x-full');
+
+        if (isOpen) {
+          sidebar.classList.add('-translate-x-full');
+          overlay.classList.add('hidden');
+        } else {
+          sidebar.classList.remove('-translate-x-full');
+          overlay.classList.remove('hidden');
+        }
+      }
+
+      function closeSidebar() {
+        document.getElementById('sidebar').classList.add('-translate-x-full');
+        document.getElementById('overlay').classList.add('hidden');
+      }
+      // Close sidebar when clicking outside (mobile only)
+      document.addEventListener('click', function (event) {
+        const sidebar = document.getElementById('sidebar');
+        const sidebarButton = event.target.closest('button[onclick="toggleSidebar()"]');
+        const isSidebarOpen = !sidebar.classList.contains('-translate-x-full');
+
+        // Don't close if click is inside sidebar or on toggle button
+        if (
+          isSidebarOpen &&
+          !sidebar.contains(event.target) &&
+          !sidebarButton &&
+          window.innerWidth < 768
+        ) {
+          sidebar.classList.add('-translate-x-full');
+        }
+      });
 
     function searchUsers() {
       const input = document.getElementById('userSearch');
@@ -110,10 +141,19 @@
   </script>
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans">
-  <div class="flex h-screen overflow-hidden">
+  <div id="main-wrapper" class="flex h-screen overflow-y-auto">
+    <!-- Overlay for mobile -->
+    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden" onclick="closeSidebar()"></div>
+
     <!-- Sidebar -->
     <div id="sidebar" class="fixed md:relative z-40 w-64 bg-gray-800 shadow-md sidebar-transition transform -translate-x-full md:translate-x-0 md:block h-full">
-      <div class="p-4 text-lg font-bold border-b border-gray-700">Admin Panel</div>
+      <!-- Close button for mobile -->
+      <div class="flex justify-between items-center p-4 border-b md:hidden">
+        <button onclick="toggleSidebar()" class="text-xl font-bold text-red-500">X</button>
+      </div>
+      <div class="p-4 text-lg font-bold border-b">
+        <a href="{% url 'index' %}"><img src="{% static 'img/logo.png' %}" alt=""></a>
+      </div>
       <nav class="p-4 space-y-2">
         <a href="#dashboard" class="block p-2 hover:bg-gray-700 rounded">Dashboard</a>
         <a href="#products" class="block p-2 hover:bg-gray-700 rounded">Products</a>

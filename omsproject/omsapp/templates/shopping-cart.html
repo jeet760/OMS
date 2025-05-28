@@ -77,15 +77,33 @@
                     </div>
                 </div>
                 <div class="col-lg-6">
-                    <!-- <div class="shoping__continue">
+                    <div class="shoping__continue">
                         <div class="shoping__discount">
-                            <h5>Discount Codes</h5>
+                            <!-- <h5>Discount Codes</h5>
                             <form action="#">
                                 <input type="text" placeholder="Enter your coupon code">
                                 <button type="submit" class="site-btn">APPLY COUPON</button>
-                            </form>
+                            </form> -->
+                            {% if billing_address != None %}
+                            <h5>Billing Address</h5>
+                            {{billing_address}}
+                            <h5>Shipping Address</h5>
+                            <ol>
+                                {% for address in shipping_addresses %}
+                                <li>
+                                    <label>
+                                        {% if address.setDefault %}
+                                            <input type="radio" name="address" value="{{address.id}}" checked>{{address.userAddress1}}, {{address.userCity1}}, {{address.userState1}}, {{address.pinCode1}}
+                                        {% else %}
+                                        <input type="radio" name="address" value="{{address.id}}">{{address.userAddress1}}, {{address.userCity1}}, {{address.userState1}}, {{address.pinCode1}}
+                                        {% endif %}
+                                    </label>
+                                </li>
+                                {% endfor %}
+                            </ol>
+                            {% endif %}
                         </div>
-                    </div> -->
+                    </div>
                 </div>
                 <div class="col-lg-6">
                     <form method="post" id="orderForm" action="{% if user_authenticated %}{% url 'createorder' total_qty total_price 0 0 %}{% else %}{% url 'login' %}{% endif %}"> <!--cart.total_quantity cart.total_price-->
@@ -96,13 +114,8 @@
                                 <li>Total Qty.<span>{{ total_qty }}</span></li>
                                 <li>Subtotal <span>₹{{ total_price }}</span></li>
                                 <li>Total <span>₹{{ total_price }}</span></li>
-                            </ul>
-                            <table style="width: 100%;">
-                                <tr>
-                                    <td>
-                                        <strong>Schedule Date</strong>
-                                    </td>
-                                    <td style="padding-left: 30%; color: red;">
+                                <li>Schedule Date
+                                    <span>
                                         <select id="selectDeliveryDate" name="selectDeliveryDate" style="font-size: 12px; height: 30px; width: 130px;">
                                             {% for date in dateSeries %}
                                             <option value="{{date}}">
@@ -110,13 +123,10 @@
                                             </option>
                                             {% endfor %}
                                         </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <strong>Schedule Time</strong>
-                                    </td>
-                                    <td style="padding-left: 30%; color: red;">
+                                    </span>
+                                </li>
+                                <li>Schedule Time
+                                    <span>
                                         <select id="selectDeliveryTime" name="selectDeliveryTime" style="font-size: 12px; height: 30px; width: 120px;">
                                             {% for time in timeSeries %}
                                             <option value="{{time}}">
@@ -124,9 +134,11 @@
                                             </option>
                                             {% endfor %}
                                         </select>
-                                    </td>
-                                </tr>
-                            </table>
+                                    </span>
+                                </li>
+                            </ul>
+                            <strong>Order Note</strong>
+                            <textarea style="width: 100%; height: 100px;" name="orderNote" placeholder="Remark/Comment/Note"></textarea>
                             <button type="submit" class="primary-btn" id="buyButton">
                                 <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
                                     <path d="m480-560-56-56 63-64H320v-80h167l-64-64 57-56 160 160-160 160ZM280-80q-33 0-56.5-23.5T200-160q0-33 23.5-56.5T280-240q33 0 56.5 23.5T360-160q0 33-23.5 56.5T280-80Zm400 0q-33 0-56.5-23.5T600-160q0-33 23.5-56.5T680-240q33 0 56.5 23.5T760-160q0 33-23.5 56.5T680-80ZM40-800v-80h131l170 360h280l156-280h91L692-482q-11 20-29.5 31T622-440H324l-44 80h480v80H280q-45 0-68.5-39t-1.5-79l54-98-144-304H40Z"/>

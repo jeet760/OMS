@@ -176,9 +176,13 @@ def shopping_cart(request):
     ds = DeliverySchedule()
     user_name = 'Guest!'#display the username
     pincode='Delivery Pincode'
+    billing_address = None
+    shipping_addresses = None
     if request.user.is_authenticated:
         user_name = request.user.last_name
         pincode = request.session.get('pincode')
+        billing_address = request.user.userAddress +', '+ request.user.userCity +', '+ STATE_CHOICES(request.user.userState) +', '+ request.user.pinCode
+        shipping_addresses = UserAddresses.objects.filter(userID_id=request.user.pk)
     shopping_cart_context = {
         'cart': cart, 
         'total_qty':total_qty, 
@@ -187,7 +191,9 @@ def shopping_cart(request):
         'dateSeries':ds.dateSeries, 
         'timeSeries':ds.timeSeries, 
         'login_user':user_name,
-        'pincode':pincode
+        'pincode':pincode,
+        'billing_address':billing_address,
+        'shipping_addresses':shipping_addresses
     }
     return render(request, 'shopping-cart.html', context=shopping_cart_context)
 
@@ -351,7 +357,7 @@ def register(request):
         if request.user.is_authenticated == False: #update == None:#New registration
             if form.is_valid():
                 user = form.save(param_password=request.POST['phone'])
-                UserAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress1, userCity1=user.userCity1, userState1=user.userState1, pinCode1=user.pinCode1)
+                UserAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress1, userCity1=user.userCity1, userState1=user.userState1, pinCode1=user.pinCode1, setDefault=True)
                 if user.userType != '1':
                     CustomUser.objects.filter(pk=user.id).update(userApproved=True,approvedOn=datetime.today(),isActive=True,activatedOn=datetime.today())
                     login(request, user)
@@ -427,6 +433,7 @@ def add_address(request):
         userState1 = request.POST.get('shippingState')
         pinCode1 = request.POST.get('shippingPostcode')
         setDefault = True
+        UserAddresses.objects.filter(userID_id=userID).update(setDefault=False)
         UserAddresses.objects.create(userID_id=userID, userAddress1=userAddress1, userCity1=userCity1,userState1=userState1,pinCode1=pinCode1,setDefault=setDefault)
         CustomUser.objects.filter(pk=userID).update(userAddress1=userAddress1, userCity1=userCity1,userState1=userState1,pinCode1=pinCode1)
     return redirect('user-form')    
@@ -734,17 +741,16 @@ def item_list(request):
         'total_instock_items':total_instock_items,
         'total_active_items':total_active_items
     }
-
     return render(request, 'item_list.html', context=item_list_context)
 
-def pincode_item_list(request, pincode):
-    query = f'SELECT A.* FROM omsapp_item AS A INNER JOIN omsapp_customuser AS B ON A.userID_id=B.id AND B.userType=1 AND B.pinCode={pincode};'
-    with connection.cursor as cursor:
-        cursor.execute(query)
-        pincode_items = cursor.fetchall()
-    user_name = request.user.last_name
-    item_context = {'items':pincode_items, 'login_user':user_name}
-    return JsonResponse(item_context)
+# def pincode_item_list(request, pincode):
+#     query = f'SELECT A.* FROM omsapp_item AS A INNER JOIN omsapp_customuser AS B ON A.userID_id=B.id AND B.userType=1 AND B.pinCode={pincode};'
+#     with connection.cursor as cursor:
+#         cursor.execute(query)
+#         pincode_items = cursor.fetchall()
+#     user_name = request.user.last_name
+#     item_context = {'items':pincode_items, 'login_user':user_name}
+#     return JsonResponse(item_context)
 #endregion
 
 #region cart management with session id (without login and with login)
@@ -844,6 +850,7 @@ def CreateOrder(request, param_total_quantity, param_total_price, param_gst_amou
             view_orderGrandTotal = float(view_orderAmount)+float(view_orderGSTAmount)-float(view_orderDeduction)
             view_orderDeliveryDate = request.POST['selectDeliveryDate']
             view_orderDeliveryTime = request.POST['selectDeliveryTime']
+            view_orderNote = request.POST['orderNote']
             order_context = Order(orderNo= view_orderNo,
                             orderDate=view_orderDate, 
                             orderStatus=view_orderStatus,
@@ -853,6 +860,7 @@ def CreateOrder(request, param_total_quantity, param_total_price, param_gst_amou
                             orderGrandTotal=view_orderGrandTotal,
                             schDeliveryDate = view_orderDeliveryDate,
                             schDeliveryTime = view_orderDeliveryTime,
+                            orderNote = view_orderNote,
                             userID_id=request.user.pk)
             try:
                 order_context.save()
@@ -876,13 +884,15 @@ def SaveOrderDetails(request,param_orderID,param_user_id):
         try:
             vendor_ids = []
             suborderID=0
+            orderNote = request.POST['orderNote']
             for eachitem in cart_items:
                 if [param_orderID, eachitem['product'].userID_id, param_user_id.pk] not in vendor_ids:
                     vendor_ids.append([param_orderID, eachitem['product'].userID_id, param_user_id.pk])
                     SubOrder.objects.create(
                         orderID_id = param_orderID,
                         vendorID_id = eachitem['product'].userID_id,
-                        customerID_id = param_user_id.pk
+                        customerID_id = param_user_id.pk,
+                        orderNote = orderNote
                     )
                     suborderID = SubOrder.objects.all().latest('suborderID').suborderID
                 else:
@@ -895,7 +905,7 @@ def SaveOrderDetails(request,param_orderID,param_user_id):
                     itemPrice = eachitem['price'],
                     itemGST = 0,
                     itemGSTAmount = 0,
-                    itemPricewithGST = eachitem['total_price']
+                    itemPricewithGST = eachitem['total_price'],
                 )
                 cart_items.remove(eachitem['product'])
                 del eachitem
@@ -962,14 +972,10 @@ def received_orders_details(request, orderID):
     if request.user.pk is not None:
         orderNo = Order.objects.get(orderID=orderID).orderNo
         orderFrom = Order.objects.get(orderID=orderID).userID.last_name
+        orderNote = Order.objects.get(orderID=orderID).orderNote
         suborderID = SubOrder.objects.get(orderID_id=orderID, vendorID_id=request.user.pk).suborderID
         suborder_details = SubOrder.objects.get(orderID_id=orderID, vendorID_id=request.user.pk)
         received_orders = OrderDetails.objects.filter(suborderID_id=suborderID).select_related('itemID')
-        # received_orders = OrderDetails.objects.filter(orderdetails__orderID_id=orderID, orders__orderdetails__vendorID_id=request.user.pk)
-        # query = f"SELECT C.itemName, B.itemQty, B.itemPrice, B.id, B.orderID_id, B.remark, A.orderNo, A.remark, B.itemPricewithGST FROM omsapp_order AS A INNER JOIN omsapp_orderdetails AS B ON A.orderID=B.orderID_id AND A.orderID={orderID} INNER JOIN omsapp_item AS C ON B.itemID_id=C.itemID AND C.userID_id={request.user.id} INNER JOIN omsapp_customuser AS D ON D.id=A.userID_id"
-        # with connection.cursor() as cursor:
-        #     cursor.execute(query)
-        #     received_orders = cursor.fetchall()
         existing_invoices = Invoice.objects.filter(orderID=orderID)
         user_name = request.user.last_name
         invoiceForm = InvoiceForm()
@@ -978,6 +984,7 @@ def received_orders_details(request, orderID):
             'suborder_remark':suborder_details.remark,
             'suborder_status':suborder_details.orderStatus,
             'orderFrom':orderFrom,
+            'orderNote':orderNote,
             'login_user':user_name, 
             'orderNo':orderNo, 
             'orderID':orderID, 
@@ -1005,17 +1012,6 @@ def recived_order_status_update(request, param_sub_order_id):
             jsonData = {'Success':True}
         else:
             jsonData = {'Success':False}
-        
-        # userID=request.user.pk
-        # query_no_of_order_status = f"SELECT COUNT(B.orderStatus) FROM omsapp_order AS A INNER JOIN omsapp_orderdetails AS B ON A.orderID=B.orderID_id AND A.orderID=2 AND B.orderStatus<>'' INNER JOIN omsapp_item AS C ON B.itemID_id=C.itemID AND C.userID_id={userID} INNER JOIN omsapp_customuser AS D ON D.id=A.userID_id;"
-        # query_no_of_items = f"SELECT COUNT(B.id) FROM omsapp_order AS A INNER JOIN omsapp_orderdetails AS B ON A.orderID=B.orderID_id AND A.orderID=2 INNER JOIN omsapp_item AS C ON B.itemID_id=C.itemID AND C.userID_id={userID} INNER JOIN omsapp_customuser AS D ON D.id=A.userID_id;"
-        # with connection.cursor() as cursor:
-        #     cursor.execute(query_no_of_items)
-        #     no_of_items_fetched = cursor.fetchone()[0]
-        #     cursor.execute(query_no_of_order_status)
-        #     no_of_order_status = cursor.fetchone()[0]
-        # if no_of_order_status == no_of_items_fetched:
-        #     order_update_status = Order.objects.filter(orderID=mainOrderID).update(remark='CheckedAll')
         return JsonResponse(jsonData)#redirect('receivedorderdetails', orderID=mainOrderID)
 
 def received_order_status_all(request, param_order_id):#the order id is the suborder id
@@ -1400,13 +1396,15 @@ def PlacedOrders(request):
         return render(request,'orders.html',{})
 
 def placed_order_details(request,orderID):
-    #orders = Order.objects.filter(userID=request.user.id)
+    orderNote = Order.objects.get(pk=orderID).orderNote
     order_details = OrderDetails.objects.select_related('itemID').filter(orderID_id=orderID)
     invoice_details = Invoice.objects.filter(orderID_id=orderID)
     #query = str(order_details.query)
+    pincode='Delivery Pincode'
     user_name = 'Guest!'
     if request.user.is_authenticated:
         user_name = request.user.last_name
+        pincode = request.user.pinCode1
         #order_invoices = order_invoices(request, orderID)
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
@@ -1416,7 +1414,9 @@ def placed_order_details(request,orderID):
         'login_user':user_name,
         'invoices':invoice_details,
         'total_qty':total_qty,
-        'total_price':total_price
+        'total_price':total_price,
+        'pincode':pincode,
+        'orderNote':orderNote
     }
     return render(request, 'orderdetails.html', context=render_context)
 
