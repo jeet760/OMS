@@ -197,7 +197,7 @@
                                     </ul>
                                 </div>
                                 <div class="product__item__text">
-                                    <h6><a href="#">{{item.itemName}}</a></h6>
+                                    <h6><a href="{% url 'shopdetails' item.itemID %}">{{item.itemName}}</a></h6>
                                     <h5>₹{{item.itemPrice}}</h5>
                                 </div>
                             </div>
