@@ -1,5 +1,5 @@
 from django.forms import ModelForm, Form, TextInput, PasswordInput, CharField, Textarea, Select, FileInput, DateInput
-from .models import Item, Order, CustomUser, OrderDetails, Invoice
+from .models import Item, Order, CustomUser, OrderDetails, Invoice, FPOAuthorisationDocs
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import get_user_model
 
@@ -327,4 +327,53 @@ class InvoiceForm(ModelForm):
             invoice.userID_id = userID
             invoice.save()
         return invoice
+    
+class FPOAuthrisationForm(ModelForm):
+    class Meta:
+        model = FPOAuthorisationDocs
+        fields = ['auth_name','auth_contact','auth_email','board_resolution','cin','pan','bank','fssai','gst','apmc','exim']
+        widgets = {
+            'auth_name': TextInput(attrs={
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
+                'autofocus': True
+            }),
+            'auth_contact': TextInput(attrs={
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
+                'autofocus': True
+            }),
+            'auth_email': TextInput(attrs={
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
+                'autofocus': True
+            }),
+            'board_resolution': FileInput(attrs={
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
+            }),
+            'cin': FileInput(attrs={
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
+            }),
+            'pan': FileInput(attrs={
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
+            }),
+            'bank': FileInput(attrs={
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
+            }),
+            'fssai': FileInput(attrs={
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
+            }),
+            'gst': FileInput(attrs={
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
+            }),
+            'apmc': FileInput(attrs={
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
+            }),
+            'exim': FileInput(attrs={
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
+            }),
+        }
+    def save(self, commit = True, userID=None):
+        fpodoc = super().save(commit=False)
+        if commit:
+            fpodoc.userID_id = userID
+            fpodoc.save()
+        return fpodoc
 #endregion

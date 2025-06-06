@@ -13,6 +13,10 @@
       .sidebar-transition {
         transition: transform 0.3s ease-in-out;
       }
+      .disabled-inputs{
+        pointer-events: none;
+        opacity: 0.5;
+      }
     </style>
     <script>
       let currentPage = 1;
@@ -324,6 +328,7 @@
           <section id="settings">
             {% block user_form %}{% endblock %}
             {% block reset_password %}{% endblock %}
+            {% block fpoauth %}{% endblock %}
           </section>
 
           <!-- Notifications -->

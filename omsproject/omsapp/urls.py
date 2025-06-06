@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.landing_page, name='index'),
-    path('home', views.landing_page, name='index'),
+    path('home/', views.landing_page, name='index'),
     path('home/cat/<str:category>', views.landing_page, name='index'),
     path('shop', views.shop, name='shop'),
     path('shop/cat/<str:category>', views.shop, name='shop-cat'),
@@ -47,7 +47,7 @@ urlpatterns = [
     path('admin-console/', views.admin_console, name='admin-console'),
     path('admin-master/', views.admin_master, name='admin-master'),
     path('approve-user/<int:userID>', views.approve_user, name='approve-user'),
-    path('activate-user/<int:userID>/<int:activate>', views.activate_user, name='activate-user'),
+    path('activate-user/<int:userID>/<str:activate>', views.activate_user, name='activate-user'),
 
     path('user-form/', views.profile_view, name='user-form'),
     path('add-address/', views.add_address, name='add-address'),
@@ -72,7 +72,7 @@ urlpatterns = [
     path('error/', views.error_404_view, name='error'),
     path('search/', views.SearchItems, name='SearchItems'),
     path('search/results/', views.SearchItemView, name='SearchItemView'),
-    path('createorder/<str:param_total_quantity>/<str:param_total_price>/<str:param_gst_amount>/<str:param_deduction>', views.CreateOrder, name='createorder'),
+    path('createorder/<str:param_transportation_cost>/<str:param_total_price>/<str:param_gst_amount>/<str:param_deduction>', views.CreateOrder, name='createorder'),
     path('placedorders', views.PlacedOrders, name='orders'),
     path('placedorders/<int:orderID>/view', views.placed_order_details, name='orderdetails'),
     path('success/<str:type>',views.order_successful, name='order_successful'),
@@ -81,6 +81,10 @@ urlpatterns = [
     path('profile/sellerprofile', views.seller_profile, name='sellerprofile'),
     path('profile/update/', views.register, name='profileedit'),
     path('profile/dashboard', views.dashboard, name='dashboard'),
+    path('profile/auth/', views.fpo_auth, name='profile-auth'),
+    path('profile/auth/save', views.upload_fpo_docs, name='profile-auth-save'),
+    path('profile/verify/<int:userID>', views.verify_fpo, name='profile-verify'),
+    # path('profile/doc/verify/<int:userID>', views.verify_fpo_doc, name='profile-doc-verify'),
 
     path('receivedorders/', views.ReceivedOrders, name='receivedorders'),
     path('invoicedorders/', views.invoiced_orders, name='invoicedorders'),

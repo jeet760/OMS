@@ -27,7 +27,11 @@
     </div>
     <br>
     <div class="flex justify-between items-center mb-4">
+        {% if user_approved %}
         <a href="{% url 'item_entry' %}" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add Item</a>
+        {% else %}
+        <a href="#" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled-inputs">Add Item</a>
+        {% endif %}
     </div>
     <div class="mb-4">
         <input type="text" id="itemSearch" onkeyup="searchItems()" placeholder="Search item..." class="w-full p-2 rounded border border-gray-300 focus:outline-none">

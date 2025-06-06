@@ -7,6 +7,10 @@
   <title>Farmer Harvest : Master</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <style>
     .sidebar-transition {
       transition: transform 0.3s ease-in-out;
@@ -30,26 +34,26 @@
         }
       }
 
-      function closeSidebar() {
+    function closeSidebar() {
         document.getElementById('sidebar').classList.add('-translate-x-full');
         document.getElementById('overlay').classList.add('hidden');
       }
       // Close sidebar when clicking outside (mobile only)
-      document.addEventListener('click', function (event) {
-        const sidebar = document.getElementById('sidebar');
-        const sidebarButton = event.target.closest('button[onclick="toggleSidebar()"]');
-        const isSidebarOpen = !sidebar.classList.contains('-translate-x-full');
+    document.addEventListener('click', function (event) {
+      const sidebar = document.getElementById('sidebar');
+      const sidebarButton = event.target.closest('button[onclick="toggleSidebar()"]');
+      const isSidebarOpen = !sidebar.classList.contains('-translate-x-full');
 
-        // Don't close if click is inside sidebar or on toggle button
-        if (
-          isSidebarOpen &&
-          !sidebar.contains(event.target) &&
-          !sidebarButton &&
-          window.innerWidth < 768
-        ) {
-          sidebar.classList.add('-translate-x-full');
-        }
-      });
+      // Don't close if click is inside sidebar or on toggle button
+      if (
+        isSidebarOpen &&
+        !sidebar.contains(event.target) &&
+        !sidebarButton &&
+        window.innerWidth < 768
+      ) {
+        sidebar.classList.add('-translate-x-full');
+      }
+    });
 
     function searchUsers() {
       const input = document.getElementById('userSearch');
@@ -138,6 +142,16 @@
       paginate();
     };
 
+    function deactivateUser(userID){
+      url = "{% url 'activate-user' 0 'false' %}".replace(0,userID);
+      var msg = prompt('Upon deactivation, the User cannot access its FarmerHarvest account. Are you sure to deactive the User?\nProvide Reason:');
+      if(msg){
+        window.location.href = url;
+      }
+      else{
+        alert('The user remains active.');
+      }
+    }
   </script>
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans">
@@ -161,6 +175,7 @@
         <a href="#users" class="block p-2 hover:bg-gray-700 rounded">Users</a>
         <a href="#settings" class="block p-2 hover:bg-gray-700 rounded">Settings</a>
         <a href="#notifications" class="block p-2 hover:bg-gray-700 rounded">Notifications</a>
+        <a href="#analytics" class="block p-2 hover:bg-gray-700 rounded">Analytics</a>
       </nav>
     </div>
 
@@ -191,10 +206,8 @@
             <div class="bg-gray-800 p-4 shadow rounded">Total Items: <strong>{{no_of_items}}</strong></div>
             <div class="bg-gray-800 p-4 shadow rounded">Total Categories: <strong>{{no_of_item_cat}}</strong></div>
             <div class="bg-gray-800 p-4 shadow rounded">Total Users: <strong>{{total_users_no}}</strong></div>
-            <div class="bg-gray-800 p-4 shadow rounded">Inventory Alerts</div>
-          </div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <canvas id="myChart" width="400" height="200"></canvas>
+            <div class="bg-gray-800 p-4 shadow rounded">Total Invoices: <strong>{{total_users_no}}</strong></div>
+            <div class="bg-gray-800 p-4 shadow rounded">Total Shippings: <strong>{{total_users_no}}</strong></div>
           </div>
         </section>
 
@@ -278,12 +291,16 @@
                     {% if user.userApproved %}
                     <span class="px-2 py-1 text-xs bg-green-600 rounded">Approved</span>
                     {% else %}
+                    {% if user.userType == '1' %}
+                    <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="{% url 'profile-verify' user.pk %}">View</a>
+                    {% else %}
                     <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="{% url 'approve-user' user.pk %}">Approve</a>
                     {% endif %}
+                    {% endif %}
                     {% if user.isActive %}
-                    <a class="px-2 py-1 text-xs bg-red-600 rounded hover:bg-red-700" href="{% url 'activate-user' user.pk 0 %}">Inactivate</a>
+                    <button type="button" onclick="deactivateUser('{{user.pk}}')" class="px-2 py-1 text-xs bg-red-600 rounded hover:bg-red-700">Deactivate</button>
                     {% else %}
-                    <a class="px-2 py-1 text-xs bg-green-600 rounded hover:bg-green-700" href="{% url 'activate-user' user.pk 1 %}">Activate</a>
+                    <a class="px-2 py-1 text-xs bg-green-600 rounded hover:bg-green-700" href="{% url 'activate-user' user.pk 'true' %}">Activate</a>
                     {% endif %}
                   </td>
                 </tr>
@@ -292,6 +309,7 @@
             </table>
             <div id="pagination" class="mt-4 flex justify-center"></div>
           </div>
+          {% block fpo_verify%}{% endblock %}
         </section>
 
         <!-- Settings -->
@@ -307,6 +325,88 @@
           <h2 class="text-xl font-semibold mb-4">Notifications</h2>
           <div class="bg-gray-800 p-4 shadow rounded">
             <p>System notifications and alerts here.</p>
+          </div>
+        </section>
+
+        <!-- Analytics -->
+        <section id="analytics" class="mt-10">
+          <h2 class="text-xl font-semibold mb-4">Analytics</h2>
+          <div class="bg-gray-800 p-4 shadow rounded">
+            <p>Analytics</p>
+            <p id="output"></p>
+            <button onclick="getLocation()">Get Location</button>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div id="map" style="height: 400px; width: 600px; margin-top: 10px;"></div>
+              <script>
+                // Center the map on Odisha
+                var map = L.map('map').setView([20.9517, 85.0985], 7);
+  
+                // Load OpenStreetMap tiles
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                  attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+  
+                // Example markers — in Django, these are generated from the context
+                var locations = [
+                  {name: "Bhubaneswar", lat: 20.2961, lon: 85.8245},
+                  {name: "Cuttack", lat: 20.4625, lon: 85.8828},
+                  {name: "Berhampur", lat: 19.3149, lon: 84.7941}
+                ];
+  
+                locations.forEach(function(loc) {
+                  L.marker([loc.lat, loc.lon]).addTo(map).bindPopup("<b>" + loc.name + "</b>");
+                });
+              </script>
+              <script>
+                function getLocation() {
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(showPosition, showError, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,     // 10 seconds
+                    maximumAge: 0
+                  });
+                  } else {
+                    document.getElementById("output").innerText = "Geolocation is not supported by this browser.";
+                  }
+                }
+            
+                function showPosition(position) {
+                  const lat = position.coords.latitude;
+                  const lon = position.coords.longitude;
+                  document.getElementById("output").innerText = `Latitude: ${lat}, Longitude: ${lon}`;
+            
+                  // Optional: send lat/lon to Django backend using fetch()
+                  /*
+                  fetch('/save-location/', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ latitude: lat, longitude: lon })
+                  });
+                  */
+                }
+            
+                function showError(error) {
+                  let message = "";
+                  switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                      message = "❌ Permission denied. Please allow location access.";
+                      break;
+                    case error.POSITION_UNAVAILABLE:
+                      message = "⚠️ Location info unavailable. Check your GPS/network.";
+                      break;
+                    case error.TIMEOUT:
+                      message = "⏱️ Timeout! Try again or check network.";
+                      break;
+                    default:
+                      message = "❗ Unknown error occurred.";
+                  }
+                  document.getElementById("output").innerText = message;
+                }
+              </script>
+            </div>
           </div>
         </section>
       </div>

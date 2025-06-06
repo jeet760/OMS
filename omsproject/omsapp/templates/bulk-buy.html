@@ -89,7 +89,7 @@
   }
 </style>
 <div class="form-container">
-  <form action="{% url 'order_successful' 'Bulk' %}" method="post">
+  <form id="formBulkBuy" action="{% url 'order_successful' 'Bulk' %}" method="post">
     {% csrf_token %}
     <div class="form-grid">
       <div class="form-group">
@@ -111,7 +111,7 @@
       <div class="form-group">
         <div class="form-row">
           <label for="type">Type</label>
-          <input type="text" id="type" placeholder="Type" value="{{user_type}}" disabled>
+          <input type="text" id="type" placeholder="Type" value="{{userType}}" disabled>
         </div>
         <div class="form-row">
           <label for="address2">Address2</label>
@@ -178,7 +178,7 @@
       </tbody>
     </table>
     <div class="col-lg-12 text-center">
-      <button class="site-btn" onclick="sendTableToServer()">SUBMIT</button>
+      <button type="button" class="site-btn" onclick="sendTableToServer()">SUBMIT</button>
     </div>
   </form>
 </div>
@@ -186,22 +186,35 @@
 <script>
   // The date selection in the calendar
   document.addEventListener("DOMContentLoaded", function() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date();
+    const min_date = today.toISOString().split('T')[0];
+    const futureDate = new Date(today);
+    futureDate.setMonth(futureDate.getMonth() + 12);
+    const max_date = futureDate.toISOString().split('T')[0];
+
     const dateInput = document.getElementById("delivery-date");
-    dateInput.setAttribute('min', today);
+    dateInput.setAttribute('min', min_date);
+    dateInput.setAttribute('max', max_date);
   });
 
   // sending the item table to the server
   function sendTableToServer() {
+    let validate = true;
+    const formBulkBuy = document.getElementById('formBulkBuy');
     const table = document.getElementById("itemsTable").getElementsByTagName("tbody")[0];
     const rows = [];
     const delivery_date = document.getElementById('delivery-date').value;
 
-    if(table.rows.length < 1){
-      alert('Please add items to for bulkbuy!\n After entering item details, click on Add (+) icon.');
-      return;
+    if(delivery_date == ''){
+      alert('Please select date!');
+      validate = false;
     }
-    for (let row of table.rows) {
+    else if(table.rows.length < 1){
+      alert('Please add items to for bulkbuy!\n After entering item details, click on Add (+) icon.');
+      validate = false;
+    }
+    else{
+      for (let row of table.rows) {
       const itemName = row.cells[0].textContent;
       const itemSpec = row.cells[1].textContent;
       const itemQty = row.cells[2].textContent;
@@ -221,7 +234,14 @@
     .then(response => response.json())
     .then(data => alert(data.message))
     .catch(error => console.error('Error:', error));
+
+    }
+
+    if(validate == true){
+      formBulkBuy.submit();
+    }
   }
+  
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {

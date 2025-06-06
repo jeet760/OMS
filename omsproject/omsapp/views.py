@@ -10,9 +10,9 @@ from datetime import datetime
 import json
 import requests
 import requests.cookies
-from .models import CustomUser, UserAddresses, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, Invoice, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder
+from .models import CustomUser, UserAddresses, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, Invoice, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder, FPOAuthorisationDocs
 from .models import STATES, USERTYPES, GST_TREATMENT
-from .forms import ItemForm, UserRegistrationForm, UserLoginForm, OrderForm, OrderDetailsForm, InvoiceForm
+from .forms import ItemForm, UserRegistrationForm, UserLoginForm, OrderForm, OrderDetailsForm, InvoiceForm, FPOAuthrisationForm
 from django.contrib.gis.geoip2 import GeoIP2
 from .cart import Cart
 from .deliveryschedule import DeliverySchedule
@@ -34,6 +34,7 @@ def landing_page(request, category=None,fpo=None, region=None):
     form = ItemForm()
     user_type = ''
     user_name = 'Guest!'#display the username
+    user_approve=''
     pincode = 'Delivery Pincode'
     if request.session.get('pincode') != '' and request.session.get('pincode') != None:
         pincode = request.session.get('pincode')
@@ -42,6 +43,7 @@ def landing_page(request, category=None,fpo=None, region=None):
     if request.user.is_authenticated:
         user_name = request.user.last_name
         user_type = request.user.userType
+        user_approve = request.user.userApproved
         if pincode == 'Delivery Pincode':
             pincode = request.user.pinCode1
         request.session['pincode'] = pincode
@@ -60,7 +62,8 @@ def landing_page(request, category=None,fpo=None, region=None):
         'form': form, 
         'total_items':length, 
         'login_user':user_name,
-        'user_type':user_type, 
+        'user_type':user_type,
+        'user_approve':user_approve, 
         'total_qty':total_qty, 
         'fpo_list':fpo, 
         'regions':region_list,
@@ -128,7 +131,8 @@ def shop(request, category=None, fpo=None, region=None):
         'max_price':max_price,
         'pincode_area':pincode_area,
         'clicked':'Shop',
-        'pincode':pincode
+        'pincode':pincode,
+        'user_type':user_type
     }
     return render(request, 'shop-grid.html', shop_page_context)
 
@@ -153,15 +157,19 @@ def shop_details(request, item_id):
         related_items = Item.objects.filter(itemCat = item.itemCat).filter(userID_id__pinCode=pincode)
     else:
         related_items = Item.objects.filter(itemCat = item.itemCat)
+    related_items = related_items.exclude(userID_id=request.user.pk)
     user_name = 'Guest!'#display the username
+    user_type = ''
     pincode='Delivery Pincode'
     if request.user.is_authenticated:
         user_name=request.user.last_name
         pincode = request.session.get('pincode')
+        user_type=request.user.userType
     shop_details_context = {
         'item':item,
         'related_items':related_items,
         'login_user':user_name,
+        'user_type':user_type,
         'pincode':pincode,
         'clicked':'Shop',
         'total_qty':total_qty,
@@ -173,21 +181,30 @@ def shopping_cart(request):
     cart = Cart(request)
     total_qty = cart.__len__()
     total_price = cart.get_total_price()
+    transportation_cost = 0 if total_price > 999 else 99
+    grand_total = total_price + transportation_cost
     ds = DeliverySchedule()
     user_name = 'Guest!'#display the username
     pincode='Delivery Pincode'
+    user_type=''
     billing_address = None
     shipping_addresses = None
     if request.user.is_authenticated:
         user_name = request.user.last_name
+        user_type=request.user.userType
         pincode = request.session.get('pincode')
         billing_address = request.user.userAddress +', '+ request.user.userCity +', '+ STATE_CHOICES(request.user.userState) +', '+ request.user.pinCode
         shipping_addresses = UserAddresses.objects.filter(userID_id=request.user.pk)
     shopping_cart_context = {
+        'user_authenticated':request.user.is_authenticated, 
+        'user_type':user_type,
         'cart': cart, 
         'total_qty':total_qty, 
         'total_price':total_price, 
-        'user_authenticated':request.user.is_authenticated, 
+        'transportation_cost':transportation_cost,
+        'gst_amount':0,
+        'deduction_amount':0,
+        'grand_total':grand_total,
         'dateSeries':ds.dateSeries, 
         'timeSeries':ds.timeSeries, 
         'login_user':user_name,
@@ -202,16 +219,19 @@ def contact(request):
     total_qty = cart.__len__()#display total number quantities added in the basket
     total_price = cart.get_total_price()
     user_name = 'Guest!'#display the username
+    user_type =''
     pincode='Delivery Pincode'
     pincode = request.session.get('pincode')
     if request.user.is_authenticated:
         user_name = request.user.last_name
+        user_type = request.user.userType
     contact_context = {
         'clicked':'Contact',
         'total_qty':total_qty,
         'total_price':total_price,
         'login_user':user_name,
-        'pincode':pincode
+        'pincode':pincode,
+        'user_type':user_type
     }
     return render(request, 'contact.html', contact_context)
 
@@ -327,8 +347,10 @@ def SearchItemView(request):
 def user_form(request):
     if request.user.is_authenticated:
         user = CustomUser.objects.filter(pk = request.user.pk)
+        fpo_docs = FPOAuthorisationDocs.objects.filter(userID_id=request.user.pk)
     user_form_context = {
         'user':user,
+        'fpo_docs':fpo_docs,
         'states':STATES,
         'gst_tmts': GST_TREATMENT
     }
@@ -357,9 +379,9 @@ def register(request):
         if request.user.is_authenticated == False: #update == None:#New registration
             if form.is_valid():
                 user = form.save(param_password=request.POST['phone'])
-                UserAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress1, userCity1=user.userCity1, userState1=user.userState1, pinCode1=user.pinCode1, setDefault=True)
+                UserAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress1, userCity1=user.userCity1, userState1=user.userState1, pinCode1=user.pinCode1, address_lat=0.00, address_long=0.00, setDefault=True)
                 if user.userType != '1':
-                    CustomUser.objects.filter(pk=user.id).update(userApproved=True,approvedOn=datetime.today(),isActive=True,activatedOn=datetime.today())
+                    CustomUser.objects.filter(pk=user.id).update(userApproved=False,approvedOn=datetime.today(),isActive=True,activatedOn=datetime.today())
                     login(request, user)
                     user_name = user.last_name
                 return redirect('index')  # Redirect to a home page
@@ -389,14 +411,25 @@ def profile_view(request):
             pass
         return redirect('profile')
     else:
-        if(request.user.is_authenticated):#Point: After logging in trying to edit the profile
-            user = request.user
-            user_name = request.user.last_name
-            userInstance = get_object_or_404(CustomUser, id=request.user.pk)
-            form = UserRegistrationForm(instance=userInstance)
+        if request.user.is_authenticated:#Point: After logging in trying to edit the profile
+            if request.user.userApproved:
+                user = request.user
+                user_name = request.user.last_name
+                userInstance = get_object_or_404(CustomUser, id=request.user.pk)
+                form = UserRegistrationForm(instance=userInstance)
+                try:
+                    fpo_docs = get_object_or_404(FPOAuthorisationDocs, userID_id=request.user.pk)
+                except:
+                    fpo_docs = ''
+            else:
+                return redirect('profile-auth')
+                #return JsonResponse({'approve':'false'})
         else:
             return redirect('login')
-    
+    if userInstance:
+        user_type = userInstance.userType
+    else:
+        user_type=''
     addresses = UserAddresses.objects.filter(userID = request.user.pk)
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
@@ -405,21 +438,131 @@ def profile_view(request):
         'userform': form,
         'user':user,
         'login_user':user_name,
+        'user_type':user_type,
         'total_qty':total_qty,
         'total_price':total_price,
         'states':STATES,
         'gst_tmts':GST_TREATMENT,
         'user_types':USERTYPES,
-        'addresses':addresses
+        'addresses':addresses,
+        'fpo_docs':fpo_docs
     }
     return render(request, 'user-form.html', context=register_context)
+
+def fpo_auth(request):
+    if request.user.is_authenticated:
+        user_approved = request.user.userApproved
+        auth_details = FPOAuthorisationDocs.objects.filter(userID_id=request.user.pk)
+        if auth_details.exists():
+            auth_form = FPOAuthrisationForm(instance=auth_details.first())
+        else:
+            auth_form = FPOAuthrisationForm()
+        fpo_auth_context ={
+            'auth_form':auth_form,
+            'auth_details':auth_details,
+            'user_approved':user_approved
+        }
+    else:
+        return redirect('login')
+    return render(request, 'fpo-auth.html', context=fpo_auth_context)
+
+def upload_fpo_docs(request):
+    if request.method == 'POST':
+        fpo_auth_instance = FPOAuthorisationDocs.objects.filter(userID_id=request.user.pk).first()
+        auth_form = FPOAuthrisationForm(request.POST, request.FILES, instance=fpo_auth_instance)
+        if auth_form.is_valid():
+            if request.user.is_authenticated:
+                user_id = request.user.pk
+                fpo_auth = auth_form.save(userID = user_id)
+            else:
+                return redirect('login')
+        else:
+            return redirect('profile-auth')
+    else:
+        return redirect('profile-auth')
+    return redirect('index')
 
 def approve_user(request, userID):
     CustomUser.objects.filter(pk=userID).update(userApproved=True,approvedOn=datetime.now())
     return redirect('admin-master')
 
+def verify_fpo(request, userID):
+    fpo_docs=FPOAuthorisationDocs.objects.filter(userID_id=userID)
+    fpo_doc = request.GET.get('doc')
+    fpo_action_get = request.GET.get('action')
+    remark = request.GET.get('remark')
+    fpo_action = True if fpo_action_get == 'verify' else False
+
+    if fpo_doc == 'br':
+        fpo_docs.update(br_verified=fpo_action, br_remark=remark, br_verified_on=datetime.today())
+    elif fpo_doc == 'cin':
+        fpo_docs.update(cin_verified=fpo_action, cin_remark=remark, cin_verified_on=datetime.today())
+    elif fpo_doc == 'pan':
+        fpo_docs.update(pan_verified=fpo_action, pan_remark=remark, pan_verified_on=datetime.today())
+    elif fpo_doc == 'bank':
+        fpo_docs.update(bank_verified=fpo_action, bank_remark=remark, bank_verified_on=datetime.today())
+    elif fpo_doc == 'fssai':
+        fpo_docs.update(fssai_verified=fpo_action, fssai_remark=remark, fssai_verified_on=datetime.today())
+    elif fpo_doc == 'gst':
+        fpo_docs.update(gst_verified=fpo_action, gst_remark=remark, gst_verified_on=datetime.today())
+    elif fpo_doc == 'apmc':
+        fpo_docs.update(apmc_verified=fpo_action, apmc_remark=remark, apmc_verified_on=datetime.today())
+    elif fpo_doc == 'exim':
+        fpo_docs.update(exim_verified=fpo_action, exim_remark=remark, exim_verified_on=datetime.today())
+
+    fpo_form = FPOAuthrisationForm(instance=fpo_docs.first())
+    fpo_check = fpo_approve_check(userID)
+    #print(fpo_check)
+    verify_context = {
+        'fpo_docs':fpo_docs,
+        'auth_form':fpo_form,
+        'fpo_user':userID,
+        'fpo_check':fpo_check
+    }
+    return render(request, 'fpo-verify.html', context=verify_context)
+
+def fpo_approve_check(userID):
+    user = get_object_or_404(CustomUser,pk=userID)
+    fpo_instance_list = [
+        {'column':'board_resolution', 'value':''},
+        {'column':'cin', 'value':''},
+        {'column':'pan', 'value':''},
+        {'column':'bank', 'value':''},
+        {'column':'fssai', 'value':''},
+        {'column':'gst', 'value':''},
+        {'column':'apmc', 'value':''},
+        {'column':'exim', 'value':''},
+    ]
+
+    if user.userType == '1':
+        try:
+            fpo_instance = get_object_or_404(FPOAuthorisationDocs,userID_id=userID)
+            column_counter = 0
+            value_counter = 0
+            for instance in fpo_instance_list:
+                for field in fpo_instance._meta.get_fields():
+                    if hasattr(field, 'attname'):  # skip related fields, M2M, etc.
+                        if instance['column'] == field.name:
+                            column_value = getattr(fpo_instance, field.name, None)
+                            if hasattr(column_value, 'name') and column_value.name:
+                                column_counter+=1
+                                #print(f"{field.name}: {column_value.name}")
+                                
+                            field_name = 'br_verified' if field.name == 'board_resolution' else field.name+'_verified'
+                            field_value = getattr(fpo_instance, field_name, None)
+                            if field_value == True:
+                                value_counter+=1
+            #print(f"Field: {column_counter} → Value: {value_counter}")
+            if column_counter == value_counter:
+                return True
+            else:
+                return False
+        except:
+            fpo_instance = None
+            return False
+
 def activate_user(request, userID, activate):
-    if activate == 0:
+    if activate == 'false':
         CustomUser.objects.filter(pk=userID).update(isActive=False,activatedOn=datetime.now())
     else:
         CustomUser.objects.filter(pk=userID).update(isActive=True,activatedOn=datetime.now())
@@ -434,7 +577,7 @@ def add_address(request):
         pinCode1 = request.POST.get('shippingPostcode')
         setDefault = True
         UserAddresses.objects.filter(userID_id=userID).update(setDefault=False)
-        UserAddresses.objects.create(userID_id=userID, userAddress1=userAddress1, userCity1=userCity1,userState1=userState1,pinCode1=pinCode1,setDefault=setDefault)
+        UserAddresses.objects.create(userID_id=userID, userAddress1=userAddress1, userCity1=userCity1,userState1=userState1,pinCode1=pinCode1, address_lat=0.00, address_long=0.00, setDefault=setDefault)
         CustomUser.objects.filter(pk=userID).update(userAddress1=userAddress1, userCity1=userCity1,userState1=userState1,pinCode1=pinCode1)
     return redirect('user-form')    
 
@@ -492,7 +635,7 @@ def set_default_address(request, id):
         UserAddresses.objects.filter(userID_id=userID).update(setDefault=False)
         UserAddresses.objects.filter(pk=id, userID_id=userID).update(setDefault=True)
         address = get_object_or_404(UserAddresses, pk=id)
-        CustomUser.objects.filter(id=userID).update(userAddress1=address.userAddress1,userCity1=address.userCity1,userState1=address.userState1,pinCode1=address.pinCode1)
+        CustomUser.objects.filter(id=userID).update(userAddress1=address.userAddress1,userCity1=address.userCity1,userState1=address.userState1,pinCode1=address.pinCode1, address_lat=0.00, address_long=0.00)
     return redirect('user-form')    
 
 def login_view(request):
@@ -513,19 +656,19 @@ def login_view(request):
                 form.add_error(None, 'Your Account is not active! Please, contact administrator to activate your account.')
                 messages.success(request, 'Your Account is not active! Please, contact administrator to activate your account.')
                 return redirect('login')
-            if user.userType == '1':
-                if user.userApproved == True:
-                    user_login = authenticate(request, username=username, password=password)
-                    if user_login is not None:
-                            login(request, user_login)
-                            return redirect('index')
-                    else:
-                        form.add_error(None, 'Invalid username or password!')
-                        messages.success(request, 'Invalid username or password!')
-                else:
-                    form.add_error(None, 'Waiting for Approval!')
-                    messages.success(request, 'Waiting for Approval!')
-            elif user.userType == '0' and user.is_superuser:
+            # if user.userType == '1':
+            #     if user.userApproved == True:
+            #         user_login = authenticate(request, username=username, password=password)
+            #         if user_login is not None:
+            #                 login(request, user_login)
+            #                 return redirect('index')
+            #         else:
+            #             form.add_error(None, 'Invalid username or password!')
+            #             messages.success(request, 'Invalid username or password!')
+            #     else:
+            #         form.add_error(None, 'Waiting for Approval!')
+            #         messages.success(request, 'Waiting for Approval!')
+            if user.userType == '0' and user.is_superuser:
                 user_login = authenticate(request, username=username, password=password)
                 if user_login is None:
                     form.add_error(None, 'Invalid username or password!')
@@ -598,6 +741,8 @@ def admin_console(request):
     return render(request, 'admin-console.html', console_context)
 
 @login_required
+def track_coordinate(request):
+    return render('admin-master')
 def admin_master(request):
     if request.user.is_authenticated:
         total_users = CustomUser.objects.all()
@@ -611,6 +756,7 @@ def admin_master(request):
         no_of_item_cat = Item.objects.values('itemCat').distinct().count()
         no_of_orders = Order.objects.all().__len__()
         no_of_bulkbuys = BulkBuy.objects.all().__len__()
+        coordinates = []
         master_console_context = {
             'total_users':total_users,
             'total_users_no':no_of_users,
@@ -622,7 +768,7 @@ def admin_master(request):
             'no_of_items':no_of_items,
             'no_of_item_cat':no_of_item_cat,
             'total_orders':no_of_orders,
-            'total_bulkbuys':no_of_bulkbuys
+            'total_bulkbuys':no_of_bulkbuys,
         }
         return render(request, 'admin-master-console.html', context=master_console_context)
     else:
@@ -715,11 +861,13 @@ def item_list(request):
     login_user_id = request.user.pk
     if request.user.is_authenticated:
         user_name = request.user.last_name
+        user_approved=request.user.userApproved
         """if the user is not an FPO then the page should not be displayed"""
         if request.user.userType != '1':
             return redirect('index')
     else:
         user_name = 'Guest!'
+        user_approved=''
     if login_user_id is not None:
         items = Item.objects.filter(userID_id = login_user_id)
     else:
@@ -735,6 +883,7 @@ def item_list(request):
         'items': items, 
         'form': form, 
         'login_user':user_name,
+        'user_approved':user_approved,
         'total_items':total_items,
         'total_featured_items':total_featured_items,
         'total_item_categories':total_item_categories,
@@ -755,6 +904,11 @@ def item_list(request):
 
 #region cart management with session id (without login and with login)
 def add_to_cart(request, product_id):
+    """check whether the product belongs to self"""
+    userID = request.user.pk
+    product_owner = get_object_or_404(Item, itemID=product_id).userID.pk
+    if userID == product_owner:
+        return redirect('shop')
     source = request.GET.get('source')
     cart = Cart(request)
     product = get_object_or_404(Item, itemID=product_id)
@@ -825,7 +979,7 @@ def create_order_invoice(param_order_no, param_invoice_no, param_user_id):
 
 #region create order and save order details
 @login_required
-def CreateOrder(request, param_total_quantity, param_total_price, param_gst_amount, param_deduction):
+def CreateOrder(request, param_transportation_cost, param_total_price, param_gst_amount, param_deduction):
     if request.method == 'POST' and request.user.is_authenticated:
         form = OrderForm(request.POST)
         if form.is_valid():
@@ -847,7 +1001,8 @@ def CreateOrder(request, param_total_quantity, param_total_price, param_gst_amou
             view_orderAmount = param_total_price
             view_orderGSTAmount = param_gst_amount
             view_orderDeduction = param_deduction
-            view_orderGrandTotal = float(view_orderAmount)+float(view_orderGSTAmount)-float(view_orderDeduction)
+            view_transportationCost = param_transportation_cost
+            view_orderGrandTotal = float(view_orderAmount)+float(view_orderGSTAmount)-float(view_orderDeduction)+float(view_transportationCost)
             view_orderDeliveryDate = request.POST['selectDeliveryDate']
             view_orderDeliveryTime = request.POST['selectDeliveryTime']
             view_orderNote = request.POST['orderNote']
@@ -857,6 +1012,7 @@ def CreateOrder(request, param_total_quantity, param_total_price, param_gst_amou
                             orderAmount=view_orderAmount,
                             orderGSTAmount=view_orderGSTAmount,
                             orderDeduction=view_orderDeduction,
+                            orderTransportation = view_transportationCost,
                             orderGrandTotal=view_orderGrandTotal,
                             schDeliveryDate = view_orderDeliveryDate,
                             schDeliveryTime = view_orderDeliveryTime,
@@ -1111,11 +1267,13 @@ def rejected_orders(request):
 def bulk_buy(request):
     if request.user.is_authenticated:
         user_name = request.user.last_name
-        user_type = USERTYPE_CHOICES(request.user.userType)
+        userType = USERTYPE_CHOICES(request.user.userType)
+        user_type = request.user.userType
         user_address = f"{request.user.userAddress} {request.user.userCity} {STATE_CHOICES(request.user.userState)} {request.user.pinCode}"
         user_address1 = f"{request.user.userAddress1} {request.user.userCity1} {STATE_CHOICES(request.user.userState1)} {request.user.pinCode1}"
         user_phone = request.user.phone
-        items = Item.objects.filter(itemActive=True).order_by('-itemInStock').values('itemName').distinct().order_by('itemName')
+        items = Item.objects.filter(itemActive=True).order_by('-itemInStock').exclude(userID_id=request.user.pk).values('itemName').distinct().order_by('itemName')
+        #items = items.exclude(userID_id=request.user.pk)
         distinct_units = items.values('itemUnit').distinct().order_by('itemUnit')
         cart = Cart(request)
         total_qty = cart.__len__()#display total number quantities added in the basket
@@ -1126,6 +1284,7 @@ def bulk_buy(request):
         'clicked':'Bulk',
         'login_user':user_name,
         'user_type':user_type,
+        'userType':userType,
         'user_address':user_address,
         'user_address1':user_address1,
         'user_phone':user_phone,

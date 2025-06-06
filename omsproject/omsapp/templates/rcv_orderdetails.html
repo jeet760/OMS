@@ -142,10 +142,10 @@ window.addEventListener('click', function(e) {
          <button id="modify" onclick="enableAction()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 pointer-events-none opacity-50">Modify</button>
          {% endif %}
          {% if suborder_status == 'Rejected' %}
-         <button @click="showModal = true" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 pointer-events-none opacity-50">Invoice</button>
+         <button class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 pointer-events-none opacity-50">Invoice</button>
          <a class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 pointer-events-none opacity-50" href="{% url 'confirmdelivery' suborderID %}">Mark As Delivered</a>
          {% else %}
-         <button @click="showModal = true" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">Invoice</button>
+         <button class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">Invoice</button>
          <a class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" href="{% url 'confirmdelivery' suborderID %}">Mark As Delivered</a>
          {% endif %}
         <a class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700" href="{% url 'receivedorders' %}" >Cancel</a>

@@ -1,0 +1,176 @@
+{% extends 'admin-console.html'%}
+{% load static %}
+{% block fpoauth %}
+    <h2 class="text-xl font-semibold mb-4 text-gray-700">FPO Authorisation Details{% if user_approved == False %}<strong>(Yet to Approved!)</strong>{% endif %}</h2>
+    <form method="post" action="{% url 'profile-auth-save' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <table id="billingAddressTable" class="w-full text-left text-sm border border-gray-300 bg-white">
+            <thead class="text-gray-700 border-b border-gray-300">
+            <tr>
+                <th class="py-2 px-3 cursor-pointer">#</th>
+                <th class="py-2 px-3 cursor-pointer">Type of Document</th>
+                <th class="py-2 px-3 cursor-pointer">Browse</th>
+                <th class="py-2 px-3 cursor-pointer">File Name</th>
+                <th class="py-2 px-3 cursor-pointer">Verified</th>
+                <th class="py-2 px-3 cursor-pointer">Remark</th>
+            </tr>
+            </thead>
+            <tbody>
+                <tr class="border-b border-gray-300 hover:bg-gray-100">
+                    <td class="py-2 px-3">1</td>
+                    <td class="py-2 px-3"><strong>FPO Authorise Person</strong><sup>*</sup></td>
+                    <td class="py-2 px-3">{{auth_form.auth_name}}</td>
+                    <td class="py-2 px-3">{{auth_form.instance.auth_name}}</td>
+                    <td class="py-2 px-3"></td>
+                    <td class="py-2 px-3"></td>
+                </tr>
+                <tr class="border-b border-gray-300 hover:bg-gray-100">
+                    <td class="py-2 px-3">2</td>
+                    <td class="py-2 px-3"><strong>Contact No.</strong><sup>*</sup></td>
+                    <td class="py-2 px-3">{{auth_form.auth_contact}}</td>
+                    <td class="py-2 px-3">{{auth_form.instance.auth_contact}}</td>
+                    <td class="py-2 px-3"></td>
+                    <td class="py-2 px-3"></td>
+                </tr>
+                <tr class="border-b border-gray-300 hover:bg-gray-100">
+                    <td class="py-2 px-3">3</td>
+                    <td class="py-2 px-3"><strong>Email</strong></td>
+                    <td class="py-2 px-3">{{auth_form.auth_email}}</td>
+                    <td class="py-2 px-3">{{auth_form.instance.auth_email}}</td>
+                    <td class="py-2 px-3"></td>
+                    <td class="py-2 px-3"></td>
+                </tr>
+                <tr class="border-b border-gray-300 hover:bg-gray-100">
+                    <td class="py-2 px-3">4</td>
+                    <td class="py-2 px-3"><strong>Board Resolution</strong><sup>*</sup></td>
+                    <td class="py-2 px-3">{{auth_form.board_resolution}}</td>
+                    <td class="py-2 px-3">{{auth_form.instance.board_resolution.name|cut:'fpodocs/'}}</td>
+                    <td class="py-2 px-3">
+                        {% if auth_form.instance.br_verified %}
+                        <span class="px-2 py-1 text-xs bg-green-600 text-white rounded">Verified</span>
+                        {% else %}
+                        None
+                        {% endif %}
+                    </td>
+                    <td class="py-2 px-3">{{auth_form.instance.br_remark}}</td>
+                </tr>
+                <tr class="border-b border-gray-300 hover:bg-gray-100">
+                    <td class="py-2 px-3">5</td>
+                    <td class="py-2 px-3"><strong>CIN/Registration Certificate</strong><sup>*</sup></td>
+                    <td class="py-2 px-3">{{auth_form.cin}}</td>
+                    <td class="py-2 px-3">{{auth_form.instance.cin.name|cut:'fpodocs/'}}</td>
+                    <td class="py-2 px-3">
+                        {% if auth_form.instance.cin_verified %}
+                        <span class="px-2 py-1 text-xs bg-green-600 text-white rounded">Verified</span>
+                        {% else %}
+                        None
+                        {% endif %}
+                    </td>
+                    <td class="py-2 px-3">{{auth_form.instance.cin_remark}}</td>
+                </tr>
+                <tr class="border-b border-gray-300 hover:bg-gray-100">
+                    <td class="py-2 px-3">6</td>
+                    <td class="py-2 px-3"><strong>PAN</strong><sup>*</sup></td>
+                    <td class="py-2 px-3">{{auth_form.pan}}</td>
+                    <td class="py-2 px-3">{{auth_form.instance.pan.name|cut:'fpodocs/'}}</td>
+                    <td class="py-2 px-3">
+                        {% if auth_form.instance.pan_verified %}
+                        <span class="px-2 py-1 text-xs bg-green-600 text-white rounded">Verified</span>
+                        {% else %}
+                        None
+                        {% endif %}
+                    </td>
+                    <td class="py-2 px-3">{{auth_form.instance.pan_remark}}</td>
+                </tr>
+                <tr class="border-b border-gray-300 hover:bg-gray-100">
+                    <td class="py-2 px-3">7</td>
+                    <td class="py-2 px-3"><strong>Bank Account Details</strong><sup>*</sup></td>
+                    <td class="py-2 px-3">{{auth_form.bank}}</td>
+                    <td class="py-2 px-3">{{auth_form.instance.bank.name|cut:'fpodocs/'}}</td>
+                    <td class="py-2 px-3">
+                        {% if auth_form.instance.bank_verified %}
+                        <span class="px-2 py-1 text-xs bg-green-600 text-white rounded">Verified</span>
+                        {% else %}
+                        None
+                        {% endif %}
+                    </td>
+                    <td class="py-2 px-3">{{auth_form.instance.bank_remark}}</td>
+                </tr>
+                <tr class="border-b border-gray-300 hover:bg-gray-100">
+                    <td class="py-2 px-3">8</td>
+                    <td class="py-2 px-3"><strong>FSSAI License</strong><sup>*</sup></td>
+                    <td class="py-2 px-3">{{auth_form.fssai}}</td>
+                    <td class="py-2 px-3">{{auth_form.instance.fssai.name|cut:'fpodocs/'}}</td>
+                    <td class="py-2 px-3">
+                        {% if auth_form.instance.fssai_verified %}
+                        <span class="px-2 py-1 text-xs bg-green-600 text-white rounded">Verified</span>
+                        {% else %}
+                        None
+                        {% endif %}
+                    </td>
+                    <td class="py-2 px-3">{{auth_form.instance.fssai_remark}}</td>
+                </tr>
+                <tr class="border-b border-gray-300 hover:bg-gray-100">
+                    <td class="py-2 px-3">9</td>
+                    <td class="py-2 px-3"><strong>GST</strong></td>
+                    <td class="py-2 px-3">{{auth_form.gst}}</td>
+                    <td class="py-2 px-3">{{auth_form.instance.gst.name|cut:'fpodocs/'}}</td>
+                    <td class="py-2 px-3">
+                        {% if auth_form.instance.gst_verified %}
+                        <span class="px-2 py-1 text-xs bg-green-600 text-white rounded">Verified</span>
+                        {% else %}
+                        None
+                        {% endif %}
+                    </td>
+                    <td class="py-2 px-3">{{auth_form.instance.gst_remark}}</td>
+                </tr>
+                <tr class="border-b border-gray-300 hover:bg-gray-100">
+                    <td class="py-2 px-3">10</td>
+                    <td class="py-2 px-3"><strong>APMC Trader/Direct Marketing</strong></td>
+                    <td class="py-2 px-3">{{auth_form.apmc}}</td>
+                    <td class="py-2 px-3">{{auth_form.instance.apmc.name|cut:'fpodocs/'}}</td>
+                    <td class="py-2 px-3">
+                        {% if auth_form.instance.apmc_verified %}
+                        <span class="px-2 py-1 text-xs bg-green-600 text-white rounded">Verified</span>
+                        {% else %}
+                        None
+                        {% endif %}
+                    </td>
+                    <td class="py-2 px-3">{{auth_form.instance.apmc_remark}}</td>
+                </tr>
+                <tr class="border-b border-gray-300 hover:bg-gray-100">
+                    <td class="py-2 px-3">11</td>
+                    <td class="py-2 px-3"><strong>Export/Import License</strong></td>
+                    <td class="py-2 px-3">{{auth_form.exim}}</td>
+                    <td class="py-2 px-3">{{auth_form.instance.exim.name|cut:'fpodocs/'}}</td>
+                    <td class="py-2 px-3">
+                        {% if auth_form.instance.exim_verified %}
+                        <span class="px-2 py-1 text-xs bg-green-600 text-white rounded">Verified</span>
+                        {% else %}
+                        None
+                        {% endif %}
+                    </td>
+                    <td class="py-2 px-3">{{auth_form.instance.exim_remark}}</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr class="border-b border-gray-300 hover:bg-gray-100">
+                    <td colspan="3">
+                        <label>
+                            <input type="checkbox" id="cbAgree" onclick="cbAgreeCheck()">
+                            I agree to the terms and conditions.
+                        </label>
+                    </td>
+                </tr>
+                <tr class="border-b border-gray-300 hover:bg-gray-100">
+                    <td colspan="2">
+                    </td>
+                    <td>
+                        <a href="{% url 'index' %}" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">CANCEL</a>
+                        <button id="submitButton" type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">SUBMIT</button>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </form>
+{% endblock %}

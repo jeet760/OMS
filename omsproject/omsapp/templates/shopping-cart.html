@@ -106,14 +106,15 @@
                     </div>
                 </div>
                 <div class="col-lg-6">
-                    <form method="post" id="orderForm" action="{% if user_authenticated %}{% url 'createorder' total_qty total_price 0 0 %}{% else %}{% url 'login' %}{% endif %}"> <!--cart.total_quantity cart.total_price-->
+                    <form method="post" id="orderForm" action="{% if user_authenticated %}{% url 'createorder' transportation_cost total_price gst_amount deduction_amount %}{% else %}{% url 'login' %}{% endif %}"> <!--cart.total_quantity cart.total_price-->
                         {% csrf_token %}
                         <div class="shoping__checkout">
                             <h5>Cart Total</h5>
                             <ul>
                                 <li>Total Qty.<span>{{ total_qty }}</span></li>
                                 <li>Subtotal <span>₹{{ total_price }}</span></li>
-                                <li>Total <span>₹{{ total_price }}</span></li>
+                                <li>Transportation Charge<span>₹{{transportation_cost}}.00</span></li>
+                                <li>Total <span>₹{{ grand_total }}</span></li>
                                 <li>Schedule Date
                                     <span>
                                         <select id="selectDeliveryDate" name="selectDeliveryDate" style="font-size: 12px; height: 30px; width: 130px;">

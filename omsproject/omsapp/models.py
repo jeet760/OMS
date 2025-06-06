@@ -95,6 +95,11 @@ class CustomUser(AbstractUser):
     approvedOn = DateField(null=True)
     isActive=BooleanField(null=True)
     activatedOn=DateField(null=True)
+    deactivateRemark = CharField(max_length=100, null=True,blank=True)
+    bill_address_lat = FloatField(null=True, blank=True)
+    bill_address_long = FloatField(null=True, blank=True)
+    ship_address_lat = FloatField(null=True, blank=True)
+    ship_address_long = FloatField(null=True, blank=True)
     USERNAME_FIELD = 'phone'
     REQUIRED_FIELDS=['first_name']
 
@@ -109,6 +114,7 @@ class Login(Model):
     def __str__(self):
         return self.id
 
+#Addresses of all users
 class UserAddresses(Model):
     id = AutoField(primary_key=True)
     userID = ForeignKey(CustomUser, on_delete=CASCADE)
@@ -116,10 +122,61 @@ class UserAddresses(Model):
     userCity1 = CharField(max_length=50)
     userState1 = CharField(max_length=20, choices=STATES)
     pinCode1 = CharField(max_length=6)
+    address_lat = FloatField(null=True, blank=True)
+    address_long = FloatField(null=True, blank=True)
     setDefault = BooleanField(default=False, null=True)
     def __str__(self):
         return self.userID
 
+#All the documents of the FPO User
+class FPOAuthorisationDocs(Model):
+    id = AutoField(primary_key=True)
+    userID = ForeignKey(CustomUser, on_delete=CASCADE)
+    auth_name = CharField(max_length=50, default=None)
+    auth_contact = CharField(max_length=12, default=None)
+    auth_email = CharField(max_length=100, null=True, blank=True)
+
+    board_resolution = FileField(null=True, verbose_name='Board Resolution', upload_to='fpodocs/')
+    br_verified = BooleanField(null=True, verbose_name='Board Resolution Verified')
+    br_verified_on = DateField(null=True, verbose_name='Board Resolution Verified On')
+    br_remark = CharField(max_length=100, null=True, verbose_name='Board Resolution Remark')
+    
+    cin = FileField(null=True, verbose_name='CIN', upload_to='fpodocs/')
+    cin_verified = BooleanField(null=True, verbose_name='CIN Verified')
+    cin_verified_on = DateField(null=True, verbose_name='CIN Verified On')
+    cin_remark = CharField(max_length=100, null=True, verbose_name='CIN Remark')
+    
+    pan = FileField(null=True, verbose_name='PAN', upload_to='fpodocs/')
+    pan_verified = BooleanField(null=True, verbose_name='PAN Verified')
+    pan_verified_on = DateField(null=True, verbose_name='PAN Verified On')
+    pan_remark = CharField(max_length=100, null=True, verbose_name='PAN Remark')
+    
+    bank = FileField(null=True, verbose_name='Bank', upload_to='fpodocs/')
+    bank_verified = BooleanField(null=True, verbose_name='Bank Verified')
+    bank_verified_on = DateField(null=True, verbose_name='Bank Verified On')
+    bank_remark = CharField(max_length=100, null=True, verbose_name='Bank Remark')
+    
+    fssai = FileField(null=True, verbose_name='FSSAI', upload_to='fpodocs/')
+    fssai_verified = BooleanField(null=True, verbose_name='FSSAI Verified')
+    fssai_verified_on = DateField(null=True, verbose_name='FSSAI Verified On')
+    fssai_remark = CharField(max_length=100, null=True, verbose_name='FSSAI Remark')
+    
+    gst = FileField(null=True, blank=True,verbose_name='GST', upload_to='fpodocs/')
+    gst_verified = BooleanField(null=True, verbose_name='GST Verified')
+    gst_verified_on = DateField(null=True, verbose_name='GST Verified On')
+    gst_remark = CharField(max_length=100, null=True, verbose_name='GST Remark')
+    
+    apmc = FileField(null=True, blank=True, verbose_name='APMC', upload_to='fpodocs/')
+    apmc_verified = BooleanField(null=True, verbose_name='APMC Verified')
+    apmc_verified_on = DateField(null=True, verbose_name='APMC Verified On')
+    apmc_remark = CharField(max_length=100, null=True, verbose_name='APMC Remark')
+    
+    exim = FileField(null=True, blank=True, verbose_name='EXIM', upload_to='fpodocs/')
+    exim_verified = BooleanField(null=True, verbose_name='EXIM Verified')
+    exim_verified_on = DateField(null=True, verbose_name='EXIM Verified On')
+    exim_remark = CharField(max_length=100, null=True, verbose_name='EXIM Remark')
+    def __str__(self):
+        return self.userID
 #endregion
 
 #region Item Model
@@ -198,6 +255,7 @@ class Order(Model):
     orderAmount = FloatField()
     orderGSTAmount = FloatField()
     orderDeduction = FloatField()
+    orderTransportation = FloatField(default=0)
     orderGrandTotal = FloatField()
     schDeliveryDate = CharField(max_length=10, default=None, null=True)
     schDeliveryTime = CharField(max_length=10, default=None, null=True)

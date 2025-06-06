@@ -1,0 +1,314 @@
+{% extends 'admin-master-console.html' %}
+{% load static %}
+{% block fpo_verify%}
+<script>
+    function rejectFPODocument(doc){
+        url = "?doc=type&action=reject&remark=0";
+        url = url.replace('type',doc);
+        var msg = prompt('Do you want to reject the document? Please provide reason.');
+        if(msg){
+            url = url.replace(0,msg);
+            window.location.href=url;
+        }
+        else{
+            alert('No rejection of document');
+        }
+    }
+</script>
+<style>
+    .disabled-inputs{
+        pointer-events: none;
+        opacity: 0.5;
+    }
+</style>
+<table id="fpoDocumentsTable" class="w-full text-left text-sm">
+    <thead class="text-gray-400 border-b border-gray-700">
+    <tr>
+        <th class="py-2 px-3 cursor-pointer">#</th>
+        <th class="py-2 px-3 cursor-pointer">Type of Document</th>
+        <th class="py-2 px-3 cursor-pointer">File Name</th>
+        <th class="py-2 px-3 cursor-pointer">Action</th>
+        <th class="py-2 px-3 cursor-pointer">Remark</th>
+    </tr>
+    </thead>
+    <tbody>
+        <tr class="border-b border-gray-300 hover:bg-gray-600">
+            <td class="py-2 px-3">1</td>
+            <td class="py-2 px-3">FPO Authorise Person<sup>*</sup></td>
+            <td class="py-2 px-3">{{auth_form.instance.auth_name}}</td>
+            <td class="py-2 px-3"></td>
+            <td class="py-2 px-3"></td>
+        </tr>
+        <tr class="border-b border-gray-300 hover:bg-gray-600">
+            <td class="py-2 px-3">2</td>
+            <td class="py-2 px-3">Contact No.<sup>*</sup></td>
+            <td class="py-2 px-3">{{auth_form.instance.auth_contact}}</td>
+            <td class="py-2 px-3"></td>
+            <td class="py-2 px-3"></td>
+        </tr>
+        <tr class="border-b border-gray-300 hover:bg-gray-600">
+            <td class="py-2 px-3">3</td>
+            <td class="py-2 px-3">Email</td>
+            <td class="py-2 px-3">{{auth_form.instance.auth_email}}</td>
+            <td class="py-2 px-3"></td>
+            <td class="py-2 px-3"></td>
+        </tr>
+        <tr class="border-b border-gray-300 hover:bg-gray-600">
+            <td class="py-2 px-3">4</td>
+            <td class="py-2 px-3">Board Resolution<sup>*</sup></td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.board_resolution %}
+                    {% if auth_form.instance.br_verified == True %}
+                    <a href="{{auth_form.instance.board_resolution.url}}">{{auth_form.instance.board_resolution.name|cut:'fpodocs/'}}</a>
+                    {% else %}
+                    <a href="{{auth_form.instance.board_resolution.url}}" style="color: greenyellow;">{{auth_form.instance.board_resolution.name|cut:'fpodocs/'}}</a>
+                    {% endif %}
+                {% else %}
+                None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.board_resolution %}
+                    {% if auth_form.instance.br_verified == False %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=br&action=verify&remark=ok">Verify</a>
+                        <span class="px-2 py-1 text-xs bg-red-700 rounded">Rejected</span>
+                    {%elif auth_form.instance.br_verified == True%}
+                        <span class="px-2 py-1 text-xs bg-green-600 rounded">Verified</span>
+                    {% else %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=br&action=verify&remark=ok">Verify</a>
+                        <button type="button" onclick="rejectFPODocument('br')" class="px-2 py-1 text-xs bg-red-600 rounded hover:bg-red-700">Reject</button>
+                    {% endif %}
+                {% else %}
+                    None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">{{auth_form.instance.br_remark}}</td>
+        </tr>
+        <tr class="border-b border-gray-300 hover:bg-gray-600">
+            <td class="py-2 px-3">5</td>
+            <td class="py-2 px-3">CIN/Registration Certificate<sup>*</sup></td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.cin %}
+                    {% if auth_form.instance.cin_verified == True %}
+                    <a href="{{auth_form.instance.cin.url}}">{{auth_form.instance.cin.name|cut:'fpodocs/'}}</a>
+                    {% else %}
+                    <a href="{{auth_form.instance.cin.url}}" style="color: greenyellow;">{{auth_form.instance.cin.name|cut:'fpodocs/'}}</a>
+                    {% endif %}
+                {% else %}
+                None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.cin %}
+                    {% if auth_form.instance.cin_verified == False %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=cin&action=verify&remark=ok">Verify</a>
+                        <span class="px-2 py-1 text-xs bg-red-700 rounded">Rejected</span>
+                    {%elif auth_form.instance.cin_verified == True%}
+                        <span class="px-2 py-1 text-xs bg-green-600 rounded">Verified</span>
+                    {% else %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=cin&action=verify&remark=ok">Verify</a>
+                        <button type="button" onclick="rejectFPODocument('cin')" class="px-2 py-1 text-xs bg-red-600 rounded hover:bg-red-700">Reject</button>
+                    {% endif %}
+                {% else %}
+                    None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">{{auth_form.instance.cin_remark}}</td>
+        </tr>
+        <tr class="border-b border-gray-300 hover:bg-gray-600">
+            <td class="py-2 px-3">6</td>
+            <td class="py-2 px-3">PAN<sup>*</sup></td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.pan %}
+                    {% if auth_form.instance.pan_verified == True %}
+                    <a href="{{auth_form.instance.pan.url}}">{{auth_form.instance.pan.name|cut:'fpodocs/'}}</a>
+                    {% else %}
+                    <a href="{{auth_form.instance.pan.url}}" style="color: greenyellow;">{{auth_form.instance.pan.name|cut:'fpodocs/'}}</a>
+                    {% endif %}
+                {% else %}
+                None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.pan %}
+                    {% if auth_form.instance.pan_verified == False %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=pan&action=verify&remark=ok">Verify</a>
+                        <span class="px-2 py-1 text-xs bg-red-700 rounded">Rejected</span>
+                    {%elif auth_form.instance.pan_verified == True%}
+                        <span class="px-2 py-1 text-xs bg-green-600 rounded">Verified</span>
+                    {% else %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=pan&action=verify&remark=ok">Verify</a>
+                        <button type="button" onclick="rejectFPODocument('pan')" class="px-2 py-1 text-xs bg-red-600 rounded hover:bg-red-700">Reject</button>
+                    {% endif %}
+                {% else %}
+                    None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">{{auth_form.instance.pan_remark}}</td>
+        </tr>
+        <tr class="border-b border-gray-300 hover:bg-gray-600">
+            <td class="py-2 px-3">7</td>
+            <td class="py-2 px-3">Bank Account Details<sup>*</sup></td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.bank %}
+                    {% if auth_form.instance.bank_verified == True %}
+                    <a href="{{auth_form.instance.bank.url}}">{{auth_form.instance.bank.name|cut:'fpodocs/'}}</a>
+                    {% else %}
+                    <a href="{{auth_form.instance.bank.url}}" style="color: greenyellow;">{{auth_form.instance.bank.name|cut:'fpodocs/'}}</a>
+                    {% endif %}
+                {% else %}
+                None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.bank %}
+                    {% if auth_form.instance.bank_verified == False %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=bank&action=verify&remark=ok">Verify</a>
+                        <span class="px-2 py-1 text-xs bg-red-700 rounded">Rejected</span>
+                    {%elif auth_form.instance.bank_verified == True%}
+                        <span class="px-2 py-1 text-xs bg-green-600 rounded">Verified</span>
+                    {% else %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=bank&action=verify&remark=ok">Verify</a>
+                        <button type="button" onclick="rejectFPODocument('bank')" class="px-2 py-1 text-xs bg-red-600 rounded hover:bg-red-700">Reject</button>
+                    {% endif %}
+                {% else %}
+                    None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">{{auth_form.instance.bank_remark}}</td>
+        </tr>
+        <tr class="border-b border-gray-300 hover:bg-gray-600">
+            <td class="py-2 px-3">8</td>
+            <td class="py-2 px-3">FSSAI License<sup>*</sup></td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.fssai %}
+                    {% if auth_form.instance.fssai_verified == True %}
+                    <a href="{{auth_form.instance.fssai.url}}">{{auth_form.instance.fssai.name|cut:'fpodocs/'}}</a>
+                    {% else %}
+                    <a href="{{auth_form.instance.fssai.url}}" style="color: greenyellow;">{{auth_form.instance.fssai.name|cut:'fpodocs/'}}</a>
+                    {% endif %}
+                {% else %}
+                None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.fssai %}
+                    {% if auth_form.instance.fssai_verified == False %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=fssai&action=verify&remark=ok">Verify</a>
+                        <span class="px-2 py-1 text-xs bg-red-700 rounded">Rejected</span>
+                    {%elif auth_form.instance.fssai_verified == True%}
+                        <span class="px-2 py-1 text-xs bg-green-600 rounded">Verified</span>
+                    {% else %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=fssai&action=verify&remark=ok">Verify</a>
+                        <button type="button" onclick="rejectFPODocument('fssai')" class="px-2 py-1 text-xs bg-red-600 rounded hover:bg-red-700">Reject</button>
+                    {% endif %}
+                {% else %}
+                    None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">{{auth_form.instance.fssai_remark}}</td>
+        </tr>
+        <tr class="border-b border-gray-300 hover:bg-gray-600">
+            <td class="py-2 px-3">9</td>
+            <td class="py-2 px-3">GST</td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.gst %}
+                    {% if auth_form.instance.gst_verified == True %}
+                    <a href="{{auth_form.instance.gst.url}}">{{auth_form.instance.gst.name|cut:'fpodocs/'}}</a>
+                    {% else %}
+                    <a href="{{auth_form.instance.gst.url}}" style="color: greenyellow;">{{auth_form.instance.gst.name|cut:'fpodocs/'}}</a>
+                    {% endif %}
+                {% else %}
+                None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.gst %}
+                    {% if auth_form.instance.gst_verified == False %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=gst&action=verify&remark=ok">Verify</a>
+                        <span class="px-2 py-1 text-xs bg-red-700 rounded">Rejected</span>
+                    {%elif auth_form.instance.gst_verified == True%}
+                        <span class="px-2 py-1 text-xs bg-green-600 rounded">Verified</span>
+                    {% else %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=gst&action=verify&remark=ok">Verify</a>
+                        <button type="button" onclick="rejectFPODocument('gst')" class="px-2 py-1 text-xs bg-red-600 rounded hover:bg-red-700">Reject</button>
+                    {% endif %}
+                {% else %}
+                    None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">{{auth_form.instance.gst_remark}}</td>
+        </tr>
+        <tr class="border-b border-gray-300 hover:bg-gray-600">
+            <td class="py-2 px-3">10</td>
+            <td class="py-2 px-3">APMC Trader/Direct Marketing</td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.apmc %}
+                    {% if auth_form.instance.apmc_verified == True %}
+                    <a href="{{auth_form.instance.apmc.url}}">{{auth_form.instance.apmc.name|cut:'fpodocs/'}}</a>
+                    {% else %}
+                    <a href="{{auth_form.instance.apmc.url}}" style="color: greenyellow;">{{auth_form.instance.apmc.name|cut:'fpodocs/'}}</a>
+                    {% endif %}
+                {% else %}
+                None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.apmc %}
+                    {% if auth_form.instance.apmc_verified == False %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=apmc&action=verify&remark=ok">Verify</a>
+                        <span class="px-2 py-1 text-xs bg-red-700 rounded">Rejected</span>
+                    {%elif auth_form.instance.apmc_verified == True%}
+                        <span class="px-2 py-1 text-xs bg-green-600 rounded">Verified</span>
+                    {% else %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=apmc&action=verify&remark=ok">Verify</a>
+                        <button type="button" onclick="rejectFPODocument('apmc')" class="px-2 py-1 text-xs bg-red-600 rounded hover:bg-red-700">Reject</button>
+                    {% endif %}
+                {% else %}
+                    None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">{{auth_form.instance.apmc_remark}}</td>
+        </tr>
+        <tr class="border-b border-gray-300 hover:bg-gray-600">
+            <td class="py-2 px-3">11</td>
+            <td class="py-2 px-3">Export/Import License</td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.exim %}
+                    {% if auth_form.instance.exim_verified == True %}
+                    <a href="{{auth_form.instance.exim.url}}">{{auth_form.instance.exim.name|cut:'fpodocs/'}}</a>
+                    {% else %}
+                    <a href="{{auth_form.instance.exim.url}}" style="color: greenyellow;">{{auth_form.instance.exim.name|cut:'fpodocs/'}}</a>
+                    {% endif %}
+                {% else %}
+                None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.exim %}
+                    {% if auth_form.instance.exim_verified == False %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=exim&action=verify&remark=ok">Verify</a>
+                        <span class="px-2 py-1 text-xs bg-red-700 rounded">Rejected</span>
+                    {%elif auth_form.instance.exim_verified == True%}
+                        <span class="px-2 py-1 text-xs bg-green-600 rounded">Verified</span>
+                    {% else %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=exim&action=verify&remark=ok">Verify</a>
+                        <button type="button" onclick="rejectFPODocument('exim')" class="px-2 py-1 text-xs bg-red-600 rounded hover:bg-red-700">Reject</button>
+                    {% endif %}
+                {% else %}
+                    None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">{{auth_form.instance.exim_remark}}</td>
+        </tr>
+    </tbody>
+</table>
+<div class="mt-4 flex justify-center">
+    <a href="{% url 'admin-master' %}" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">CANCEL</a>
+    {% if fpo_check %}
+    <a href="{% url 'approve-user' fpo_user %}" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">APPROVE</a>
+    {% else %}
+    <a href="{% url 'approve-user' fpo_user %}" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled-inputs">APPROVE</a>
+    {% endif %}
+</div>
+{% endblock %}

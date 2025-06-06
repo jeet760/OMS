@@ -11,7 +11,11 @@
 {% extends 'admin-console.html' %}
 {% load static %}
 {% block user_form%}
-
+<style>
+  sup{
+    color: red;
+  }
+</style>
 <h2 class="text-xl font-semibold mb-4">Settings</h2>
 <div class="bg-white p-4 shadow rounded border border-gray-300">
     <h1 class="text-2xl font-bold mb-6 text-gray-800">Registration Form</h1>
@@ -168,6 +172,106 @@
           {% endfor %}
           </tbody>
         </table>
+      </section>
+      <!-- Document Details -->
+      <section id="fpoDocs">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">4. Document Details</h2>
+        {% if user_type == '1' %}
+        <table id="fpoDocumentsTable" class="w-full text-left text-sm border border-gray-300 bg-white">
+          <thead class="text-gray-700 border-b border-gray-300">
+          <tr>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'fpoDocumentsTable')">#</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(1, 'fpoDocumentsTable')">Type of Document</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(2, 'fpoDocumentsTable')">File Name</th>
+              <th class="py-2 px-3">Action</th>
+          </tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+              <td class="py-2 px-3">1</td>
+              <td class="py-2 px-3">Board Resolution<sup>*</sup></td>
+              <td class="py-2 px-3">{{fpo_docs.board_resolution.name|cut:'fpodocs/'}}</td>
+              <td class="py-2 px-3">
+                {% if fpo_docs.board_resolution %}
+                <a href="{{fpo_docs.board_resolution.url}}" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white">View</a>
+                {%endif%}
+              </td>
+            </tr>
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+              <td class="py-2 px-3">2</td>
+              <td class="py-2 px-3">CIN/Registration Certificate<sup>*</sup></td>
+              <td class="py-2 px-3">{{fpo_docs.cin.name|cut:'fpodocs/'}}</td>
+              <td class="py-2 px-3">
+                {% if fpo_docs.cin %}
+                <a href="{{fpo_docs.cin.url}}" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white">View</a>
+                {% endif %}
+              </td>
+            </tr>
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+              <td class="py-2 px-3">3</td>
+              <td class="py-2 px-3">PAN<sup>*</sup></td>
+              <td class="py-2 px-3">{{fpo_docs.pan.name|cut:'fpodocs/'}}</td>
+              <td class="py-2 px-3">
+                {% if fpo_docs.pan %}
+                <a href="{{fpo_docs.pan.url}}" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white">View</a>
+                {% endif %}
+              </td>
+            </tr>
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+              <td class="py-2 px-3">4</td>
+              <td class="py-2 px-3">Bank Account Details<sup>*</sup></td>
+              <td class="py-2 px-3">{{fpo_docs.bank.name|cut:'fpodocs/'}}</td>
+              <td class="py-2 px-3">
+                {% if fpo_docs.bank %}
+                <a href="{{fpo_docs.bank.url}}" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white">View</a>
+                {% endif %}
+              </td>
+            </tr>
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+              <td class="py-2 px-3">4</td>
+              <td class="py-2 px-3">FSSAI License<sup>*</sup></td>
+              <td class="py-2 px-3">{{fpo_docs.fssai.name|cut:'fpodocs/'}}</td>
+              <td class="py-2 px-3">
+                {% if fpo_docs.fssai %}
+                <a href="{{fpo_docs.fssai.url}}" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white">View</a>
+                {% endif %}
+              </td>
+            </tr>
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+              <td class="py-2 px-3">5</td>
+              <td class="py-2 px-3">GST</td>
+              <td class="py-2 px-3">{{fpo_docs.gst.name|cut:'fpodocs/'}}</td>
+              <td class="py-2 px-3">
+                {% if fpo_docs.gst %}
+                <a href="{{fpo_docs.gst.url}}" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white">View</a>
+                {% endif %}
+              </td>
+            </tr>
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+              <td class="py-2 px-3">6</td>
+              <td class="py-2 px-3">APMC Trader/Direct Marketing</td>
+              <td class="py-2 px-3">{{fpo_docs.apmc.name|cut:'fpodocs/'}}</td>
+              <td class="py-2 px-3">
+                {% if fpo_docs.apmc %}
+                <a href="{{fpo_docs.apmc.url}}" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white">View</a>
+                {% endif %}
+              </td>
+            </tr>
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+              <td class="py-2 px-3">7</td>
+              <td class="py-2 px-3">Export/Import License</td>
+              <td class="py-2 px-3">{{fpo_docs.exim.name|cut:'fpodocs/'}}</td>
+              <td class="py-2 px-3">
+                {% if fpo_docs.exim %}
+                <a href="{{fpo_docs.exim.url}}" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white">View</a>
+                {% endif %}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        {% else %}
+        <p>No Document to Display!</p>
+        {%endif%}
       </section>
     </form>
   </div>
