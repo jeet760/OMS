@@ -247,6 +247,11 @@
           <!-- <a href="#customers" class="block p-2 hover:bg-green-100 rounded">Customers</a> -->
           <!-- <a href="#notifications" class="block p-2 hover:bg-green-100 rounded">Notifications</a> -->
         </nav>
+        {% elif user.userType == '0'%}
+        <nav class="p-4 space-y-2">
+          <a href="{% url 'user-form' %}" class="block p-2 hover:bg-green-100 rounded">Settings</a>
+          <a href="{% url 'admin-master' %}" class="block p-2 hover:bg-green-100 rounded">Admin Master</a>
+        </nav>
         {% else %}
         <nav class="p-4 space-y-2">
           <a href="{% url 'user-form' %}" class="block p-2 hover:bg-green-100 rounded">Settings</a>
