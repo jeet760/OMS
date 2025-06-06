@@ -34,7 +34,7 @@ def landing_page(request, category=None,fpo=None, region=None):
     form = ItemForm()
     user_type = ''
     user_name = 'Guest!'#display the username
-    user_approve=''
+    user_approved=''
     pincode = 'Delivery Pincode'
     if request.session.get('pincode') != '' and request.session.get('pincode') != None:
         pincode = request.session.get('pincode')
@@ -43,7 +43,7 @@ def landing_page(request, category=None,fpo=None, region=None):
     if request.user.is_authenticated:
         user_name = request.user.last_name
         user_type = request.user.userType
-        user_approve = request.user.userApproved
+        user_approved = request.user.userApproved
         if pincode == 'Delivery Pincode':
             pincode = request.user.pinCode1
         request.session['pincode'] = pincode
@@ -63,7 +63,7 @@ def landing_page(request, category=None,fpo=None, region=None):
         'total_items':length, 
         'login_user':user_name,
         'user_type':user_type,
-        'user_approve':user_approve, 
+        'user_approved':user_approved, 
         'total_qty':total_qty, 
         'fpo_list':fpo, 
         'regions':region_list,
@@ -78,6 +78,7 @@ def shop(request, category=None, fpo=None, region=None):
     items = Item.objects.filter(itemActive=True).order_by('-itemInStock')
     item_sort = request.GET.get('sort')
     user_name = 'Guest!'#display the username
+    user_approved = ''
     pincode='Delivery Pincode'
     pincode_area = ''
     fpo_name = ''
@@ -95,6 +96,7 @@ def shop(request, category=None, fpo=None, region=None):
     if request.user.is_authenticated:
         user_name = request.user.last_name
         user_type = request.user.userType
+        user_approved = request.user.userApproved
         pincode = request.session.get('pincode') #get the logged in user's pincode
         if region is not None: #if the user is logged in and explicitly enters a pincode, then the items of that pincode will be displayed, not the user's own pincode
             pincode = region
@@ -120,7 +122,8 @@ def shop(request, category=None, fpo=None, region=None):
     shop_page_context ={
         'items': items, 
         'form': form, 
-        'login_user':user_name, 
+        'login_user':user_name,
+        'user_approved':user_approved, 
         'total_qty':total_qty, 
         'fpo_list':fpo, 
         'fpo_name':fpo_name,
@@ -187,17 +190,20 @@ def shopping_cart(request):
     user_name = 'Guest!'#display the username
     pincode='Delivery Pincode'
     user_type=''
+    user_approved=''
     billing_address = None
     shipping_addresses = None
     if request.user.is_authenticated:
         user_name = request.user.last_name
         user_type=request.user.userType
+        user_approved = request.user.userApproved
         pincode = request.session.get('pincode')
         billing_address = request.user.userAddress +', '+ request.user.userCity +', '+ STATE_CHOICES(request.user.userState) +', '+ request.user.pinCode
         shipping_addresses = UserAddresses.objects.filter(userID_id=request.user.pk)
     shopping_cart_context = {
         'user_authenticated':request.user.is_authenticated, 
         'user_type':user_type,
+        'user_approved':user_approved,
         'cart': cart, 
         'total_qty':total_qty, 
         'total_price':total_price, 
@@ -220,6 +226,7 @@ def contact(request):
     total_price = cart.get_total_price()
     user_name = 'Guest!'#display the username
     user_type =''
+    user_approved = request.user.userApproved
     pincode='Delivery Pincode'
     pincode = request.session.get('pincode')
     if request.user.is_authenticated:
@@ -231,7 +238,8 @@ def contact(request):
         'total_price':total_price,
         'login_user':user_name,
         'pincode':pincode,
-        'user_type':user_type
+        'user_type':user_type,
+        'user_approved':user_approved
     }
     return render(request, 'contact.html', contact_context)
 
@@ -1269,6 +1277,7 @@ def bulk_buy(request):
         user_name = request.user.last_name
         userType = USERTYPE_CHOICES(request.user.userType)
         user_type = request.user.userType
+        user_approved = request.user.userApproved
         user_address = f"{request.user.userAddress} {request.user.userCity} {STATE_CHOICES(request.user.userState)} {request.user.pinCode}"
         user_address1 = f"{request.user.userAddress1} {request.user.userCity1} {STATE_CHOICES(request.user.userState1)} {request.user.pinCode1}"
         user_phone = request.user.phone
@@ -1284,6 +1293,7 @@ def bulk_buy(request):
         'clicked':'Bulk',
         'login_user':user_name,
         'user_type':user_type,
+        'user_approved':user_approved,
         'userType':userType,
         'user_address':user_address,
         'user_address1':user_address1,
