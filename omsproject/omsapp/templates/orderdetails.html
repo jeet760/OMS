@@ -43,7 +43,10 @@
     <tfoot class="table-group-divider">
         <tr class="table-group-divider">
             <td colspan="2">
-                <strong>Order Note:</strong>{{orderNote}}
+                <strong>Order Note:</strong>{{orderNote}}<br>
+                <strong>Payment Mode:</strong>{% if paymentMode == 1 %}Cash On Delivery{%elif paymentMode == 2%}Institutional Credit{%elif paymentMode == 3%}Online{%endif%}<br>
+                <strong>Payment Status:</strong>{% if paymentStatus %}Paid{%else%}Not Paid{%endif%}<br>
+                <strong>Payment Reference:</strong>{{paymentRefNo}}<br>
             </td>
             <td colspan="5" style="text-align: center;">
                 <a class='btn btn-secondary' href="{% url 'orders' %}">
@@ -79,16 +82,12 @@
                                     <tr>
                                         <td>{{forloop.counter}}</td>
                                         <td>
-                                            <a href="{{ invoice.invoiceFile.url }}" download>{{ invoice.invoiceFile.name }}</a>
+                                            <a href="{{ invoice.invoiceFile.url }}" download>{{ invoice.invoiceFile.name|cut:'uploads/' }}</a>
                                         </td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
-                            <ul>
-                                
-                                
-                            </ul>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Close</button>

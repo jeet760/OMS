@@ -16,6 +16,7 @@
                                 <th>Schedule Delivery Date</th>
                                 <th>Schedule Delivery Time</th>
                                 <th>Order Status</th>
+                                <th>Mode of Payment</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -39,6 +40,15 @@
                                 </td>
                                 <td>
                                     {{ order.orderStatus }}
+                                </td>
+                                <td>
+                                    {% if order.paymentMode == 1 %}
+                                    Cash On Delivery
+                                    {% elif order.paymentMode == 2 %}
+                                    Institutional Credit
+                                    {% elif order.paymentMode == 3 %}
+                                    Online
+                                    {% endif %}
                                 </td>
                                 <td>
                                     <!-- View Items -->

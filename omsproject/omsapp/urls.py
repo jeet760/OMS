@@ -88,7 +88,7 @@ urlpatterns = [
 
     path('receivedorders/', views.ReceivedOrders, name='receivedorders'),
     path('invoicedorders/', views.invoiced_orders, name='invoicedorders'),
-    path('confirm/<int:order_id>', views.confirm_delivery_order, name='confirmdelivery'),
+    path('confirm/<int:suborder_id>', views.confirm_delivery_order, name='confirmdelivery'),
     path('deliveredorders/', views.delivered_orders, name='deliveredorders'),
     path('rejectedorders/', views.rejected_orders, name='rejectedorders'),
     path('pendingorders/', views.pending_orders, name='pendingorders'),
@@ -97,6 +97,6 @@ urlpatterns = [
     path('receivedorders/<int:param_sub_order_id>/reject', views.recived_order_status_update, name='rejectorder'),
     path('receivedorders/<int:param_order_id>/acceptall', views.received_order_status_all, name='acceptall'),
     path('receivedorders/<int:param_order_id>/rejectall', views.received_order_status_all, name='rejectall'),
-    path('uploadinvoice/<int:orderID>', views.upload_invoice, name='uploadinvoice'),
+    path('uploadinvoice/<int:suborderID>', views.upload_invoice, name='uploadinvoice'),
 
 ]

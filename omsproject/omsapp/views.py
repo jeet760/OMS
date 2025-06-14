@@ -6,11 +6,12 @@ from django.db.models import Q, Max, Min, Sum, Count, OuterRef, Subquery, F
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
+from django.utils import timezone
 from datetime import datetime
 import json
 import requests
 import requests.cookies
-from .models import CustomUser, UserAddresses, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, Invoice, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder, FPOAuthorisationDocs
+from .models import CustomUser, UserShippingAddresses, UserBillingAddresses, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, OrderInvoice, OrderDelivery, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder, FPOAuthorisationDocs, UserMessage
 from .models import STATES, USERTYPES, GST_TREATMENT
 from .forms import ItemForm, UserRegistrationForm, UserLoginForm, OrderForm, OrderDetailsForm, InvoiceForm, FPOAuthrisationForm
 from django.contrib.gis.geoip2 import GeoIP2
@@ -182,6 +183,13 @@ def shop_details(request, item_id):
 
 def shopping_cart(request):
     cart = Cart(request)
+    cart_items = cart.__iter__()
+    item_stock = True
+    for cart_item in cart_items:
+        stock = cart_item['product'].itemInStock
+        if stock == False:
+            item_stock = False
+            break
     total_qty = cart.__len__()
     total_price = cart.get_total_price()
     transportation_cost = 0 if total_price > 999 else 99
@@ -199,7 +207,7 @@ def shopping_cart(request):
         user_approved = request.user.userApproved
         pincode = request.session.get('pincode')
         billing_address = request.user.userAddress +', '+ request.user.userCity +', '+ STATE_CHOICES(request.user.userState) +', '+ request.user.pinCode
-        shipping_addresses = UserAddresses.objects.filter(userID_id=request.user.pk)
+        shipping_addresses = UserShippingAddresses.objects.filter(userID_id=request.user.pk)
     shopping_cart_context = {
         'user_authenticated':request.user.is_authenticated, 
         'user_type':user_type,
@@ -216,11 +224,20 @@ def shopping_cart(request):
         'login_user':user_name,
         'pincode':pincode,
         'billing_address':billing_address,
-        'shipping_addresses':shipping_addresses
+        'shipping_addresses':shipping_addresses,
+        'states':STATES,
+        'item_stock':item_stock
     }
     return render(request, 'shopping-cart.html', context=shopping_cart_context)
 
 def contact(request):
+    qs = request.GET.get('q')
+    if request.method == 'POST' and qs == 'msg':
+        senderName=request.POST['senderName']
+        senderEmail=request.POST['senderEmail']
+        senderMsg=request.POST['senderMsg']
+        UserMessage.objects.create(name=senderName,email=senderEmail,msg=senderMsg)
+        return redirect('contact')
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
     total_price = cart.get_total_price()
@@ -255,7 +272,15 @@ def blog(request):
     return render(request, 'blog.html', blog_context)
 
 def checkout(request):
-    return render(request, 'checkout.html', {})
+    if request.user.is_authenticated:
+        checkout_context = {
+            'login_user' : request.user.last_name,
+            'order_date':datetime.now,
+            'order_amount':request.session['total_price']
+        }
+        return render(request, 'checkout.html', context=checkout_context)
+    else:
+        return redirect('login')
 
 def fpo_list():
     fpo = CustomUser.objects.filter(userType=1)
@@ -387,9 +412,10 @@ def register(request):
         if request.user.is_authenticated == False: #update == None:#New registration
             if form.is_valid():
                 user = form.save(param_password=request.POST['phone'])
-                UserAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress1, userCity1=user.userCity1, userState1=user.userState1, pinCode1=user.pinCode1, address_lat=0.00, address_long=0.00, setDefault=True)
+                UserBillingAddresses.objects.create(userID_id=user.pk,userAddress=user.userAddress1, userCity=user.userCity1, userState=user.userState1, pinCode=user.pinCode1, address_lat=0.00, address_long=0.00, setDefault=True)
+                UserShippingAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress1, userCity1=user.userCity1, userState1=user.userState1, pinCode1=user.pinCode1, address_lat1=0.00, address_long1=0.00, setDefault=True)
                 if user.userType != '1':
-                    CustomUser.objects.filter(pk=user.id).update(userApproved=False,approvedOn=datetime.today(),isActive=True,activatedOn=datetime.today())
+                    CustomUser.objects.filter(pk=user.id).update(userApproved=True,approvedOn=datetime.today(),isActive=True,activatedOn=datetime.today())
                     login(request, user)
                     user_name = user.last_name
                 return redirect('index')  # Redirect to a home page
@@ -438,7 +464,8 @@ def profile_view(request):
         user_type = userInstance.userType
     else:
         user_type=''
-    addresses = UserAddresses.objects.filter(userID = request.user.pk)
+    shipping_addresses = UserShippingAddresses.objects.filter(userID = request.user.pk)
+    billing_addresses = UserBillingAddresses.objects.filter(userID = request.user.pk)
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
     total_price = cart.get_total_price()
@@ -452,7 +479,8 @@ def profile_view(request):
         'states':STATES,
         'gst_tmts':GST_TREATMENT,
         'user_types':USERTYPES,
-        'addresses':addresses,
+        'shipping_addresses':shipping_addresses,
+        'billing_addresses':billing_addresses,
         'fpo_docs':fpo_docs
     }
     return render(request, 'user-form.html', context=register_context)
@@ -460,6 +488,7 @@ def profile_view(request):
 def fpo_auth(request):
     if request.user.is_authenticated:
         user_approved = request.user.userApproved
+        login_user = request.user.last_name
         auth_details = FPOAuthorisationDocs.objects.filter(userID_id=request.user.pk)
         if auth_details.exists():
             auth_form = FPOAuthrisationForm(instance=auth_details.first())
@@ -468,7 +497,8 @@ def fpo_auth(request):
         fpo_auth_context ={
             'auth_form':auth_form,
             'auth_details':auth_details,
-            'user_approved':user_approved
+            'user_approved':user_approved,
+            'login_user':login_user
         }
     else:
         return redirect('login')
@@ -579,14 +609,26 @@ def activate_user(request, userID, activate):
 def add_address(request):
     if request.user.is_authenticated:
         userID=request.user.pk
-        userAddress1 = request.POST.get('shippingAddress')
-        userCity1 = request.POST.get('shippingTown')
-        userState1 = request.POST.get('shippingState')
-        pinCode1 = request.POST.get('shippingPostcode')
+        userAddress = request.POST.get('userAddress')
+        userCity = request.POST.get('userCity')
+        userState = request.POST.get('userState')
+        pinCode = request.POST.get('pinCode')
         setDefault = True
-        UserAddresses.objects.filter(userID_id=userID).update(setDefault=False)
-        UserAddresses.objects.create(userID_id=userID, userAddress1=userAddress1, userCity1=userCity1,userState1=userState1,pinCode1=pinCode1, address_lat=0.00, address_long=0.00, setDefault=setDefault)
-        CustomUser.objects.filter(pk=userID).update(userAddress1=userAddress1, userCity1=userCity1,userState1=userState1,pinCode1=pinCode1)
+        type_of_address = request.POST.get('selectAddress')
+        if type_of_address == 'bill':
+            UserBillingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
+            UserBillingAddresses.objects.get_or_create(userID_id=userID, userAddress=userAddress, userCity=userCity,userState=userState,pinCode=pinCode, address_lat=0.00, address_long=0.00, setDefault=setDefault)
+            CustomUser.objects.filter(pk=userID).update(userAddress=userAddress, userCity=userCity,userState=userState,pinCode=pinCode)
+        elif type_of_address == 'ship':
+            UserShippingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
+            UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode, address_lat1=0.00, address_long1=0.00, setDefault=setDefault)
+            CustomUser.objects.filter(pk=userID).update(userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode)
+        elif type_of_address == 'both':
+            UserBillingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
+            UserBillingAddresses.objects.get_or_create(userID_id=userID, userAddress=userAddress, userCity=userCity,userState=userState,pinCode=pinCode, address_lat=0.00, address_long=0.00, setDefault=setDefault)
+            UserShippingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
+            UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode, address_lat1=0.00, address_long1=0.00, setDefault=setDefault)
+            CustomUser.objects.filter(pk=userID).update(userAddress=userAddress, userCity=userCity,userState=userState,pinCode=pinCode, userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode)
     return redirect('user-form')    
 
 def update_profile(request):
@@ -610,7 +652,7 @@ def update_billiing_address(request):
 
 def fetch_shipping_address(request, id):
     if request.user.is_authenticated:
-        address = get_object_or_404(UserAddresses, pk=id)
+        address = get_object_or_404(UserShippingAddresses, pk=id)
         userID = address.userID.pk
         userAddress = address.userAddress1
         userCity=address.userCity1
@@ -634,16 +676,23 @@ def update_shipping_address(request, id):
         userCity=request.POST.get('userCity1')
         userState = request.POST.get('userState1')
         pinCode = request.POST.get('pinCode1')
-        UserAddresses.objects.filter(pk=id, userID_id=userID).update(userAddress1=userAddress, userCity1=userCity, userState1=userState, pinCode1=pinCode)
+        UserShippingAddresses.objects.filter(pk=id, userID_id=userID).update(userAddress1=userAddress, userCity1=userCity, userState1=userState, pinCode1=pinCode)
     return redirect('user-form')
 
 def set_default_address(request, id):
     if request.user.is_authenticated:
         userID = request.user.pk
-        UserAddresses.objects.filter(userID_id=userID).update(setDefault=False)
-        UserAddresses.objects.filter(pk=id, userID_id=userID).update(setDefault=True)
-        address = get_object_or_404(UserAddresses, pk=id)
-        CustomUser.objects.filter(id=userID).update(userAddress1=address.userAddress1,userCity1=address.userCity1,userState1=address.userState1,pinCode1=address.pinCode1, address_lat=0.00, address_long=0.00)
+        type_of_address = request.GET['q']
+        if type_of_address == 'bill':
+            UserBillingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
+            UserBillingAddresses.objects.filter(pk=id, userID_id=userID).update(setDefault=True)
+            bill_address = get_object_or_404(UserBillingAddresses, pk=id)
+            CustomUser.objects.filter(id=userID).update(userAddress=bill_address.userAddress,userCity=bill_address.userCity,userState=bill_address.userState,pinCode=bill_address.pinCode, bill_address_lat=0.00, bill_address_long=0.00)
+        else:
+            UserShippingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
+            UserShippingAddresses.objects.filter(pk=id, userID_id=userID).update(setDefault=True)
+            ship_address = get_object_or_404(UserShippingAddresses, pk=id)
+            CustomUser.objects.filter(id=userID).update(userAddress1=ship_address.userAddress1,userCity1=ship_address.userCity1,userState1=ship_address.userState1,pinCode1=ship_address.pinCode1, ship_address_lat=0.00, ship_address_long=0.00)
     return redirect('user-form')    
 
 def login_view(request):
@@ -664,18 +713,6 @@ def login_view(request):
                 form.add_error(None, 'Your Account is not active! Please, contact administrator to activate your account.')
                 messages.success(request, 'Your Account is not active! Please, contact administrator to activate your account.')
                 return redirect('login')
-            # if user.userType == '1':
-            #     if user.userApproved == True:
-            #         user_login = authenticate(request, username=username, password=password)
-            #         if user_login is not None:
-            #                 login(request, user_login)
-            #                 return redirect('index')
-            #         else:
-            #             form.add_error(None, 'Invalid username or password!')
-            #             messages.success(request, 'Invalid username or password!')
-            #     else:
-            #         form.add_error(None, 'Waiting for Approval!')
-            #         messages.success(request, 'Waiting for Approval!')
             if user.userType == '0' and user.is_superuser:
                 user_login = authenticate(request, username=username, password=password)
                 if user_login is None:
@@ -685,6 +722,10 @@ def login_view(request):
                 else:
                     login(request, user_login)
                     return redirect('admin-master')
+            elif user.userType == '1':
+                user_login = authenticate(request, username=username, password=password)
+                login(request, user_login)
+                return redirect('dashboard')
             else:
                 user_login = authenticate(request, username=username, password=password)
                 if user_login is not None:
@@ -988,96 +1029,160 @@ def create_order_invoice(param_order_no, param_invoice_no, param_user_id):
 #region create order and save order details
 @login_required
 def CreateOrder(request, param_transportation_cost, param_total_price, param_gst_amount, param_deduction):
-    if request.method == 'POST' and request.user.is_authenticated:
-        form = OrderForm(request.POST)
-        if form.is_valid():
-            userdetails = get_object_or_404(CustomUser, id = request.user.id)
-            user_id = userdetails
-            fetched_invoice_no = 0
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT seq FROM sqlite_sequence WHERE name = %s", ['omsapp_order'])
-                row = cursor.fetchone()
-                if row:
-                    fetched_order_id = row[0]
-                else:
-                    fetched_order_id = 1
+    if request.user.is_authenticated:
+        if request.method == 'POST' and request.user.is_authenticated:
+            paymentMode = request.POST['selectPaymentMethod']
+            request.session['transportation_cost']=param_transportation_cost
+            request.session['total_price']=param_total_price
+            request.session['gst_amount']=param_gst_amount
+            request.session['deduction']=param_deduction
+            request.session['delivery_date']=request.POST['selectDeliveryDate']
+            request.session['deliery_time']=request.POST['selectDeliveryTime']
+            request.session['order_note'] = request.POST['orderNote']
+            request.session['pay_method'] = request.POST['selectPaymentMethod']
+            request.session['pay_status'] = False
+            request.session['pay_date'] = None
+            request.session['pay_ref'] = None
+            if paymentMode == '1':
+                create_order(request, param_transportation_cost, param_total_price, param_gst_amount, param_deduction)
+            elif paymentMode == '2':
+                create_order(request, param_transportation_cost, param_total_price, param_gst_amount, param_deduction)
+            elif paymentMode == '3':
+                return redirect('checkout')
 
-            dict_order_invoice = create_order_invoice(fetched_order_id, fetched_invoice_no, user_id)
-            view_orderNo = dict_order_invoice['orderNo']+'N'
-            view_orderDate = datetime.now()
-            view_orderStatus = 'Pending Order'
-            view_orderAmount = param_total_price
-            view_orderGSTAmount = param_gst_amount
-            view_orderDeduction = param_deduction
-            view_transportationCost = param_transportation_cost
-            view_orderGrandTotal = float(view_orderAmount)+float(view_orderGSTAmount)-float(view_orderDeduction)+float(view_transportationCost)
-            view_orderDeliveryDate = request.POST['selectDeliveryDate']
-            view_orderDeliveryTime = request.POST['selectDeliveryTime']
-            view_orderNote = request.POST['orderNote']
-            order_context = Order(orderNo= view_orderNo,
-                            orderDate=view_orderDate, 
-                            orderStatus=view_orderStatus,
-                            orderAmount=view_orderAmount,
-                            orderGSTAmount=view_orderGSTAmount,
-                            orderDeduction=view_orderDeduction,
-                            orderTransportation = view_transportationCost,
-                            orderGrandTotal=view_orderGrandTotal,
-                            schDeliveryDate = view_orderDeliveryDate,
-                            schDeliveryTime = view_orderDeliveryTime,
-                            orderNote = view_orderNote,
-                            userID_id=request.user.pk)
-            try:
-                order_context.save()
-                order_id = Order.objects.all().latest('orderID').orderID
-                if SaveOrderDetails(request, order_id, user_id) == True:
-                    return redirect('order_successful', 'Order')
-                    #return render(request,'success.html',success_context)#HttpResponse('<h2>Order Placed Successfully!</h2>')
-                else:
-                    return render(request,'404.html',{'source':'Order'})
-            except Exception as ex:
-                return render(request,'404.html',{'source':'Order'})
+            clear_session_variables(request)
+            return redirect('order_successful', 'Order')
         else:
-            return render(request,'404.html',{'source':'Invalid Form'})
-        #return JsonResponse({'qty':param_total_quantity, 'amount':param_total_price, 'gst':param_gst_amount, 'total': param_total_price})
+            pay_type = request.GET['pay']
+            if pay_type == 'online':
+                param_transportation_cost = request.session['transportation_cost']
+                param_total_price = request.session['total_price']
+                param_gst_amount = request.session['gst_amount']
+                param_deduction = request.session['deduction']
+                request.session['pay_status'] = True
+                request.session['pay_date'] = timezone.now()
+                request.session['pay_ref'] = 'ONL'+str(int(timezone.now().timestamp() * 1000))#this will be updated with razorpay reference number
+                create_order(request, param_transportation_cost, param_total_price, param_gst_amount, param_deduction)
+                clear_session_variables(request)
+                return redirect('order_successful', 'Order')
+            else:
+                return render('shoppingcart')
+    else:
+        return redirect('login')
 
+def clear_session_variables(request):
+    del request.session['transportation_cost']
+    del request.session['total_price']
+    del request.session['gst_amount']
+    del request.session['deduction']
+    del request.session['delivery_date']
+    del request.session['deliery_time']
+    del request.session['order_note']
+    del request.session['pay_method']
+    del request.session['pay_status']
+    del request.session['pay_date']
+    del request.session['pay_ref']
+    return True
+
+def create_order(request, param_transportation_cost, param_total_price, param_gst_amount, param_deduction):
+    form = OrderForm(request.POST)
+    if form.is_valid():
+        userdetails = get_object_or_404(CustomUser, id = request.user.id)
+        user_id = userdetails
+        fetched_invoice_no = 0
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT seq FROM sqlite_sequence WHERE name = %s", ['omsapp_order'])
+            row = cursor.fetchone()
+            if row:
+                fetched_order_id = row[0]
+            else:
+                fetched_order_id = 1
+
+        dict_order_invoice = create_order_invoice(fetched_order_id, fetched_invoice_no, user_id)
+        view_orderNo = dict_order_invoice['orderNo']+'N'
+        view_orderDate = datetime.now()
+        view_orderStatus = 'Pending Order'
+        view_orderAmount = param_total_price
+        view_orderGSTAmount = param_gst_amount
+        view_orderDeduction = param_deduction
+        view_transportationCost = param_transportation_cost
+        view_orderGrandTotal = float(view_orderAmount)+float(view_orderGSTAmount)-float(view_orderDeduction)+float(view_transportationCost)
+        view_orderDeliveryDate = request.session.get('delivery_date')
+        view_orderDeliveryTime = request.session.get('deliery_time')
+        view_orderNote = request.session.get('order_note')
+        view_pay_method = request.session.get('pay_method')
+        view_pay_status = request.session.get('pay_status')
+        view_pay_date = request.session.get('pay_date')
+        view_pay_ref = request.session.get('pay_ref')
+        order_context = Order(orderNo= view_orderNo,
+                        orderDate=view_orderDate, 
+                        orderStatus=view_orderStatus,
+                        orderAmount=view_orderAmount,
+                        orderGSTAmount=view_orderGSTAmount,
+                        orderDeduction=view_orderDeduction,
+                        orderTransportation = view_transportationCost,
+                        orderGrandTotal=view_orderGrandTotal,
+                        schDeliveryDate = view_orderDeliveryDate,
+                        schDeliveryTime = view_orderDeliveryTime,
+                        orderNote = view_orderNote,
+                        paymentMode = view_pay_method,
+                        paymentStatus = view_pay_status,
+                        paymentDate = view_pay_date,
+                        paymentRefNo = view_pay_ref,
+                        userID_id=request.user.pk)
+        try:
+            order_context.save()
+            order_id = Order.objects.all().latest('orderID').orderID
+            if SaveOrderDetails(request, order_id, user_id) == True:
+                return redirect('order_successful', 'Order')
+                #return render(request,'success.html',success_context)#HttpResponse('<h2>Order Placed Successfully!</h2>')
+            else:
+                return render(request,'404.html',{'source':'Order'})
+        except Exception as ex:
+            return render(request,'404.html',{'source':'Order'})
+    else:
+        return render(request,'404.html',{'source':'Invalid Form'})
 
 def SaveOrderDetails(request,param_orderID,param_user_id):
-    if request.method == 'POST':
+    #if request.method == 'POST':
         #cart_id = Cart.objects.filter(user_id=param_user_id)[0]
-        cart_items =  Cart(request) #CartItem.objects.filter(cart_id=cart_id)
-        try:
-            vendor_ids = []
-            suborderID=0
-            orderNote = request.POST['orderNote']
-            for eachitem in cart_items:
-                if [param_orderID, eachitem['product'].userID_id, param_user_id.pk] not in vendor_ids:
-                    vendor_ids.append([param_orderID, eachitem['product'].userID_id, param_user_id.pk])
-                    SubOrder.objects.create(
-                        orderID_id = param_orderID,
-                        vendorID_id = eachitem['product'].userID_id,
-                        customerID_id = param_user_id.pk,
-                        orderNote = orderNote
-                    )
-                    suborderID = SubOrder.objects.all().latest('suborderID').suborderID
-                else:
-                    suborderID = SubOrder.objects.get(orderID_id = param_orderID, vendorID_id = eachitem['product'].userID_id, customerID_id=param_user_id.pk).suborderID
-                OrderDetails.objects.create(
-                    suborderID_id = suborderID,
+    cart_items =  Cart(request) #CartItem.objects.filter(cart_id=cart_id)
+    try:
+        vendor_ids = []
+        suborderID=0
+        for eachitem in cart_items:
+            if [param_orderID, eachitem['product'].userID_id, param_user_id.pk] not in vendor_ids:
+                vendor_ids.append([param_orderID, eachitem['product'].userID_id, param_user_id.pk])
+                SubOrder.objects.create(
                     orderID_id = param_orderID,
-                    itemID_id = eachitem['product'].itemID,
-                    itemQty = eachitem['quantity'],
-                    itemPrice = eachitem['price'],
-                    itemGST = 0,
-                    itemGSTAmount = 0,
-                    itemPricewithGST = eachitem['total_price'],
+                    vendorID_id = eachitem['product'].userID_id,
+                    customerID_id = param_user_id.pk,
+                    orderNote = request.session.get('order_note'),#request.POST['orderNote'],
+                    paymentMode= request.session.get('pay_method'),#request.POST['selectPaymentMethod']
+                    paymentStatus = request.session.get('pay_status'),
+                    paymentDate = request.session.get('pay_date'),
+                    paymentRefNo = request.session.get('pay_ref')
                 )
-                cart_items.remove(eachitem['product'])
-                del eachitem
-            return True
-        except Exception as ex:
-            print(ex)
-            return False
-            #print(ex)
+                suborderID = SubOrder.objects.all().latest('suborderID').suborderID
+            else:
+                suborderID = SubOrder.objects.get(orderID_id = param_orderID, vendorID_id = eachitem['product'].userID_id, customerID_id=param_user_id.pk).suborderID
+            OrderDetails.objects.create(
+                suborderID_id = suborderID,
+                orderID_id = param_orderID,
+                itemID_id = eachitem['product'].itemID,
+                itemQty = eachitem['quantity'],
+                itemPrice = eachitem['price'],
+                itemGST = 0,
+                itemGSTAmount = 0,
+                itemPricewithGST = eachitem['total_price'],
+            )
+            cart_items.remove(eachitem['product'])
+            del eachitem
+        return True
+    except Exception as ex:
+        print(ex)
+        return False
+        #print(ex)
 
 def order_successful(request, type):
     user_name = request.user.last_name
@@ -1112,12 +1217,12 @@ def ReceivedOrders(request):
     if request.user.pk is not None:
         #received_orders = Order.objects.all()
         user_name = request.user.last_name
-        received_orders = SubOrder.objects.filter(vendorID=request.user.pk).__len__()#total orders received by the FPO
-        pending_orders = SubOrder.objects.filter(orderStatus = 'Pending Order', vendorID=request.user.pk).__len__()
-        invoiced_orders = SubOrder.objects.filter(orderStatus = 'Invoiced').__len__()
-        delivered_orders = SubOrder.objects.filter(orderStatus = 'Delivered').__len__()
-        rejected_orders = SubOrder.objects.filter(orderStatus = 'Rejected').__len__()
-        orders = SubOrder.objects.filter(vendorID=request.user.pk)
+        received_orders = SubOrder.objects.filter(vendorID_id=request.user.pk).__len__()#total orders received by the FPO
+        pending_orders = SubOrder.objects.filter(orderStatus = 'Pending Order', vendorID_id=request.user.pk).__len__()
+        invoiced_orders = SubOrder.objects.filter(orderStatus = 'Invoiced', vendorID_id=request.user.pk).__len__()
+        delivered_orders = SubOrder.objects.filter(orderStatus = 'Delivered',vendorID_id=request.user.pk).__len__()
+        rejected_orders = SubOrder.objects.filter(orderStatus = 'Rejected', vendorID_id=request.user.pk).__len__()
+        orders = SubOrder.objects.filter(vendorID_id=request.user.pk)
         context = {
             'received_sub_orders': received_orders, 
             'orders':orders,
@@ -1134,13 +1239,17 @@ def ReceivedOrders(request):
 
 def received_orders_details(request, orderID):
     if request.user.pk is not None:
-        orderNo = Order.objects.get(orderID=orderID).orderNo
-        orderFrom = Order.objects.get(orderID=orderID).userID.last_name
-        orderNote = Order.objects.get(orderID=orderID).orderNote
+        orderNo = Order.objects.get(pk=orderID).orderNo
+        orderFrom = Order.objects.get(pk=orderID).userID.last_name
+        orderNote = Order.objects.get(pk=orderID).orderNote
+        payment_mode = Order.objects.get(pk=orderID).paymentMode
+        payment_status = 'Paid' if Order.objects.get(pk=orderID).paymentStatus else 'Unpaid'
+        payment_date = Order.objects.get(pk=orderID).paymentDate
+        payment_ref = Order.objects.get(pk=orderID).paymentRefNo
         suborderID = SubOrder.objects.get(orderID_id=orderID, vendorID_id=request.user.pk).suborderID
         suborder_details = SubOrder.objects.get(orderID_id=orderID, vendorID_id=request.user.pk)
         received_orders = OrderDetails.objects.filter(suborderID_id=suborderID).select_related('itemID')
-        existing_invoices = Invoice.objects.filter(orderID=orderID)
+        existing_invoices = OrderInvoice.objects.filter(orderID_id=orderID,suborderID_id=suborderID)
         user_name = request.user.last_name
         invoiceForm = InvoiceForm()
         context = {
@@ -1154,7 +1263,11 @@ def received_orders_details(request, orderID):
             'orderID':orderID, 
             'suborderID':suborderID, 
             'invoice':invoiceForm, 
-            'existing_invoices':existing_invoices
+            'existing_invoices':existing_invoices,
+            'payment_mode':payment_mode,
+            'payment_status':payment_status,
+            'payment_date':payment_date,
+            'payment_ref':payment_ref
         }
         return render(request, 'rcv_orderdetails.html', context=context)
     else:
@@ -1206,13 +1319,18 @@ def calculate_rejection_status_of_all_orders(orderID):
         order_update_status = Order.objects.filter(orderID=orderID).update(orderStatus='Rejected', remark='Rejected')
     return JsonResponse({'Success':True})
 
-def upload_invoice(request,orderID):
+def upload_invoice(request,suborderID):
     if request.method == "POST":
         form = InvoiceForm(request.POST, request.FILES)
         if form.is_valid():
             userid = request.user.pk
-            form.save(userID=userid, orderID=orderID)
-            update_status = Order.objects.filter(orderID=orderID).update(orderStatus='Invoiced')
+            orderID = get_object_or_404(SubOrder,pk=suborderID).orderID.pk
+            form.save(userID=userid, orderID=orderID, suborderID=suborderID)
+            update_status = SubOrder.objects.filter(pk=suborderID).update(orderStatus='Invoiced')
+            no_of_invoices = OrderInvoice.objects.filter(orderID_id=orderID).count()
+            no_of_suborders = SubOrder.objects.filter(orderID_id=orderID).count()
+            if no_of_invoices == no_of_suborders:
+                update_order_status = Order.objects.filter(pk=orderID).update(orderStatus='Invoiced')
             return redirect('receivedorders')  # Redirect to prevent resubmission
     else:
         form = InvoiceForm()
@@ -1231,12 +1349,20 @@ def invoiced_orders(request):
     else:
         return render(request, 'orders_invoiced.html', {})
     
-def confirm_delivery_order(request, order_id):
+def confirm_delivery_order(request, suborder_id):
     if request.user.is_authenticated:
         user_name = request.user.last_name
-        suborder_delivery = SubOrder.objects.filter(pk=order_id).update(orderStatus='Delivered',remark='Delivered')
-        main_order_id = get_object_or_404(SubOrder, pk=order_id).orderID.pk
+        suborder_delivery = SubOrder.objects.filter(pk=suborder_id).update(orderStatus='Delivered',remark='Delivered')
+        main_order_id = get_object_or_404(SubOrder, pk=suborder_id).orderID.pk
         order_deilvery = Order.objects.filter(pk=main_order_id).update(orderStatus='Delivered')    
+        delivery = OrderDelivery.objects.get_or_create(orderID_id=main_order_id, suborderID_id=suborder_id)
+        payment_mode = SubOrder.objects.get(pk=suborder_id).paymentMode
+        if payment_mode == 1:
+            SubOrder.objects.filter(pk=suborder_id).update(paymentStatus=True, paymentDate=timezone.now(),paymentRefNo='COD'+str(int(timezone.now().timestamp() * 1000)))
+            Order.objects.filter(pk=main_order_id).update(paymentStatus=True, paymentDate=timezone.now(),paymentRefNo='COD'+str(int(timezone.now().timestamp() * 1000)))
+        elif payment_mode == 2:
+            SubOrder.objects.filter(pk=suborder_id).update(paymentStatus=True, paymentDate=timezone.now(),paymentRefNo='IC'+str(int(timezone.now().timestamp() * 1000)))
+            Order.objects.filter(pk=main_order_id).update(paymentStatus=True, paymentDate=timezone.now(),paymentRefNo='IC'+str(int(timezone.now().timestamp() * 1000)))
     return redirect('receivedorders')#redirect to delivered orders
 
 def delivered_orders(request):
@@ -1465,6 +1591,8 @@ def bulk_buy_orders(request):
         #bulk_orders = BulkBuy.objects.filter(userID_id=request.user.pk)
         bulk_orders = BulkBuy.objects.annotate(count_items=Count('bulkbuyid_bbd', distinct=True),count_responses=Count('bulkbuyid_bbr__response_userID_id', distinct=True)).filter(userID_id=request.user.pk)
         user_name = request.user.last_name
+        user_approved = request.user.userApproved
+        user_type = request.user.userType
         cart = Cart(request)
         total_qty = cart.__len__()#display total number quantities added in the basket
         total_price = cart.get_total_price()
@@ -1472,7 +1600,9 @@ def bulk_buy_orders(request):
             'bulk_orders':bulk_orders,
             'login_user':user_name,
             'total_qty':total_qty,
-            'total_price':total_price
+            'total_price':total_price,
+            'user_approved':user_approved,
+            'user_type':user_type
         }
     return render(request, 'bulk-buy-orders.html', context=bulk_orders_context)
 
@@ -1548,8 +1678,10 @@ def PlacedOrders(request):
     if request.user.is_authenticated:
         pincode = request.user.pinCode1
         orders = Order.objects.filter(userID=request.user.id)
-        #invoices = Invoice.objects.select_related('orderID')
+        #invoices = OrderInvoice.objects.select_related('orderID')
         user_name = request.user.last_name
+        user_type = request.user.userType
+        user_approved = request.user.userApproved
         cart = Cart(request)
         total_qty = cart.__len__()#display total number quantities added in the basket
         total_price = cart.get_total_price()
@@ -1558,7 +1690,9 @@ def PlacedOrders(request):
             'login_user':user_name,
             'total_qty':total_qty,
             'total_price':total_price,
-            'pincode':pincode
+            'pincode':pincode,
+            'user_type':user_type,
+            'user_approved':user_approved
         }
         return render(request, 'orders.html', context=render_context)
     else:
@@ -1566,8 +1700,11 @@ def PlacedOrders(request):
 
 def placed_order_details(request,orderID):
     orderNote = Order.objects.get(pk=orderID).orderNote
+    paymentStatus = Order.objects.get(pk=orderID).paymentStatus
+    paymentRefNo = Order.objects.get(pk=orderID).paymentRefNo
+    paymentMode = Order.objects.get(pk=orderID).paymentMode
     order_details = OrderDetails.objects.select_related('itemID').filter(orderID_id=orderID)
-    invoice_details = Invoice.objects.filter(orderID_id=orderID)
+    invoice_details = OrderInvoice.objects.filter(orderID_id=orderID)
     #query = str(order_details.query)
     pincode='Delivery Pincode'
     user_name = 'Guest!'
@@ -1585,7 +1722,10 @@ def placed_order_details(request,orderID):
         'total_qty':total_qty,
         'total_price':total_price,
         'pincode':pincode,
-        'orderNote':orderNote
+        'orderNote':orderNote,
+        'paymentStatus':paymentStatus,
+        'paymentRefNo':paymentRefNo,
+        'paymentMode':paymentMode
     }
     return render(request, 'orderdetails.html', context=render_context)
 

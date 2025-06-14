@@ -9,9 +9,14 @@
         font-weight: bold;
     }
     .out-of-stock{
-        filter: grayscale(100%);
+        /* filter: grayscale(100%); */
         opacity: 0.5;
         position: relative;
+        pointer-events: none;
+        color: red;
+        font-size: 24px;
+        font-weight: bold;
+        border-radius: 5px;
     }
 </style>
     <!-- Product Section Begin -->
@@ -189,6 +194,7 @@
                             <div class="product__item">
                             {% else %}
                             <div class="product__item out-of-stock">
+                                Out of Stock
                             {% endif %}
                                 <div class="product__item__pic set-bg" data-setbg="{{item.itemImg.url}}" onclick="itemRedirect('{{item.itemID}}')" style="cursor: pointer;">
                                     <ul class="product__item__pic__hover">

@@ -6,32 +6,18 @@
     <section class="contact spad">
         <div class="container">
             <div class="row">
-                <div class="col-lg-3 col-md-3 col-sm-6 text-center">
+                <div class="col-lg-6 col-md-6 col-sm-6 text-center">
                     <div class="contact__widget">
                         <span class="icon_phone"></span>
-                        <h4>Phone</h4>
+                        <h4>Phone/WhatsApp</h4>
                         <p>+91-76090-04098</p>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-3 col-sm-6 text-center">
-                    <div class="contact__widget">
-                        <span class="icon_pin_alt"></span>
-                        <h4>Address</h4>
-                        <p>2321/2981, Lane 6, Niladri Nagar, NH-316 (Puri-Cuttack Bypass), Bhubaneswar, Odisha, India, 751006</p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-3 col-sm-6 text-center">
-                    <div class="contact__widget">
-                        <span class="icon_clock_alt"></span>
-                        <h4>Open time</h4>
-                        <p>10:00 am to 06:00 pm</p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-3 col-sm-6 text-center">
+                <div class="col-lg-6 col-md-6 col-sm-6 text-center">
                     <div class="contact__widget">
                         <span class="icon_mail_alt"></span>
                         <h4>Email</h4>
-                        <p>farmerharvest@billionnextbop.com</p>
+                        <p>connect@farmerharvest.in</p>
                     </div>
                 </div>
             </div>
@@ -67,16 +53,17 @@
                     </div>
                 </div>
             </div>
-            <form action="#">
+            <form action="{% url 'contact' %}?q=msg" method="post">
+                {% csrf_token %}
                 <div class="row">
                     <div class="col-lg-6 col-md-6">
-                        <input type="text" placeholder="Your name">
+                        <input type="text" name="senderName" placeholder="Your name">
                     </div>
                     <div class="col-lg-6 col-md-6">
-                        <input type="text" placeholder="Your Email">
+                        <input type="text" name="senderEmail" placeholder="Your Email/Phone">
                     </div>
                     <div class="col-lg-12 text-center">
-                        <textarea placeholder="Your message"></textarea>
+                        <textarea placeholder="Your message" name="senderMsg"></textarea>
                         <button type="submit" class="site-btn">SEND MESSAGE</button>
                     </div>
                 </div>

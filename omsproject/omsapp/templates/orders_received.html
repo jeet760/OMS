@@ -28,7 +28,8 @@
             <th class="py-2 px-3 cursor-pointer" onclick="sortTable(2, 'orderTable')">Date</th>
             <th class="py-2 px-3 cursor-pointer" onclick="sortTable(3, 'orderTable')">Schedule Delivery Date & Time</th>
             <th class="py-2 px-3 cursor-pointer" onclick="sortTable(4, 'orderTable')">Order From</th>
-            <th class="py-2 px-3 cursor-pointer" onclick="sortTable(5, 'orderTable')">Status</th>
+            <th class="py-2 px-3 cursor-pointer" onclick="sortTable(5, 'orderTable')">Order Status</th>
+            <th class="py-2 px-3 cursor-pointer" onclick="sortTable(4, 'orderTable')">Payment Status</th>
             <th class="py-2 px-3 cursor-pointer" onclick="sortTable(6, 'orderTable')">Remark</th>
             <th class="py-2 px-3 cursor-pointer">Action</th>
             </tr>
@@ -43,16 +44,23 @@
                 <!-- <td class="py-2 px-3">{{order.orderID.schDeliveryTime}}</td> -->
                 <td class="py-2 px-3">{{order.orderID.userID.last_name}}</td>
                 <td class="py-2 px-3 space-x-2">
-                    {% if order.orderID.orderStatus == 'Pending Order' %}
-                    <span class="px-2 py-1 text-xs rounded bg-pink-600 text-white">{{order.orderID.orderStatus}}</span>
-                    {% elif order.orderID.orderStatus == 'Under Process' %}
-                    <span class="px-2 py-1 text-xs rounded bg-blue-600 text-white">{{order.orderID.orderStatus}}</span>
-                    {% elif order.orderID.orderStatus == 'Invoiced' %}
-                    <span class="px-2 py-1 text-xs rounded bg-yellow-600 text-white">{{order.orderID.orderStatus}}</span>
-                    {% elif order.orderID.orderStatus == 'Rejected' %}
-                    <span class="px-2 py-1 text-xs rounded bg-red-600 text-white">{{order.orderID.orderStatus}}</span>
+                    {% if order.orderStatus == 'Pending Order' %}
+                    <span class="px-2 py-1 text-xs rounded bg-pink-600 text-white">{{order.orderStatus}}</span>
+                    {% elif order.orderStatus == 'Under Process' %}
+                    <span class="px-2 py-1 text-xs rounded bg-blue-600 text-white">{{order.orderStatus}}</span>
+                    {% elif order.orderStatus == 'Invoiced' %}
+                    <span class="px-2 py-1 text-xs rounded bg-yellow-600 text-white">{{order.orderStatus}}</span>
+                    {% elif order.orderStatus == 'Rejected' %}
+                    <span class="px-2 py-1 text-xs rounded bg-red-600 text-white">{{order.orderStatus}}</span>
                     {% else %}
                     <span class="px-2 py-1 text-xs rounded bg-green-600 text-white">{{order.orderStatus}}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if order.paymentStatus %}
+                    <span class="px-2 py-1 text-xs rounded bg-green-600 text-white">Paid</span>
+                    {% else %}
+                    <span class="px-2 py-1 text-xs rounded bg-red-600 text-white">Unpaid</span>
                     {% endif %}
                 </td>
                 <td class="py-2 px-3">{{order.remark}}</td>

@@ -59,9 +59,9 @@
             <td class="py-2 px-3">
                 {% if auth_form.instance.board_resolution %}
                     {% if auth_form.instance.br_verified == True %}
-                    <a href="{{auth_form.instance.board_resolution.url}}">{{auth_form.instance.board_resolution.name|cut:'fpodocs/'}}</a>
+                    <a href="{{auth_form.instance.board_resolution.url}}" target="_blank">{{auth_form.instance.board_resolution.name|cut:'fpodocs/'}}</a>
                     {% else %}
-                    <a href="{{auth_form.instance.board_resolution.url}}" style="color: greenyellow;">{{auth_form.instance.board_resolution.name|cut:'fpodocs/'}}</a>
+                    <a href="{{auth_form.instance.board_resolution.url}}" target="_blank" style="color: greenyellow;">{{auth_form.instance.board_resolution.name|cut:'fpodocs/'}}</a>
                     {% endif %}
                 {% else %}
                 None
@@ -90,9 +90,9 @@
             <td class="py-2 px-3">
                 {% if auth_form.instance.cin %}
                     {% if auth_form.instance.cin_verified == True %}
-                    <a href="{{auth_form.instance.cin.url}}">{{auth_form.instance.cin.name|cut:'fpodocs/'}}</a>
+                    <a href="{{auth_form.instance.cin.url}}" target="_blank">{{auth_form.instance.cin.name|cut:'fpodocs/'}}</a>
                     {% else %}
-                    <a href="{{auth_form.instance.cin.url}}" style="color: greenyellow;">{{auth_form.instance.cin.name|cut:'fpodocs/'}}</a>
+                    <a href="{{auth_form.instance.cin.url}}" target="_blank" style="color: greenyellow;">{{auth_form.instance.cin.name|cut:'fpodocs/'}}</a>
                     {% endif %}
                 {% else %}
                 None
@@ -121,9 +121,9 @@
             <td class="py-2 px-3">
                 {% if auth_form.instance.pan %}
                     {% if auth_form.instance.pan_verified == True %}
-                    <a href="{{auth_form.instance.pan.url}}">{{auth_form.instance.pan.name|cut:'fpodocs/'}}</a>
+                    <a href="{{auth_form.instance.pan.url}}" target="_blank">{{auth_form.instance.pan.name|cut:'fpodocs/'}}</a>
                     {% else %}
-                    <a href="{{auth_form.instance.pan.url}}" style="color: greenyellow;">{{auth_form.instance.pan.name|cut:'fpodocs/'}}</a>
+                    <a href="{{auth_form.instance.pan.url}}" target="_blank" style="color: greenyellow;">{{auth_form.instance.pan.name|cut:'fpodocs/'}}</a>
                     {% endif %}
                 {% else %}
                 None
@@ -152,9 +152,9 @@
             <td class="py-2 px-3">
                 {% if auth_form.instance.bank %}
                     {% if auth_form.instance.bank_verified == True %}
-                    <a href="{{auth_form.instance.bank.url}}">{{auth_form.instance.bank.name|cut:'fpodocs/'}}</a>
+                    <a href="{{auth_form.instance.bank.url}}" target="_blank">{{auth_form.instance.bank.name|cut:'fpodocs/'}}</a>
                     {% else %}
-                    <a href="{{auth_form.instance.bank.url}}" style="color: greenyellow;">{{auth_form.instance.bank.name|cut:'fpodocs/'}}</a>
+                    <a href="{{auth_form.instance.bank.url}}" target="_blank" style="color: greenyellow;">{{auth_form.instance.bank.name|cut:'fpodocs/'}}</a>
                     {% endif %}
                 {% else %}
                 None
@@ -183,9 +183,9 @@
             <td class="py-2 px-3">
                 {% if auth_form.instance.fssai %}
                     {% if auth_form.instance.fssai_verified == True %}
-                    <a href="{{auth_form.instance.fssai.url}}">{{auth_form.instance.fssai.name|cut:'fpodocs/'}}</a>
+                    <a href="{{auth_form.instance.fssai.url}}" target="_blank">{{auth_form.instance.fssai.name|cut:'fpodocs/'}}</a>
                     {% else %}
-                    <a href="{{auth_form.instance.fssai.url}}" style="color: greenyellow;">{{auth_form.instance.fssai.name|cut:'fpodocs/'}}</a>
+                    <a href="{{auth_form.instance.fssai.url}}" target="_blank" style="color: greenyellow;">{{auth_form.instance.fssai.name|cut:'fpodocs/'}}</a>
                     {% endif %}
                 {% else %}
                 None
@@ -214,9 +214,9 @@
             <td class="py-2 px-3">
                 {% if auth_form.instance.gst %}
                     {% if auth_form.instance.gst_verified == True %}
-                    <a href="{{auth_form.instance.gst.url}}">{{auth_form.instance.gst.name|cut:'fpodocs/'}}</a>
+                    <a href="{{auth_form.instance.gst.url}}" target="_blank">{{auth_form.instance.gst.name|cut:'fpodocs/'}}</a>
                     {% else %}
-                    <a href="{{auth_form.instance.gst.url}}" style="color: greenyellow;">{{auth_form.instance.gst.name|cut:'fpodocs/'}}</a>
+                    <a href="{{auth_form.instance.gst.url}}" target="_blank" style="color: greenyellow;">{{auth_form.instance.gst.name|cut:'fpodocs/'}}</a>
                     {% endif %}
                 {% else %}
                 None
@@ -245,9 +245,9 @@
             <td class="py-2 px-3">
                 {% if auth_form.instance.apmc %}
                     {% if auth_form.instance.apmc_verified == True %}
-                    <a href="{{auth_form.instance.apmc.url}}">{{auth_form.instance.apmc.name|cut:'fpodocs/'}}</a>
+                    <a href="{{auth_form.instance.apmc.url}}" target="_blank">{{auth_form.instance.apmc.name|cut:'fpodocs/'}}</a>
                     {% else %}
-                    <a href="{{auth_form.instance.apmc.url}}" style="color: greenyellow;">{{auth_form.instance.apmc.name|cut:'fpodocs/'}}</a>
+                    <a href="{{auth_form.instance.apmc.url}}" target="_blank" style="color: greenyellow;">{{auth_form.instance.apmc.name|cut:'fpodocs/'}}</a>
                     {% endif %}
                 {% else %}
                 None
@@ -276,9 +276,9 @@
             <td class="py-2 px-3">
                 {% if auth_form.instance.exim %}
                     {% if auth_form.instance.exim_verified == True %}
-                    <a href="{{auth_form.instance.exim.url}}">{{auth_form.instance.exim.name|cut:'fpodocs/'}}</a>
+                    <a href="{{auth_form.instance.exim.url}}" target="_blank">{{auth_form.instance.exim.name|cut:'fpodocs/'}}</a>
                     {% else %}
-                    <a href="{{auth_form.instance.exim.url}}" style="color: greenyellow;">{{auth_form.instance.exim.name|cut:'fpodocs/'}}</a>
+                    <a href="{{auth_form.instance.exim.url}}" target="_blank" style="color: greenyellow;">{{auth_form.instance.exim.name|cut:'fpodocs/'}}</a>
                     {% endif %}
                 {% else %}
                 None

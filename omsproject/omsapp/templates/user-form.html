@@ -93,8 +93,14 @@
         </div>
       </section>
       <!-- Billing Details -->
+      <section id="addressDetails">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">2. Addresses</h2>
+        <div class="flex justify-between items-center mb-4">
+          <button type="button" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" onclick="openModal('modalAddAddress')">Add Address</button>
+        </div>
+      </section>
       <section id="billingdetails">
-        <h2 class="text-xl font-semibold mb-4 text-gray-700">2. Billing Details</h2>
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">2.1. Billing Addresses</h2>
         <table id="billingAddressTable" class="w-full text-left text-sm border border-gray-300 bg-white">
           <thead class="text-gray-700 border-b border-gray-300">
           <tr>
@@ -103,35 +109,42 @@
               <th class="py-2 px-3 cursor-pointer" onclick="sortTable(2, 'billingAddressTable')">Town</th>
               <th class="py-2 px-3 cursor-pointer" onclick="sortTable(3, 'billingAddressTable')">State</th>
               <th class="py-2 px-3 cursor-pointer" onclick="sortTable(4, 'billingAddressTable')">Post Code</th>
+              <th class="py-2 px-3">Status</th>
               <th class="py-2 px-3">Action</th>
           </tr>
           </thead>
           <tbody>
+            {% for address in billing_addresses %}
             <tr class="border-b border-gray-300 hover:bg-gray-100">
-              <td class="py-2 px-3">1</td>
-              <td class="py-2 px-3">{{user.userAddress}}</td>
-              <td class="py-2 px-3">{{user.userCity}}</td>
+              <td class="py-2 px-3">{{forloop.counter}}</td>
+              <td class="py-2 px-3">{{address.userAddress}}</td>
+              <td class="py-2 px-3">{{address.userCity}}</td>
               <td class="py-2 px-3">
                 {% for state in states %}
-                {% if state.0 == user.userState%}
+                {% if state.0 == address.userState%}
                 {{state.1}}
                 {% endif %}
                 {% endfor %}
               </td>
-              <td class="py-2 px-3">{{user.pinCode}}</td>
+              <td class="py-2 px-3">{{address.pinCode}}</td>
+              <td class="py-2 px-3">
+                {% if address.setDefault %}
+                <a class="px-2 py-1 text-xs rounded bg-green-600 text-white" href="{% url 'update-default-address' address.pk %}?q=bill">Default</a>
+                {% else %}
+                <a class="px-2 py-1 text-xs rounded bg-red-600 text-white" href="{% url 'update-default-address' address.pk %}?q=bill">Make Default</a>
+                {% endif %}
+              </td>
               <td class="py-2 px-3">
                 <button type="button" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white" onclick="openModal('modalAddressDetails')">Edit</button>
               </td>
             </tr>
+            {% endfor %}
           </tbody>
         </table>
       </section>
       <!-- Shipping Details -->
       <section id="addressdetails">
-        <h2 class="text-xl font-semibold mb-4 text-gray-700">3. Shipping Details</h2>
-        <div class="flex justify-between items-center mb-4">
-          <button type="button" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" onclick="openModal('modalAddAddress')">Add Address</button>
-        </div>
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">2.2. Shipping Addresses</h2>
         <table id="shippingAddressTable" class="w-full text-left text-sm border border-gray-300 bg-white">
           <thead class="text-gray-700 border-b border-gray-300">
           <tr>
@@ -145,7 +158,7 @@
           </tr>
           </thead>
           <tbody>
-          {% for address in addresses %}
+          {% for address in shipping_addresses %}
             <tr class="border-b border-gray-300 hover:bg-gray-100">
               <td class="py-2 px-3">{{forloop.counter}}</td>
               <td class="py-2 px-3">{{address.userAddress1}}</td>
@@ -160,9 +173,9 @@
               <td class="py-2 px-3">{{address.pinCode1}}</td>
               <td class="py-2 px-3">
                 {% if address.setDefault %}
-                <a class="px-2 py-1 text-xs rounded bg-green-600 text-white" href="{% url 'update-default-address' address.pk %}">Default</a>
+                <a class="px-2 py-1 text-xs rounded bg-green-600 text-white" href="{% url 'update-default-address' address.pk %}?q=ship">Default</a>
                 {% else %}
-                <a class="px-2 py-1 text-xs rounded bg-red-600 text-white" href="{% url 'update-default-address' address.pk %}">Make Default</a>
+                <a class="px-2 py-1 text-xs rounded bg-red-600 text-white" href="{% url 'update-default-address' address.pk %}?q=ship">Make Default</a>
                 {% endif %}
               </td>
               <td class="py-2 px-3">
@@ -175,7 +188,7 @@
       </section>
       <!-- Document Details -->
       <section id="fpoDocs">
-        <h2 class="text-xl font-semibold mb-4 text-gray-700">4. Document Details</h2>
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">3. Document Details</h2>
         {% if user_type == '1' %}
         <table id="fpoDocumentsTable" class="w-full text-left text-sm border border-gray-300 bg-white">
           <thead class="text-gray-700 border-b border-gray-300">
@@ -434,16 +447,24 @@
             {% csrf_token %}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="md:col-span-2">
+                <label for="selectAddress" class="block text-gray-600 mb-2">Address Type</label>
+                <select name="selectAddress" id="selectAddress" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                  <option value="bill">Billing Address</option>
+                  <option value="ship">Shipping Address</option>
+                  <option value="both">Both</option>
+                </select>
+              </div>
+              <div class="md:col-span-2">
                 <label for="userAddress1" class="block text-gray-600 mb-2">Address</label>
-                <input type="text" id="shippingAddress" name="shippingAddress" placeholder="Street address, P.O. box" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                <input type="text" id="shippingAddress" name="userAddress" placeholder="Street address, P.O. box" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
               <div>
                 <label for="userCity1" class="block text-gray-600 mb-2">Town</label>
-                <input type="text" id="shippingTown" name="shippingTown" placeholder="City or Town" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                <input type="text" id="shippingTown" name="userCity" placeholder="City or Town" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
               <div>
                 <label for="userState1" class="block text-gray-600 mb-2">State</label>
-                <select name="shippingState" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <select name="userState" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
                   {% for state in states %}
                   <option value="{{state.0}}">{{state.1}}</option>
                   {% endfor %}
@@ -451,7 +472,7 @@
               </div>
               <div>
                 <label for="pinCode1" class="block text-gray-600 mb-2">Postcode</label>
-                <input type="text" id="shippingPostcode" name="shippingPostcode" placeholder="PIN code" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                <input type="text" id="shippingPostcode" name="pinCode" placeholder="PIN code" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
             </div>
             <br>  

@@ -1,6 +1,21 @@
 {% extends 'index.html' %}
 {% load static %}
 {% block shoppingcart %}
+<style>
+    .out-of-stock{
+        /* filter: grayscale(100%); */
+        opacity: 0.5;
+        position: relative;
+        pointer-events: none;
+        color: red;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 5px;
+    }
+    sup{
+        color: red;
+    }
+</style>
     <!-- Shoping Cart Section Begin -->
     <section class="shoping-cart spad">
         <div class="container">
@@ -26,12 +41,22 @@
                                     {% csrf_token %}
                                 <tr>
                                     <td>{{forloop.counter}}</td>
-                                    <td><img src="{{item.product.itemImg.url}}" alt="" height="50px" width="50px" style="padding: 5px 5px 5px 5px;"></td>
+                                    <td>
+                                        {% if item.product.itemInStock %}
+                                        <img src="{{item.product.itemImg.url}}" alt="" height="50px" width="50px" style="padding: 5px 5px 5px 5px;">
+                                        {%else%}
+                                        <img src="{{item.product.itemImg.url}}" class="out-of-stock" alt="" height="50px" width="50px" style="padding: 5px 5px 5px 5px;">
+                                        {% endif %}
+                                    </td>
                                     <td class="shoping__cart__item">
+                                        {% if item.product.itemInStock %}
                                         {{item.product.itemName}}
+                                        {%else%}
+                                        {{item.product.itemName}}<strong style="color: red;"> (Out of Stock)</strong>
+                                        {% endif %}
                                         <span class="form-text">
                                             Sold By: {{ item.product.userID.first_name }}
-                                         </span>
+                                        </span>
                                     </td>
                                     <td class="shoping__cart__price">
                                         {{ item.price }}
@@ -64,6 +89,15 @@
                                 </form>
                                 {% endfor %}
                             </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="7" style="color: red;">
+                                        {% if item_stock == False %}
+                                        <sup>*</sup> Remove the Out of Stock Item to Proceed for Order.
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -92,11 +126,15 @@
                                 {% for address in shipping_addresses %}
                                 <li>
                                     <label>
+                                        {% for state_code in states %}
+                                        {% if state_code.0 == address.userState1 %}
                                         {% if address.setDefault %}
-                                            <input type="radio" name="address" value="{{address.id}}" checked>{{address.userAddress1}}, {{address.userCity1}}, {{address.userState1}}, {{address.pinCode1}}
+                                            <input type="radio" name="address" value="{{address.id}}" checked>{{address.userAddress1}}, {{address.userCity1}}, {{state_code.1}}, {{address.pinCode1}}
                                         {% else %}
-                                        <input type="radio" name="address" value="{{address.id}}">{{address.userAddress1}}, {{address.userCity1}}, {{address.userState1}}, {{address.pinCode1}}
+                                        <input type="radio" name="address" value="{{address.id}}">{{address.userAddress1}}, {{address.userCity1}}, {{state_code.1}}, {{address.pinCode1}}
                                         {% endif %}
+                                        {% endif %}
+                                        {% endfor %}
                                     </label>
                                 </li>
                                 {% endfor %}
@@ -113,7 +151,7 @@
                             <ul>
                                 <li>Total Qty.<span>{{ total_qty }}</span></li>
                                 <li>Subtotal <span>₹{{ total_price }}</span></li>
-                                <li>Transportation Charge<span>₹{{transportation_cost}}.00</span></li>
+                                <li>Delivery Charges<span>₹{{transportation_cost}}.00</span></li>
                                 <li>Total <span>₹{{ grand_total }}</span></li>
                                 <li>Schedule Date
                                     <span>
@@ -140,12 +178,41 @@
                             </ul>
                             <strong>Order Note</strong>
                             <textarea style="width: 100%; height: 100px;" name="orderNote" placeholder="Remark/Comment/Note"></textarea>
-                            <button type="submit" class="primary-btn" id="buyButton">
-                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
-                                    <path d="m480-560-56-56 63-64H320v-80h167l-64-64 57-56 160 160-160 160ZM280-80q-33 0-56.5-23.5T200-160q0-33 23.5-56.5T280-240q33 0 56.5 23.5T360-160q0 33-23.5 56.5T280-80Zm400 0q-33 0-56.5-23.5T600-160q0-33 23.5-56.5T680-240q33 0 56.5 23.5T760-160q0 33-23.5 56.5T680-80ZM40-800v-80h131l170 360h280l156-280h91L692-482q-11 20-29.5 31T622-440H324l-44 80h480v80H280q-45 0-68.5-39t-1.5-79l54-98-144-304H40Z"/>
-                                </svg>
-                                PROCEED TO CHECKOUT
-                            </button>
+                            <ul>
+                                <li>Select Payment Method
+                                   <span>
+                                    {% if user_type == '3' %}
+                                    <select id="selectPaymentMethod" name="selectPaymentMethod" style="font-size: 12px; height: 30px; width: 120px;">
+                                        <option value="1">Cash On Delivery</option>
+                                        <option value="2">Institutional Credits</option>
+                                        <option value="3">Pay Online</option>
+                                    </select>
+                                    {% else %}
+                                    <select id="selectPaymentMethod" name="selectPaymentMethod" style="font-size: 12px; height: 30px; width: 120px;">
+                                        <option value="1">Cash On Delivery</option>
+                                        <option value="3">Pay Online</option>
+                                    </select>
+                                    {% endif %}
+                                   </span>
+                                </li>
+                                <li>
+                                    {% if item_stock %}
+                                    <button type="submit" class="primary-btn" id="buyButton">
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
+                                            <path d="m480-560-56-56 63-64H320v-80h167l-64-64 57-56 160 160-160 160ZM280-80q-33 0-56.5-23.5T200-160q0-33 23.5-56.5T280-240q33 0 56.5 23.5T360-160q0 33-23.5 56.5T280-80Zm400 0q-33 0-56.5-23.5T600-160q0-33 23.5-56.5T680-240q33 0 56.5 23.5T760-160q0 33-23.5 56.5T680-80ZM40-800v-80h131l170 360h280l156-280h91L692-482q-11 20-29.5 31T622-440H324l-44 80h480v80H280q-45 0-68.5-39t-1.5-79l54-98-144-304H40Z"/>
+                                        </svg>
+                                        PROCEED TO CHECKOUT
+                                    </button>
+                                    {% else %}
+                                    <button type="submit" class="primary-btn out-of-stock" id="buyButton">
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
+                                            <path d="m480-560-56-56 63-64H320v-80h167l-64-64 57-56 160 160-160 160ZM280-80q-33 0-56.5-23.5T200-160q0-33 23.5-56.5T280-240q33 0 56.5 23.5T360-160q0 33-23.5 56.5T280-80Zm400 0q-33 0-56.5-23.5T600-160q0-33 23.5-56.5T680-240q33 0 56.5 23.5T760-160q0 33-23.5 56.5T680-80ZM40-800v-80h131l170 360h280l156-280h91L692-482q-11 20-29.5 31T622-440H324l-44 80h480v80H280q-45 0-68.5-39t-1.5-79l54-98-144-304H40Z"/>
+                                        </svg>
+                                        PROCEED TO CHECKOUT
+                                    </button>
+                                    {% endif %}
+                                </li>
+                            </ul>
                         </div>
                     </form>
                 </div>

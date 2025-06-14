@@ -3,7 +3,7 @@ from django.db.models import Model, CharField, AutoField, DecimalField, ForeignK
 from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import now
 from django.conf import settings
-import datetime
+#import datetime
 
 
 #region Registration
@@ -115,13 +115,26 @@ class Login(Model):
         return self.id
 
 #Addresses of all users
-class UserAddresses(Model):
+class UserShippingAddresses(Model):
     id = AutoField(primary_key=True)
     userID = ForeignKey(CustomUser, on_delete=CASCADE)
     userAddress1 = CharField(max_length=200)
     userCity1 = CharField(max_length=50)
     userState1 = CharField(max_length=20, choices=STATES)
     pinCode1 = CharField(max_length=6)
+    address_lat1 = FloatField(null=True, blank=True)
+    address_long1 = FloatField(null=True, blank=True)
+    setDefault = BooleanField(default=False, null=True)
+    def __str__(self):
+        return self.userID
+
+class UserBillingAddresses(Model):
+    id = AutoField(primary_key=True)
+    userID = ForeignKey(CustomUser, on_delete=CASCADE)
+    userAddress = CharField(max_length=200)
+    userCity = CharField(max_length=50)
+    userState = CharField(max_length=20, choices=STATES)
+    pinCode = CharField(max_length=6)
     address_lat = FloatField(null=True, blank=True)
     address_long = FloatField(null=True, blank=True)
     setDefault = BooleanField(default=False, null=True)
@@ -262,6 +275,10 @@ class Order(Model):
     remark = CharField(max_length=20, default=None, null=True)
     userID = ForeignKey(CustomUser, on_delete=CASCADE, related_name='customer')#customer who ordered
     orderNote = CharField(max_length=200, null=True, blank=True)
+    paymentMode = IntegerField(blank=True, null=True)#whether cod-1, institutional credit-2 or online-3
+    paymentStatus=BooleanField(blank=True, null=True)#true:complete, false:incomplete, none:incomplete
+    paymentDate=DateTimeField(blank=True, null=True)#datetime of the paytment made during delivery
+    paymentRefNo=CharField(max_length=50, blank=True, null=True)#reference number for online transactions
     def __str__(self):
         return f"{self.orderID}"
 
@@ -273,6 +290,10 @@ class SubOrder(Model):
     orderStatus = CharField(max_length=25, default='Pending Order')
     remark = CharField(max_length=20, default=None, null=True)
     orderNote = CharField(max_length=200, null=True, blank=True)
+    paymentMode = IntegerField(blank=True, null=True)#whether cod-1, institutional credit-2 or online-3
+    paymentStatus=BooleanField(blank=True, null=True)#true:complete, false:incomplete, none:incomplete
+    paymentDate=DateTimeField(blank=True, null=True)#datetime of the paytment made during delivery
+    paymentRefNo=CharField(max_length=50, blank=True, null=True)#reference number for online transactions
     def __str__(self):
         return self.suborderID
 
@@ -293,9 +314,10 @@ class OrderDetails(Model):
     def __str__(self):
         return self.orderID,self.itemID
     
-class Invoice(Model):
+class OrderInvoice(Model):
     invoiceID = AutoField(primary_key=True)
     orderID = ForeignKey(Order, on_delete=CASCADE)
+    suborderID = ForeignKey(SubOrder, on_delete=CASCADE,null=True)
     invoiceNo = CharField(max_length=10, default='0000000000')
     invoiceDate = CharField(max_length=10)
     invoiceFile = FileField(null=True, verbose_name='Invoice', upload_to='uploads/')
@@ -303,13 +325,12 @@ class Invoice(Model):
     def __str__(self):
         return self.invoiceID
     
-class Delivery(Model):
+class OrderDelivery(Model):
     deliveryID = AutoField(primary_key=True)
-    inviceID = ForeignKey(Invoice, on_delete=CASCADE)
     orderID = ForeignKey(Order, on_delete=CASCADE)
-    deliveryDate = DateField(default=datetime.date.today)
-    deliveryTime = CharField(max_length=15)
-    deliveryImg = ImageField(upload_to='static/')
+    suborderID = ForeignKey(SubOrder, on_delete=CASCADE, null=True)
+    deliveryDate = DateTimeField(default=now)
+    deliveryImg = ImageField(upload_to='static/', null=True, blank=True)
     def __str__(self):
         return self.deliveryID
 #endregion
@@ -318,7 +339,7 @@ class Delivery(Model):
 class BulkBuy(Model): 
     bulkBuyID = AutoField(primary_key=True)
     bulkBuyNo = CharField(max_length=11, default='0000000000')
-    bulkBuyDate = DateField(default=datetime.date.today)
+    bulkBuyDate = DateTimeField(default=now)
     bulkBuyExpDate = DateField(null=True)
     userID = ForeignKey(CustomUser, on_delete=CASCADE) #customer who has placed the bulk order
     response_accept = BooleanField(null=True) #True when bulk buy offer of the vendor is accepted by the customer
@@ -341,7 +362,7 @@ class BulkBuyResponse(Model):
     bbrID = AutoField(primary_key=True)
     bulkBuyID = ForeignKey(BulkBuy, on_delete=CASCADE, related_name='bulkbuyid_bbr')
     response_userID = ForeignKey(CustomUser, on_delete=CASCADE)
-    response_date = DateField(default=datetime.date.today)
+    response_date = DateTimeField(default=now)
     response_remark = CharField(max_length=250, default='Pending') #response from the customer whether to accept or not
     response_status = BooleanField() #responded from the vendor
     response_remark_date=DateField(null=True)
@@ -369,6 +390,15 @@ class Notification(Model):
     dateTime = DateField(default=now)
     notificationText = CharField(max_length=200)
     userID = ForeignKey(CustomUser, on_delete=CASCADE)
+    def __str__(self):
+        return self.id
+    
+class UserMessage(Model):
+    id=AutoField(primary_key=True)
+    msgDate = DateTimeField(default=now)
+    name=CharField(max_length=100, verbose_name='Sender Name')
+    email=CharField(max_length=100, verbose_name='Sender Email')
+    msg = CharField(max_length=500, verbose_name='Message')
     def __str__(self):
         return self.id
 #endregion

@@ -27,11 +27,14 @@
                 <span class="arrow_carrot-down"></span>
                 {% if login_user != 'Guest!' %}
                 <ul>
-                    <!-- <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>{% if user_type == '1' %}Seller Hub{% else %}My Profile{% endif %}</a></li> -->
-                    {% if user_approved == False %}
-                    <li><a href="{% url 'profile-auth' %}"><i class="fa fa-user"></i>{% if user_type == '1' %}Request for Seller Hub{% else %}Seller Hub{% endif %}</a></li>
+                    {% if user_type == '1' %}
+                        {% if user_approved == True %}
+                        <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>Seller Hub</a></li>
+                        {% else %}
+                        <li><a href="{% url 'profile-auth' %}"><i class="fa fa-user"></i>Request for Seller Hub</a></li>
+                        {% endif %}
                     {% else %}
-                    <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>{% if user_type == '1' %}Seller Hub{% else %}My Profile{% endif %}</a></li>
+                        <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>My Profile</a></li>
                     {% endif %}
                     <li><a href="{% url 'orders' %}">My Orders</a></li>
                     <li><a href="{% url 'logout' %}">Log Out</a></li>
@@ -64,7 +67,7 @@
         </div>
         <div class="humberger__menu__contact">
             <ul>
-                <li><i class="fa fa-envelope"></i> farmerharvest@billionnextbop.com</li>
+                <li><i class="fa fa-envelope"></i> connect@farmerharvest.in</li>
                 <li>Free Shipping for all Orders above ₹999/-</li>
             </ul>
         </div>
@@ -79,7 +82,7 @@
                     <div class="col-lg-6 col-md-6">
                         <div class="header__top__left">
                             <ul>
-                                <li><i class="fa fa-envelope"></i> farmerharvest@billionnextbop.com</li>
+                                <li><i class="fa fa-envelope"></i> connect@farmerharvest.in</li>
                                 <li>Free Shipping for all Orders above ₹999/-</li>
                             </ul>
                         </div>
@@ -107,10 +110,14 @@
                                         <li><a href="{% if login_user == 'Guest!' %}{% url 'login' %}{% endif %}"><i class="fa fa-user"></i> {% if login_user == 'Guest!' %}Login{% else %}{{login_user}}{% endif %}</a>
                                             {% if login_user != 'Guest!' %}
                                             <ul class="header__menu__dropdown">
-                                                {% if user_approved == False %}
-                                                <li><a href="{% url 'profile-auth' %}"><i class="fa fa-user"></i>{% if user_type == '1' %}Request for Seller Hub{% else %}Seller Hub{% endif %}</a></li>
+                                                {% if user_type == '1' %}
+                                                    {% if user_approved == True %}
+                                                    <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>Seller Hub</a></li>
+                                                    {% else %}
+                                                    <li><a href="{% url 'profile-auth' %}"><i class="fa fa-user"></i>Request for Seller Hub</a></li>
+                                                    {% endif %}
                                                 {% else %}
-                                                <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>{% if user_type == '1' %}Seller Hub{% else %}My Profile{% endif %}</a></li>
+                                                    <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>My Profile</a></li>
                                                 {% endif %}
                                                 <li><a href="{% url 'orders' %}">My Orders</a></li>
                                                 <li><a href="{% url 'logout' %}">Log Out</a></li>

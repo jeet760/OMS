@@ -1,5 +1,5 @@
 from django.forms import ModelForm, Form, TextInput, PasswordInput, CharField, Textarea, Select, FileInput, DateInput
-from .models import Item, Order, CustomUser, OrderDetails, Invoice, FPOAuthorisationDocs
+from .models import Item, Order, CustomUser, OrderDetails, OrderInvoice, FPOAuthorisationDocs
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import get_user_model
 
@@ -304,7 +304,7 @@ class OrderDetailsForm(ModelForm):
 #region Invoice form
 class InvoiceForm(ModelForm):
     class Meta:
-        model = Invoice
+        model = OrderInvoice
         fields = ['invoiceNo', 'invoiceDate', 'invoiceFile']
         widgets = {
             'invoiceNo': TextInput(attrs={
@@ -320,11 +320,12 @@ class InvoiceForm(ModelForm):
             }),
         }
 
-    def save(self, commit=True, userID=None, orderID = None):
+    def save(self, commit=True, userID=None, orderID = None, suborderID=None):
         invoice = super().save(commit=False)
         if commit:
             invoice.orderID_id = orderID
             invoice.userID_id = userID
+            invoice.suborderID_id = suborderID
             invoice.save()
         return invoice
     
