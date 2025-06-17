@@ -79,16 +79,20 @@ class CustomUser(AbstractUser):
     supply_place = CharField(max_length=70, choices=STATES)
     gst_tmt = CharField(max_length=20, choices=GST_TREATMENT)#gst treatment
     """Billing Address"""
-    userAddress = CharField(max_length=200)
-    userCity = CharField(max_length=50)
-    userState = CharField(max_length=20, choices=STATES)
-    pinCode = CharField(max_length=6)
+    contactPerson = CharField(max_length=50, null=True, blank=True)
+    contactNo = CharField(max_length=15, null=True, blank=True)
+    userAddress = CharField(max_length=200,null=True)
+    userCity = CharField(max_length=50,null=True)
+    userState = CharField(max_length=20, choices=STATES,null=True)
+    pinCode = CharField(max_length=6,null=True)
     """Shipping Address"""
-    userAddress1 = CharField(max_length=200)
-    userCity1 = CharField(max_length=50)
-    userState1 = CharField(max_length=20, choices=STATES)
-    pinCode1 = CharField(max_length=6)
-    userNote = CharField(max_length=300, default='', blank=True)#remarks from user
+    contactPerson1 = CharField(max_length=50, null=True, blank=True)
+    contactNo1 = CharField(max_length=15, null=True, blank=True)
+    userAddress1 = CharField(max_length=200,null=True)
+    userCity1 = CharField(max_length=50,null=True)
+    userState1 = CharField(max_length=20, choices=STATES,null=True)
+    pinCode1 = CharField(max_length=6,null=True)
+    userNote = CharField(max_length=300,null=True, blank=True)#remarks from user
     """Account attributes"""
     password = CharField(max_length=20, default='Admin@1234')
     userApproved = BooleanField(null=True)
@@ -122,6 +126,8 @@ class UserShippingAddresses(Model):
     userCity1 = CharField(max_length=50)
     userState1 = CharField(max_length=20, choices=STATES)
     pinCode1 = CharField(max_length=6)
+    contactPerson1 = CharField(max_length=50, null=True, blank=True)
+    contactNo1 = CharField(max_length=15, null=True, blank=True)
     address_lat1 = FloatField(null=True, blank=True)
     address_long1 = FloatField(null=True, blank=True)
     setDefault = BooleanField(default=False, null=True)
@@ -135,6 +141,8 @@ class UserBillingAddresses(Model):
     userCity = CharField(max_length=50)
     userState = CharField(max_length=20, choices=STATES)
     pinCode = CharField(max_length=6)
+    contactPerson = CharField(max_length=50, null=True, blank=True)
+    contactNo = CharField(max_length=15, null=True, blank=True)
     address_lat = FloatField(null=True, blank=True)
     address_long = FloatField(null=True, blank=True)
     setDefault = BooleanField(default=False, null=True)

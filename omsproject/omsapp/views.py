@@ -5,8 +5,9 @@ from django.db import connection
 from django.db.models import Q, Max, Min, Sum, Count, OuterRef, Subquery, F
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 from django.utils import timezone
+from django.urls import reverse
 from datetime import datetime
 import json
 import requests
@@ -17,6 +18,12 @@ from .forms import ItemForm, UserRegistrationForm, UserLoginForm, OrderForm, Ord
 from django.contrib.gis.geoip2 import GeoIP2
 from .cart import Cart
 from .deliveryschedule import DeliverySchedule
+import razorpay
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from urllib.parse import urlparse
+
+
 
 #region StartPage_CommonPages
 def landing_page(request, category=None,fpo=None, region=None):
@@ -79,6 +86,7 @@ def shop(request, category=None, fpo=None, region=None):
     items = Item.objects.filter(itemActive=True).order_by('-itemInStock')
     item_sort = request.GET.get('sort')
     user_name = 'Guest!'#display the username
+    user_type = ''
     user_approved = ''
     pincode='Delivery Pincode'
     pincode_area = ''
@@ -199,14 +207,14 @@ def shopping_cart(request):
     pincode='Delivery Pincode'
     user_type=''
     user_approved=''
-    billing_address = None
+    billing_addresses = None
     shipping_addresses = None
     if request.user.is_authenticated:
         user_name = request.user.last_name
         user_type=request.user.userType
         user_approved = request.user.userApproved
         pincode = request.session.get('pincode')
-        billing_address = request.user.userAddress +', '+ request.user.userCity +', '+ STATE_CHOICES(request.user.userState) +', '+ request.user.pinCode
+        billing_addresses = UserBillingAddresses.objects.filter(userID_id=request.user.pk)
         shipping_addresses = UserShippingAddresses.objects.filter(userID_id=request.user.pk)
     shopping_cart_context = {
         'user_authenticated':request.user.is_authenticated, 
@@ -223,7 +231,7 @@ def shopping_cart(request):
         'timeSeries':ds.timeSeries, 
         'login_user':user_name,
         'pincode':pincode,
-        'billing_address':billing_address,
+        'billing_addresses':billing_addresses,
         'shipping_addresses':shipping_addresses,
         'states':STATES,
         'item_stock':item_stock
@@ -412,8 +420,10 @@ def register(request):
         if request.user.is_authenticated == False: #update == None:#New registration
             if form.is_valid():
                 user = form.save(param_password=request.POST['phone'])
-                UserBillingAddresses.objects.create(userID_id=user.pk,userAddress=user.userAddress1, userCity=user.userCity1, userState=user.userState1, pinCode=user.pinCode1, address_lat=0.00, address_long=0.00, setDefault=True)
-                UserShippingAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress1, userCity1=user.userCity1, userState1=user.userState1, pinCode1=user.pinCode1, address_lat1=0.00, address_long1=0.00, setDefault=True)
+                contact_person = user.last_name
+                contact_no = user.phone
+                UserBillingAddresses.objects.create(userID_id=user.pk,userAddress=user.userAddress, userCity=user.userCity, userState=user.userState, pinCode=user.pinCode, contactPerson=contact_person, contactNo=contact_no, address_lat=0.00, address_long=0.00, setDefault=True)
+                UserShippingAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress1, userCity1=user.userCity1, userState1=user.userState1, pinCode1=user.pinCode1, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=0.00, address_long1=0.00, setDefault=True)
                 if user.userType != '1':
                     CustomUser.objects.filter(pk=user.id).update(userApproved=True,approvedOn=datetime.today(),isActive=True,activatedOn=datetime.today())
                     login(request, user)
@@ -466,12 +476,14 @@ def profile_view(request):
         user_type=''
     shipping_addresses = UserShippingAddresses.objects.filter(userID = request.user.pk)
     billing_addresses = UserBillingAddresses.objects.filter(userID = request.user.pk)
+    contact_person = [CustomUser.objects.get(pk=request.user.pk).contactPerson, CustomUser.objects.get(pk=request.user.pk).contactPerson1, CustomUser.objects.get(pk=request.user.pk).contactNo, CustomUser.objects.get(pk=request.user.pk).contactNo1]
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
     total_price = cart.get_total_price()
     register_context = {
         'userform': form,
         'user':user,
+        'contact_person':contact_person,
         'login_user':user_name,
         'user_type':user_type,
         'total_qty':total_qty,
@@ -613,23 +625,32 @@ def add_address(request):
         userCity = request.POST.get('userCity')
         userState = request.POST.get('userState')
         pinCode = request.POST.get('pinCode')
+        contactPerson = request.POST.get('contactPerson')
+        contactNo = request.POST.get('contactNo')
         setDefault = True
         type_of_address = request.POST.get('selectAddress')
         if type_of_address == 'bill':
             UserBillingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
-            UserBillingAddresses.objects.get_or_create(userID_id=userID, userAddress=userAddress, userCity=userCity,userState=userState,pinCode=pinCode, address_lat=0.00, address_long=0.00, setDefault=setDefault)
-            CustomUser.objects.filter(pk=userID).update(userAddress=userAddress, userCity=userCity,userState=userState,pinCode=pinCode)
+            UserBillingAddresses.objects.get_or_create(userID_id=userID, userAddress=userAddress, userCity=userCity,userState=userState,pinCode=pinCode, contactNo=contactNo, contactPerson=contactPerson, address_lat=0.00, address_long=0.00, setDefault=setDefault)
+            CustomUser.objects.filter(pk=userID).update(userAddress=userAddress, userCity=userCity,userState=userState,pinCode=pinCode,contactNo=contactNo, contactPerson=contactPerson)
         elif type_of_address == 'ship':
             UserShippingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
-            UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode, address_lat1=0.00, address_long1=0.00, setDefault=setDefault)
-            CustomUser.objects.filter(pk=userID).update(userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode)
+            UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=0.00, address_long1=0.00, setDefault=setDefault)
+            CustomUser.objects.filter(pk=userID).update(userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson)
         elif type_of_address == 'both':
             UserBillingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
-            UserBillingAddresses.objects.get_or_create(userID_id=userID, userAddress=userAddress, userCity=userCity,userState=userState,pinCode=pinCode, address_lat=0.00, address_long=0.00, setDefault=setDefault)
+            UserBillingAddresses.objects.get_or_create(userID_id=userID, userAddress=userAddress, userCity=userCity,userState=userState,pinCode=pinCode,contactNo=contactNo, contactPerson=contactPerson, address_lat=0.00, address_long=0.00, setDefault=setDefault)
             UserShippingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
-            UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode, address_lat1=0.00, address_long1=0.00, setDefault=setDefault)
+            UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=0.00, address_long1=0.00, setDefault=setDefault)
             CustomUser.objects.filter(pk=userID).update(userAddress=userAddress, userCity=userCity,userState=userState,pinCode=pinCode, userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode)
-    return redirect('user-form')    
+    
+    referer = request.META.get('HTTP_REFERER')
+    parsed_url = urlparse(referer)
+    path_only = parsed_url.path  # e.g., /some/path/
+    if path_only == '/shoppingcart':
+        return redirect('shoppingcart')    
+    else:
+        return redirect('user-form')    
 
 def update_profile(request):
     if request.user.is_authenticated and request.method == 'POST':
@@ -640,43 +661,66 @@ def update_profile(request):
         CustomUser.objects.filter(pk=userID).update(last_name=last_name,email=email,phone1=phone1)
     return redirect('user-form')
 
-def update_billiing_address(request):
-    if request.user.is_authenticated and request.method == 'POST':
-        userID = request.user.pk
-        userAddress = request.POST.get('userAddress')
-        userCity=request.POST.get('userCity')
-        userState = request.POST.get('userState')
-        pinCode = request.POST.get('pinCode')
-        CustomUser.objects.filter(pk=userID).update(userAddress=userAddress, userCity=userCity, userState=userState, pinCode=pinCode)
-    return redirect('user-form')
-
 def fetch_shipping_address(request, id):
     if request.user.is_authenticated:
-        address = get_object_or_404(UserShippingAddresses, pk=id)
-        userID = address.userID.pk
-        userAddress = address.userAddress1
-        userCity=address.userCity1
-        userState = address.userState1
-        pinCode = address.pinCode1
+        q = request.GET.get('q')
+        if q == 'bill':
+            address = get_object_or_404(UserBillingAddresses, pk=id)
+            userID = address.userID.pk
+            userAddress = address.userAddress
+            userCity=address.userCity
+            userState = address.userState
+            pinCode = address.pinCode
+            contactPerson = address.contactPerson
+            contactNo = address.contactNo
+        elif q == 'ship':
+            address = get_object_or_404(UserShippingAddresses, pk=id)
+            userID = address.userID.pk
+            userAddress = address.userAddress1
+            userCity=address.userCity1
+            userState = address.userState1
+            pinCode = address.pinCode1
+            contactPerson = address.contactPerson1
+            contactNo = address.contactNo1
+
         address_context = {
             'userID':userID,
             'userAddress':userAddress,
             'userCity':userCity,
             'userState':userState,
             'pinCode':pinCode,
+            'contactPerson':contactPerson,
+            'contactNo':contactNo,
             'addressID':id
         }
     return JsonResponse({'address_context':address_context})
 
-def update_shipping_address(request, id):
+def update_billiing_address(request, id):
     if request.user.is_authenticated and request.method == 'POST':
         userID = request.user.pk
         id=request.POST.get('addressID')
+        userAddress = request.POST.get('userAddress')
+        userCity=request.POST.get('userCity')
+        userState = request.POST.get('userState')
+        pinCode = request.POST.get('pinCode')
+        contactPerson= request.POST.get('contactPerson')
+        contactNo = request.POST.get('contactNo')
+        CustomUser.objects.filter(pk=userID).update(userAddress=userAddress, userCity=userCity, userState=userState, pinCode=pinCode, contactPerson=contactPerson, contactNo=contactNo)
+        UserBillingAddresses.objects.filter(pk=id, userID_id=userID).update(userAddress=userAddress, userCity=userCity, userState=userState, pinCode=pinCode, contactPerson=contactPerson, contactNo=contactNo)
+    return redirect('user-form')
+
+def update_shipping_address(request, id):
+    if request.user.is_authenticated and request.method == 'POST':
+        userID = request.user.pk
+        id=request.POST.get('addressID1')
         userAddress = request.POST.get('userAddress1')
         userCity=request.POST.get('userCity1')
         userState = request.POST.get('userState1')
         pinCode = request.POST.get('pinCode1')
-        UserShippingAddresses.objects.filter(pk=id, userID_id=userID).update(userAddress1=userAddress, userCity1=userCity, userState1=userState, pinCode1=pinCode)
+        contactPerson= request.POST.get('contactPerson1')
+        contactNo = request.POST.get('contactNo1')
+        CustomUser.objects.filter(pk=userID).update(userAddress1=userAddress, userCity1=userCity, userState1=userState, pinCode1=pinCode, contactPerson1=contactPerson, contactNo1=contactNo)
+        UserShippingAddresses.objects.filter(pk=id, userID_id=userID).update(userAddress1=userAddress, userCity1=userCity, userState1=userState, pinCode1=pinCode, contactPerson1=contactPerson, contactNo1=contactNo)
     return redirect('user-form')
 
 def set_default_address(request, id):
@@ -973,14 +1017,12 @@ def add_to_cart(request, product_id):
     elif source == 'shop':
         return redirect('shop')
 
-def update_cart(request, product_id):
+def update_cart(request):
     cart = Cart(request)
+    data = json.loads(request.body)
+    product_id = data.get('item_id')
+    selectedQty = data.get('quantity')
     product = get_object_or_404(Item, itemID=product_id)
-    try:
-        selectedQty = request.POST['selectQuantity']
-    except Exception as ex:
-        print(ex)
-        selectedQty = 1
     qty = int(selectedQty)
     cart.add(product=product, quantity=qty, update_quantity=True)
     return redirect('shoppingcart')
@@ -1051,7 +1093,7 @@ def CreateOrder(request, param_transportation_cost, param_total_price, param_gst
                 return redirect('checkout')
 
             clear_session_variables(request)
-            return redirect('order_successful', 'Order')
+            return redirect(f"{reverse('order_successful')}?success={'Order'}")
         else:
             pay_type = request.GET['pay']
             if pay_type == 'online':
@@ -1064,7 +1106,7 @@ def CreateOrder(request, param_transportation_cost, param_total_price, param_gst
                 request.session['pay_ref'] = 'ONL'+str(int(timezone.now().timestamp() * 1000))#this will be updated with razorpay reference number
                 create_order(request, param_transportation_cost, param_total_price, param_gst_amount, param_deduction)
                 clear_session_variables(request)
-                return redirect('order_successful', 'Order')
+                return redirect(f"{reverse('order_successful')}?success={'Order'}")
             else:
                 return render('shoppingcart')
     else:
@@ -1134,7 +1176,7 @@ def create_order(request, param_transportation_cost, param_total_price, param_gs
             order_context.save()
             order_id = Order.objects.all().latest('orderID').orderID
             if SaveOrderDetails(request, order_id, user_id) == True:
-                return redirect('order_successful', 'Order')
+                return redirect(f"{reverse('order_successful')}?success={'Order'}")
                 #return render(request,'success.html',success_context)#HttpResponse('<h2>Order Placed Successfully!</h2>')
             else:
                 return render(request,'404.html',{'source':'Order'})
@@ -1184,7 +1226,8 @@ def SaveOrderDetails(request,param_orderID,param_user_id):
         return False
         #print(ex)
 
-def order_successful(request, type):
+def order_successful(request):
+    type = request.GET.get('success')
     user_name = request.user.last_name
     pincode = request.session.get('pincode')
     if type == 'Bulk':
@@ -1457,7 +1500,7 @@ def bulk_buy_order_place(request):
                 itemUnit = row.get("itemUnit")
                 itemPrice = row.get("itemPrice")
                 BulkBuyDetails.objects.create(bulkBuyID=bulkBuyID, itemName=itemName, itemSpec=itemSpec,itemQty=itemQty, itemUnit=itemUnit, itemPrice=itemPrice)
-    return redirect('order_successful', 'Bulk')
+    return redirect(f"{reverse('order_successful')}?success={'Order'}")
     #return redirect('bulk-buy')
 
 def bulk_buy_order_response(request, bulkBuyID):
@@ -1788,4 +1831,42 @@ def dashboard(request):
         'bulk_buy_response':bulk_buy_orders_responded
     }
     return render(request, 'dashboard.html', {'dashboard':dashboard_context, 'login_user':user_name})
+#endregion
+
+#region Payment module (Razorpay integration)
+def initiate_payment(request):
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+    payment = client.order.create({
+        "amount": 50000,  # Amount in paise (500.00 INR)
+        "currency": "INR",
+        "payment_capture": '1'  # auto capture after payment
+    })
+
+    context = {
+        'payment': payment,
+        'razorpay_key_id': settings.RAZORPAY_KEY_ID
+    }
+    return render(request, 'payment.html', context)
+
+@csrf_exempt
+def payment_success(request):
+    if request.method == "POST":
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+        params_dict = {
+            'razorpay_order_id': request.POST.get('razorpay_order_id'),
+            'razorpay_payment_id': request.POST.get('razorpay_payment_id'),
+            'razorpay_signature': request.POST.get('razorpay_signature')
+        }
+
+        try:
+            client.utility.verify_payment_signature(params_dict)
+            # ✅ Payment verified
+            return render(request, 'success.html', {'payment_id': params_dict['razorpay_payment_id']})
+        except razorpay.errors.SignatureVerificationError:
+            # ❌ Invalid signature
+            return HttpResponseBadRequest("Payment verification failed")
+    else:
+        return HttpResponseBadRequest("Invalid request")
 #endregion

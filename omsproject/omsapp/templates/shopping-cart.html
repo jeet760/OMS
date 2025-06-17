@@ -15,6 +15,32 @@
     sup{
         color: red;
     }
+    .item_qty_div{
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        width: fit-content;
+        background-color: #f9f9f9;
+    }
+    .btn_qty{
+        padding: 4px 10px;
+        font-size: 16px;
+        border: none;
+        background-color: #e0e0e0;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+    .input_qty{
+        width: 50px;
+        text-align: center;
+        padding: 4px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+    }
 </style>
     <!-- Shoping Cart Section Begin -->
     <section class="shoping-cart spad">
@@ -22,30 +48,29 @@
             <div class="row">
                 <div class="col-lg-12">
                     <div class="shoping__cart__table">
-                        <table>
+                        <table id="itemTable">
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th style="width: 300px;">Item Image</th>
+                                    <th>Item Image</th>
                                     <th class="shoping__product">Name</th>
                                     <th>Price (in ₹)</th>
                                     <th>Qty.</th>
                                     <th>Total (in ₹)</th>
-                                    <th>Update</th>
                                     <th>Remove</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for item in cart %}
-                                <form method="post" id="ordereditemform" action="{% url 'update_cart' item.product.itemID %}">
+                                <form method="post" id="ordereditemform">
                                     {% csrf_token %}
                                 <tr>
                                     <td>{{forloop.counter}}</td>
-                                    <td>
+                                    <td style="text-align: center; vertical-align: middle;">
                                         {% if item.product.itemInStock %}
-                                        <img src="{{item.product.itemImg.url}}" alt="" height="50px" width="50px" style="padding: 5px 5px 5px 5px;">
+                                        <img src="{{item.product.itemImg.url}}" alt="" height="50px" width="50px">
                                         {%else%}
-                                        <img src="{{item.product.itemImg.url}}" class="out-of-stock" alt="" height="50px" width="50px" style="padding: 5px 5px 5px 5px;">
+                                        <img src="{{item.product.itemImg.url}}" class="out-of-stock" alt="" height="50px" width="50px">
                                         {% endif %}
                                     </td>
                                     <td class="shoping__cart__item">
@@ -61,25 +86,18 @@
                                     <td class="shoping__cart__price">
                                         {{ item.price }}
                                     </td>
-                                    <td class="shoping__cart__quantity">
-                                        <div class="quantity">
-                                            <div class="pro-qty">
-                                                <input type="text" value="{{ item.quantity }}" name="selectQuantity">
-                                            </div>
+                                    <td>
+                                        <div class="item_qty_div">
+                                            <button type="button" class="btn_qty" onclick="changeQuantity(this, -1)">−</button>
+                                            <input type="text" class="input_qty" data-item-id="{{item.product.itemID}}" name="selectQuantity" value="{{ item.quantity }}" min="1" style="width: 60px; text-align: center;">
+                                            <button type="button" class="btn_qty" onclick="changeQuantity(this, 1)">+</button>
                                         </div>
                                     </td>
                                     <td class="shoping__cart__total">
                                         {{ item.total_price }}
                                     </td>
-                                    <td class="shoping__cart__item__close">
-                                        <button type="submit" id={{item.itemID}} name="updateItem" class="btn btn-info btn-sm">
-                                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
-                                                <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/>
-                                            </svg>
-                                        </button>
-                                    </td>
                                     <td>
-                                        <a class="btn btn-danger btn-sm" href="{% url 'remove_from_cart' item.product.itemID %}">
+                                        <a href="{% url 'remove_from_cart' item.product.itemID %}" class="inline-flex items-center justify-center px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700">
                                             <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
                                                 <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/>
                                             </svg>
@@ -118,20 +136,17 @@
                                 <input type="text" placeholder="Enter your coupon code">
                                 <button type="submit" class="site-btn">APPLY COUPON</button>
                             </form> -->
-                            {% if billing_address != None %}
                             <h5>Billing Address</h5>
-                            {{billing_address}}
-                            <h5>Shipping Address</h5>
                             <ol>
-                                {% for address in shipping_addresses %}
+                                {% for bill_address in billing_addresses %}
                                 <li>
                                     <label>
                                         {% for state_code in states %}
-                                        {% if state_code.0 == address.userState1 %}
-                                        {% if address.setDefault %}
-                                            <input type="radio" name="address" value="{{address.id}}" checked>{{address.userAddress1}}, {{address.userCity1}}, {{state_code.1}}, {{address.pinCode1}}
+                                        {% if state_code.0 == bill_address.userState %}
+                                        {% if bill_address.setDefault %}
+                                            <input type="radio" name="bill_address" value="{{bill_address.id}}" checked>{{bill_address.userAddress}}, {{bill_address.userCity}}, {{state_code.1}}, {{bill_address.pinCode}}
                                         {% else %}
-                                        <input type="radio" name="address" value="{{address.id}}">{{address.userAddress1}}, {{address.userCity1}}, {{state_code.1}}, {{address.pinCode1}}
+                                        <input type="radio" name="bill_address" value="{{bill_address.id}}">{{bill_address.userAddress}}, {{bill_address.userCity}}, {{state_code.1}}, {{bill_address.pinCode}}
                                         {% endif %}
                                         {% endif %}
                                         {% endfor %}
@@ -139,8 +154,26 @@
                                 </li>
                                 {% endfor %}
                             </ol>
-                            {% endif %}
+                            <h5>Shipping Address</h5>
+                            <ol>
+                                {% for ship_address in shipping_addresses %}
+                                <li>
+                                    <label>
+                                        {% for state_code in states %}
+                                        {% if state_code.0 == ship_address.userState1 %}
+                                        {% if ship_address.setDefault %}
+                                            <input type="radio" name="ship_address" value="{{ship_address.id}}" checked>{{ship_address.userAddress1}}, {{ship_address.userCity1}}, {{state_code.1}}, {{ship_address.pinCode1}}
+                                        {% else %}
+                                        <input type="radio" name="ship_address" value="{{ship_address.id}}">{{ship_address.userAddress1}}, {{ship_address.userCity1}}, {{state_code.1}}, {{ship_address.pinCode1}}
+                                        {% endif %}
+                                        {% endif %}
+                                        {% endfor %}
+                                    </label>
+                                </li>
+                                {% endfor %}
+                            </ol>
                         </div>
+                        <button type="button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onclick="openModal('modalAddAddress')">Add Address</button>
                     </div>
                 </div>
                 <div class="col-lg-6">
@@ -220,4 +253,132 @@
         </div>
     </section>
     <!-- Shoping Cart Section End -->
+    <div class="modal-overlay" id="modalAddAddress">
+        <div class="modal-box">
+          <div id="modal-content">
+            {% include 'add-address.html'%}
+          </div>
+        </div>
+    </div>
+    <style>
+        /* Modal background */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+    
+        /* Modal box */
+        .modal-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 1000px;
+            text-align: center;
+            position: relative;
+        }
+    
+        .modal-box h2 {
+            margin-top: 0;
+        }
+    
+        .close-btn {
+            position: absolute;
+            top: 10px; right: 15px;
+            cursor: pointer;
+            font-size: 20px;
+            border: none;
+            background: none;
+            background: #ef0808;
+        }
+    
+        .btn {
+            padding: 8px 16px;
+            margin-top: 10px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    
+        .btn:hover {
+            background: #2980b9;
+        }
+    </style>
+    <script>
+      function openModal(modalID) {
+          document.getElementById(modalID).style.display = 'flex';
+      }
+    
+      function closeModal(modalID) {
+          document.getElementById(modalID).style.display = 'none';
+      }
+
+      function getCSRFToken() {
+            const name = 'csrftoken';
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                return decodeURIComponent(cookie.substring(name.length + 1));
+            }
+            }
+            return null;
+        }
+
+      function changeQuantity(button, amount) {
+            const row = button.closest("tr");
+            const input = row.querySelector("input[name='selectQuantity']");
+            let itemID = input.dataset.itemId;
+            let current = parseInt(input.value) || 1;
+            current += amount;
+            if (current < parseInt(input.min)) current = parseInt(input.min);
+            input.value = current;
+
+
+            const csrfToken = getCSRFToken();
+            let url = "{% url 'update_cart' %}";
+
+            fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({
+                item_id: itemID,
+                quantity: current
+            })
+            })
+            .then(response => {
+            if (!response.ok) {
+                // Not a 200 OK response
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            //return response.json();  // Only parse if it's valid JSON
+            })
+            .then(data => {
+                console.log("Success:", data);
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        }
+
+        document.getElementById("orderForm").addEventListener("submit", function(event) {
+            const tableBody = document.querySelector("#itemTable tbody");
+            const rowCount = tableBody.getElementsByTagName("tr").length;
+            console.log(tableBody);
+            if (rowCount === 0) {
+                event.preventDefault();  // Prevent form submission
+                alert("There is no item to place order! Please add item to proceed.");
+            }
+        });
+    </script>
 {% endblock %}

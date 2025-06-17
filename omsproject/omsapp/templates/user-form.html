@@ -135,7 +135,7 @@
                 {% endif %}
               </td>
               <td class="py-2 px-3">
-                <button type="button" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white" onclick="openModal('modalAddressDetails')">Edit</button>
+                <button type="button" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white" onclick="openBillingAddressModal('{{address.id}}')">Edit</button>
               </td>
             </tr>
             {% endfor %}
@@ -365,12 +365,12 @@
     </div>
   </div>
   <!-- Billing Addresses -->
-  <div class="modal-overlay" id="modalAddressDetails">
+  <div class="modal-overlay" id="modalBillingAddressDetails">
     <div class="modal-box">
       <div id="modal-content">
         <section id="billingdetailsedit">
-          <h2 class="text-xl font-semibold mb-4 text-gray-700">2. Billing Details</h2>
-          <form method="post" action="{% url 'update-billing' %}">
+          <h2 class="text-xl font-semibold mb-4 text-gray-700">2.1. Billing Details</h2>
+          <form method="post" action="{% url 'update-billing' 0 %}">
             {% csrf_token %}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="md:col-span-2">
@@ -389,10 +389,19 @@
                 <label for="pinCode" class="block text-gray-600 mb-2">Postcode</label>
                 {{userform.pinCode}}
               </div>
+              <div>
+                <label for="contactPerson" class="block text-gray-600 mb-2">Contact Person</label>
+                <input type="text" id="contactPerson" name="contactPerson" value="{{contact_person.0}}" placeholder="Address" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label for="contactNo" class="block text-gray-600 mb-2">Contact Number</label>
+                <input type="text" id="contactNo" name="contactNo" value="{{contact_person.2}}" placeholder="Address" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
             </div>
             <div class="flex justify-end space-x-4 pt-4">
-              <button type="button" class="px-6 py-2 bg-red-600 text-white border border-gray-300 rounded hover:bg-red-700" onclick="closeModal('modalAddressDetails')">Cancel</button>
+              <button type="button" class="px-6 py-2 bg-red-600 text-white border border-gray-300 rounded hover:bg-red-700" onclick="closeModal('modalBillingAddressDetails')">Cancel</button>
               <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">Submit</button>
+              <input type="hidden" name="addressID" id="addressID">
             </div>
           </form>
         </section>
@@ -404,7 +413,7 @@
     <div class="modal-box">
       <div id="modal-content">
         <section id="shippingdetailsedit">
-          <h2 class="text-xl font-semibold mb-4 text-gray-700">3. Shipping Details</h2>
+          <h2 class="text-xl font-semibold mb-4 text-gray-700">2.2. Shipping Details</h2>
           <form method="post" action="{% url 'update-shipping' 0 %}">
             {% csrf_token %}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -424,11 +433,19 @@
                 <label for="pinCode1" class="block text-gray-600 mb-2">Postcode</label>
                 {{userform.pinCode1}}
               </div>
+              <div>
+                <label for="contactPerson1" class="block text-gray-600 mb-2">Contact Person</label>
+                <input type="text" id="contactPerson1" name="contactPerson1" value="{{contact_person.1}}" placeholder="Address" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label for="contactNo1" class="block text-gray-600 mb-2">Contact Number</label>
+                <input type="text" id="contactNo1" name="contactNo1" value="{{contact_person.3}}" placeholder="Address" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
             </div>
             <div class="flex justify-end space-x-4 pt-4">
               <button type="button" class="px-6 py-2 bg-red-600 text-white border border-gray-300 rounded hover:bg-red-700" onclick="closeModal('modalShippingAddressDetails')">Cancel</button>
               <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">Submit</button>
-              <input type="hidden" name="addressID" id="addressID">
+              <input type="hidden" name="addressID1" id="addressID1">
             </div>
           </form>
         </section>
@@ -441,47 +458,7 @@
   <div class="modal-overlay" id="modalAddAddress">
     <div class="modal-box">
       <div id="modal-content">
-        <section>
-          <h2 class="text-xl font-semibold mb-4 text-gray-700">Add Address</h2>
-          <form method="post" action="{% url 'add-address' %}" >
-            {% csrf_token %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="md:col-span-2">
-                <label for="selectAddress" class="block text-gray-600 mb-2">Address Type</label>
-                <select name="selectAddress" id="selectAddress" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                  <option value="bill">Billing Address</option>
-                  <option value="ship">Shipping Address</option>
-                  <option value="both">Both</option>
-                </select>
-              </div>
-              <div class="md:col-span-2">
-                <label for="userAddress1" class="block text-gray-600 mb-2">Address</label>
-                <input type="text" id="shippingAddress" name="userAddress" placeholder="Street address, P.O. box" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
-              </div>
-              <div>
-                <label for="userCity1" class="block text-gray-600 mb-2">Town</label>
-                <input type="text" id="shippingTown" name="userCity" placeholder="City or Town" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
-              </div>
-              <div>
-                <label for="userState1" class="block text-gray-600 mb-2">State</label>
-                <select name="userState" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                  {% for state in states %}
-                  <option value="{{state.0}}">{{state.1}}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div>
-                <label for="pinCode1" class="block text-gray-600 mb-2">Postcode</label>
-                <input type="text" id="shippingPostcode" name="pinCode" placeholder="PIN code" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
-              </div>
-            </div>
-            <br>  
-            <div>
-              <button type="button" class="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700" onclick="closeModal('modalAddAddress')">Close</button>
-              <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add</button>
-            </div>
-          </form>
-        </section>
+        {% include 'add-address.html'%}
       </div>
     </div>
   </div>
@@ -544,9 +521,33 @@
       document.getElementById(modalID).style.display = 'none';
   }
 
-  function openShippingAddressModal(addressID){
+  function openBillingAddressModal(addressID){
+    document.getElementById('modalBillingAddressDetails').style.display = 'flex';
+    url = "{% url 'fetch-address' 0 %}?q=bill".replace('0',addressID);
+    fetch(url)
+    .then(response => response.json())
+        .then(data => {
+            if (data.address_context) {
+                const addr = data.address_context;
+                document.getElementById('userAddress').value = addr.userAddress;
+                document.getElementById('userCity').value = addr.userCity;
+                document.getElementById('userState').value = addr.userState;
+                document.getElementById('pinCode').value = addr.pinCode;
+                document.getElementById('contactPerson').value = addr.contactPerson;
+                document.getElementById('contactNo').value = addr.contactNo;
+                document.getElementById('addressID').value = addr.addressID;
+            } else {
+                alert('Failed to load address!');
+            }
+        })
+    .catch(error => {
+      alert(error);
+    });
+  }
+
+  function openShippingAddressModal(addressID1){
     document.getElementById('modalShippingAddressDetails').style.display = 'flex';
-    url = "{% url 'fetch-address' 0 %}".replace('0',addressID);
+    url = "{% url 'fetch-address' 0 %}?q=ship".replace('0',addressID1);
     fetch(url)
     .then(response => response.json())
         .then(data => {
@@ -556,7 +557,9 @@
                 document.getElementById('userCity1').value = addr.userCity;
                 document.getElementById('userState1').value = addr.userState;
                 document.getElementById('pinCode1').value = addr.pinCode;
-                document.getElementById('addressID').value = addr.addressID;
+                document.getElementById('contactPerson1').value = addr.contactPerson;
+                document.getElementById('contactNo1').value = addr.contactNo;
+                document.getElementById('addressID1').value = addr.addressID;
             } else {
                 alert('Failed to load address!');
             }

@@ -1,0 +1,54 @@
+{% load static %}
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<section>
+    <h2 class="text-xl font-semibold mb-4 text-gray-700">Add Address</h2>
+    <form method="post" action="{% url 'add-address' %}" >
+      {% csrf_token %}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="md:col-span-2">
+          <label for="selectAddress" class="block text-gray-600 mb-2">Address Type</label>
+          <select name="selectAddress" id="selectAddress" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <option value="bill">Billing Address</option>
+            <option value="ship">Shipping Address</option>
+            <option value="both">Both</option>
+          </select>
+        </div>
+        <div>
+          <label for="userAddress" class="block text-gray-600 mb-2">Address</label>
+          <input type="text" id="userAddress" name="userAddress" placeholder="Address" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+        </div>
+        <div>
+          <label for="userCity" class="block text-gray-600 mb-2">Town</label>
+          <input type="text" id="userCity" name="userCity" placeholder="City or Town" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+        </div>
+        <div>
+          <label for="userState" class="block text-gray-600 mb-2">State</label>
+          <select name="userState" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            {% for state in states %}
+            <option value="{{state.0}}">{{state.1}}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="pinCode" class="block text-gray-600 mb-2">Postcode</label>
+          <input type="text" id="pinCode" name="pinCode" placeholder="PIN code" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+        </div>
+        <div>
+          <label for="contactPerson" class="block text-gray-600 mb-2">Contact Person</label>
+          <input type="text" id="contactPerson" name="contactPerson" placeholder="Contact Person" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+        </div>
+        <div>
+          <label for="contactNo" class="block text-gray-600 mb-2">Contact Number</label>
+          <input type="text" id="contactNo" name="contactNo" placeholder="Contact Number" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+        </div>
+      </div>
+      <br>  
+      <div>
+        <button type="button" class="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700" onclick="closeModal('modalAddAddress')">Close</button>
+        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add</button>
+      </div>
+    </form>
+  </section>
