@@ -98,6 +98,29 @@
       }
     }
 
+    function filterTable(category) {
+      const filter = category.toLowerCase();
+      const table = document.getElementById("userTable");
+      const rows = document.querySelectorAll('#userTable tbody tr');
+
+      if (category.trim() != "All" ){
+        rows.forEach(row => {
+          const cells = row.getElementsByTagName('td');
+          const match = Array.from(cells).some(cell =>
+            cell.textContent.toLowerCase().includes(filter)
+          );
+          row.dataset.visible = match ? "true" : "false";
+        });
+      }
+      else{
+        rows.forEach(row => {
+          row.dataset.visible = "true";
+          row.style.display = ""; // Ensures it's actually visible
+        });
+      }
+      currentPage = 1;
+      paginate();
+    }
 
     function sortTable(n) {
       const table = document.getElementById("userTable");
@@ -170,9 +193,9 @@
       </div>
       <nav class="p-4 space-y-2">
         <a href="#dashboard" class="block p-2 hover:bg-gray-700 rounded">Dashboard</a>
+        <a href="#users" class="block p-2 hover:bg-gray-700 rounded">Users</a>
         <a href="#products" class="block p-2 hover:bg-gray-700 rounded">Products</a>
         <a href="#orders" class="block p-2 hover:bg-gray-700 rounded">Orders</a>
-        <a href="#users" class="block p-2 hover:bg-gray-700 rounded">Users</a>
         <a href="#settings" class="block p-2 hover:bg-gray-700 rounded">Settings</a>
         <a href="#notifications" class="block p-2 hover:bg-gray-700 rounded">Notifications</a>
         <a href="#analytics" class="block p-2 hover:bg-gray-700 rounded">Analytics</a>
@@ -211,33 +234,16 @@
           </div>
         </section>
 
-        <!-- Products -->
-        <section id="products" class="mt-10">
-          <h2 class="text-xl font-semibold mb-4">Products</h2>
-          <div class="bg-gray-800 p-4 shadow rounded">
-            <p>Product table and management interface goes here.</p>
-          </div>
-        </section>
-
-        <!-- Orders -->
-        <section id="orders" class="mt-10">
-          <h2 class="text-xl font-semibold mb-4">Orders</h2>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-gray-800 p-4 shadow rounded">Total Orders: <strong>{{total_orders}}</strong></div>
-            <div class="bg-gray-800 p-4 shadow rounded">Total Bulk Buys: <strong>{{total_bulkbuys}}</strong></div>
-          </div>
-        </section>
-
         <!-- Users -->
         <section id="users" class="mt-10">
           <h2 class="text-xl font-semibold mb-4">Users</h2>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-gray-800 p-4 shadow rounded">Total Users: <strong>{{total_users_no}}</strong></div>
-            <div class="bg-gray-800 p-4 shadow rounded">Total FPOs: <strong>{{total_fpo}}</strong></div>
-            <div class="bg-gray-800 p-4 shadow rounded">Total Businesses: <strong>{{total_business}}</strong></div>
-            <div class="bg-gray-800 p-4 shadow rounded">Total Institutions: <strong>{{total_institutions}}</strong></div>
-            <div class="bg-gray-800 p-4 shadow rounded">Total Overseas: <strong>{{total_overseas}}</strong></div>
-            <div class="bg-gray-800 p-4 shadow rounded">Total Individuals: <strong>{{total_individual}}</strong></div>
+            <a href="#" onclick="filterTable('All')"><div class="bg-gray-800 p-4 shadow rounded">Total Users: <strong>{{total_users_no}}</strong></div></a>
+            <a href="#" onclick="filterTable('FPO')"><div class="bg-gray-800 p-4 shadow rounded">Total FPOs: <strong>{{total_fpo}}</strong></div></a>
+            <a href="#" onclick="filterTable('Business')"><div class="bg-gray-800 p-4 shadow rounded">Total Businesses: <strong>{{total_business}}</strong></div></a>
+            <a href="#" onclick="filterTable('Institution')"><div class="bg-gray-800 p-4 shadow rounded">Total Institutions: <strong>{{total_institutions}}</strong></div></a>
+            <a href="#" onclick="filterTable('Overseas')"><div class="bg-gray-800 p-4 shadow rounded">Total Overseas: <strong>{{total_overseas}}</strong></div></a>
+            <a href="#" onclick="filterTable('Individual')"><div class="bg-gray-800 p-4 shadow rounded">Total Individuals: <strong>{{total_individual}}</strong></div></a>
           </div>
           <br>
           <div class="bg-gray-800 p-4 shadow rounded">
@@ -266,7 +272,7 @@
                 <tr class="border-b border-gray-700 hover:bg-gray-700">
                 {% endif %}
                 <!-- <tr class="border-b border-gray-700 hover:bg-gray-700"> -->
-                  <td class="py-2">{{forloop.counter}}</td>
+                  <td class="py-2">{{forloop.counter0}}</td>
                   <td class="py-2">{{user.first_name}}</td>
                   <td class="py-2">
                     {% if user.userType == '1' %}FPO
@@ -310,6 +316,24 @@
             <div id="pagination" class="mt-4 flex justify-center"></div>
           </div>
           {% block fpo_verify%}{% endblock %}
+        </section>
+
+
+        <!-- Products -->
+        <section id="products" class="mt-10">
+          <h2 class="text-xl font-semibold mb-4">Products</h2>
+          <div class="bg-gray-800 p-4 shadow rounded">
+            <p>Product table and management interface goes here.</p>
+          </div>
+        </section>
+
+        <!-- Orders -->
+        <section id="orders" class="mt-10">
+          <h2 class="text-xl font-semibold mb-4">Orders</h2>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-gray-800 p-4 shadow rounded">Total Orders: <strong>{{total_orders}}</strong></div>
+            <div class="bg-gray-800 p-4 shadow rounded">Total Bulk Buys: <strong>{{total_bulkbuys}}</strong></div>
+          </div>
         </section>
 
         <!-- Settings -->

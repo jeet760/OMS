@@ -251,12 +251,13 @@ def contact(request):
     total_price = cart.get_total_price()
     user_name = 'Guest!'#display the username
     user_type =''
-    user_approved = request.user.userApproved
+    user_approved = ''
     pincode='Delivery Pincode'
     pincode = request.session.get('pincode')
     if request.user.is_authenticated:
         user_name = request.user.last_name
         user_type = request.user.userType
+        user_approved = request.user.userApproved
     contact_context = {
         'clicked':'Contact',
         'total_qty':total_qty,
@@ -644,13 +645,15 @@ def add_address(request):
             UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=0.00, address_long1=0.00, setDefault=setDefault)
             CustomUser.objects.filter(pk=userID).update(userAddress=userAddress, userCity=userCity,userState=userState,pinCode=pinCode, userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode)
     
-    referer = request.META.get('HTTP_REFERER')
-    parsed_url = urlparse(referer)
-    path_only = parsed_url.path  # e.g., /some/path/
-    if path_only == '/shoppingcart':
-        return redirect('shoppingcart')    
+        referer = request.META.get('HTTP_REFERER')
+        parsed_url = urlparse(referer)
+        path_only = parsed_url.path  # e.g., /some/path/
+        if path_only == '/shoppingcart':
+            return redirect('shoppingcart')    
+        else:
+            return redirect('user-form')
     else:
-        return redirect('user-form')    
+        return redirect('login')
 
 def update_profile(request):
     if request.user.is_authenticated and request.method == 'POST':

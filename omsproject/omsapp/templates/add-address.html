@@ -5,7 +5,7 @@
 
 <section>
     <h2 class="text-xl font-semibold mb-4 text-gray-700">Add Address</h2>
-    <form method="post" action="{% url 'add-address' %}" >
+    <form id="addressForm" method="post" action="{% url 'add-address' %}" >
       {% csrf_token %}
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="md:col-span-2">
@@ -52,3 +52,24 @@
       </div>
     </form>
   </section>
+  <script>
+    document.getElementById("addressForm").addEventListener("submit", function(event) {      
+      const form = event.target;
+      const inputs = form.querySelectorAll("input, select");
+      let isValid = true;
+      inputs.forEach((field) => {
+        if (field.value.trim() === "") {
+          isValid = false;
+          field.style.border = "2px solid red"; // Optional visual cue
+        } else {
+          field.style.border = ""; // Reset style
+        }
+      });
+      if (!isValid) {
+        event.preventDefault();
+        alert("Please fill in all required fields.");
+      } else {
+        form.submit(); // All fields are valid — submit the form
+      }
+    });
+  </script>
