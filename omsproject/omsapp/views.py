@@ -1093,7 +1093,7 @@ def CreateOrder(request, param_transportation_cost, param_total_price, param_gst
             elif paymentMode == '2':
                 create_order(request, param_transportation_cost, param_total_price, param_gst_amount, param_deduction)
             elif paymentMode == '3':
-                return redirect('checkout')
+                return redirect('initiate_payment')
 
             clear_session_variables(request)
             return redirect(f"{reverse('order_successful')}?success={'Order'}")
@@ -1179,7 +1179,11 @@ def create_order(request, param_transportation_cost, param_total_price, param_gs
             order_context.save()
             order_id = Order.objects.all().latest('orderID').orderID
             if SaveOrderDetails(request, order_id, user_id) == True:
-                return redirect(f"{reverse('order_successful')}?success={'Order'}")
+                if view_pay_method == '3':
+                    return view_orderNo
+                    return redirect(f"{reverse('order_successful')}?success={'Order'}")
+                else:
+                    return redirect(f"{reverse('order_successful')}?success={'Order'}")
                 #return render(request,'success.html',success_context)#HttpResponse('<h2>Order Placed Successfully!</h2>')
             else:
                 return render(request,'404.html',{'source':'Order'})
@@ -1231,6 +1235,7 @@ def SaveOrderDetails(request,param_orderID,param_user_id):
 
 def order_successful(request):
     type = request.GET.get('success')
+    pay_ref=request.GET.get('payref')
     user_name = request.user.last_name
     pincode = request.session.get('pincode')
     if type == 'Bulk':
@@ -1245,7 +1250,8 @@ def order_successful(request):
         'orderNo': orderNo,
         'login_user': user_name,
         'pincode':pincode,
-        'orderType':type
+        'orderType':type,
+        'pay_ref':pay_ref
     }
     return render(request,'success.html',success_context)
 #endregion
@@ -1839,9 +1845,9 @@ def dashboard(request):
 #region Payment module (Razorpay integration)
 def initiate_payment(request):
     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-
+    amount = int(float(request.session['total_price'].strip()))*100 #To convert the amount into paise
     payment = client.order.create({
-        "amount": 50000,  # Amount in paise (500.00 INR)
+        "amount": amount,  # Amount in paise (500.00 INR)
         "currency": "INR",
         "payment_capture": '1'  # auto capture after payment
     })
@@ -1850,7 +1856,7 @@ def initiate_payment(request):
         'payment': payment,
         'razorpay_key_id': settings.RAZORPAY_KEY_ID
     }
-    return render(request, 'payment.html', context)
+    return render(request, 'checkout.html', context)
 
 @csrf_exempt
 def payment_success(request):
@@ -1866,7 +1872,13 @@ def payment_success(request):
         try:
             client.utility.verify_payment_signature(params_dict)
             # ✅ Payment verified
-            return render(request, 'success.html', {'payment_id': params_dict['razorpay_payment_id']})
+            total_price = int(float(request.session['total_price'].strip()))
+            transportation_cost = request.session['transportation_cost']
+            request.session['pay_date']=timezone.now().isoformat()
+            request.session['pay_ref']=params_dict['razorpay_payment_id']
+            request.session['pay_status']=True
+            create_order(request, transportation_cost, total_price, 0, 0)
+            return redirect(f"{reverse('order_successful')}?success={'Order'}&payref={params_dict['razorpay_payment_id']}")
         except razorpay.errors.SignatureVerificationError:
             # ❌ Invalid signature
             return HttpResponseBadRequest("Payment verification failed")

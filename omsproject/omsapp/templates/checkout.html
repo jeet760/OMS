@@ -1,39 +1,54 @@
 {% extends 'index.html' %}
 {% block CheckOut %}
 <h3>Pay Online</h3>
-<table>
-    <tr>
-        <td><strong>Order From</strong></td>
-        <td>{{login_user}}</td>
-    </tr>
-    <tr>
-        <td><strong>Order Date</strong></td>
-        <td>{{order_date}}</td>
-    </tr>
-    <tr>
-        <td><strong>Order Amount</strong></td>
-        <td>₹{{order_amount}}</td>
-    </tr>
-    <tr>
-        <td><strong>Select Payment Type</strong></td>
-        <td>
-            <select>
-                <option>Select</option>
-                <option value="cc">Credit Card</option>
-                <option value="dc">Debit Card</option>
-                <option value="upi">UPI</option>
-            </select>
-        </td>
-    </tr>
-    <tr>
-        <td colspan="2">
-            <a href="{% url 'createorder' 0 0 0 0 %}?pay=online" class="primary-btn">Proceed to Checkout</a>
-        </td>
-    </tr>
-    <tr>
-        <td colspan="2" style="color:red;">
-            <sup>*</sup>Online Payment will be activated as soon as possible! Sorry, for the inconvenience caused.
-        </td>
-    </tr>
-</table>
+<form id="checkoutForm" action="{% url 'payment_success' %}" method="post">
+    {% csrf_token %}
+    <script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        data-key="{{ razorpay_key_id }}"
+        data-amount="{{ payment.amount }}"
+        data-currency="INR"
+        data-order_id="{{ payment.id }}"
+        data-buttontext="Pay with Razorpay"
+        data-name="My Django App"
+        data-description="Test transaction"
+        data-theme.color="#F37254">
+    </script>
+  <input type="hidden" custom="Hidden Element" name="hidden">
+    <!-- <table>
+        <tr>
+            <td><strong>Order From</strong></td>
+            <td>{{login_user}}</td>
+        </tr>
+        <tr>
+            <td><strong>Order Date</strong></td>
+            <td>{{order_date}}</td>
+        </tr>
+        <tr>
+            <td><strong>Order Amount</strong></td>
+            <td>₹{{order_amount}}</td>
+        </tr>
+        <tr>
+            <td><strong>Select Payment Type</strong></td>
+            <td>
+                <select>
+                    <option>Select</option>
+                    <option value="cc">Credit Card</option>
+                    <option value="dc">Debit Card</option>
+                    <option value="upi">UPI</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <a href="{% url 'createorder' 0 0 0 0 %}?pay=online" class="primary-btn">Proceed to Checkout</a>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="color:red;">
+                <sup>*</sup>Online Payment will be activated as soon as possible! Sorry, for the inconvenience caused.
+            </td>
+        </tr>
+    </table> -->
+</form>
 {% endblock %}

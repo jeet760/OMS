@@ -99,6 +99,7 @@ urlpatterns = [
     path('receivedorders/<int:param_order_id>/rejectall', views.received_order_status_all, name='rejectall'),
     path('uploadinvoice/<int:suborderID>', views.upload_invoice, name='uploadinvoice'),
 
+    #"""Payment integration"""
     path('payment/', views.initiate_payment, name='initiate_payment'),
     path('payment/success/', views.payment_success, name='payment_success'),
 ]

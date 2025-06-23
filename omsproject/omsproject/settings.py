@@ -143,5 +143,5 @@ LOGOUT_URL = "logout"
 CART_SESSION_ID = 'cart'
 
 #razorpay payment environment variables
-RAZORPAY_KEY_ID = 'your_key_id'
-RAZORPAY_KEY_SECRET = 'your_key_secret'
+RAZORPAY_KEY_ID = 'rzp_test_aeX0hzoN3PRSyt'
+RAZORPAY_KEY_SECRET = 'JVkFFROuASBUE1PLFi4w8fkW'
