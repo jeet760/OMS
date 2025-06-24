@@ -155,7 +155,7 @@ def PinCodeAPI(request, pincode):
         postoffice_data = postalData[0]['PostOffice']
         return postoffice_data[0]['Name']+", "+postoffice_data[0]['Block']
     except:
-        messages.success(request, 'There has been a connetion failure!')
+        messages.error(request, 'There has been a connetion failure!')
         return HttpResponse({})
 
 def shop_details(request, item_id):
@@ -432,6 +432,10 @@ def register(request):
                 return redirect('index')  # Redirect to a home page
             else:
                 print(form.errors)
+                errors = form.errors.get_json_data()
+                for field, field_errors in errors.items():
+                    for error in field_errors:
+                        messages.error(request, f"{field.capitalize()}: {error['message']}")
                 return redirect('index')
         else:
             return redirect('register')
@@ -754,17 +758,17 @@ def login_view(request):
                 user = get_object_or_404(CustomUser,username=username)
             except:
                 form.add_error(None, 'User does not exist! Please check username and password.')
-                messages.success(request, 'User does not exist! Please check username and password.')
+                messages.error(request, 'User does not exist! Please check username and password.')
                 return redirect('login')
             if user.isActive == False:
                 form.add_error(None, 'Your Account is not active! Please, contact administrator to activate your account.')
-                messages.success(request, 'Your Account is not active! Please, contact administrator to activate your account.')
+                messages.error(request, 'Your Account is not active! Please, contact administrator to activate your account.')
                 return redirect('login')
             if user.userType == '0' and user.is_superuser:
                 user_login = authenticate(request, username=username, password=password)
                 if user_login is None:
                     form.add_error(None, 'Invalid username or password!')
-                    messages.success(request, 'Invalid username or password!')
+                    messages.error(request, 'Invalid username or password!')
                     return redirect('login')
                 else:
                     login(request, user_login)
@@ -780,7 +784,7 @@ def login_view(request):
                     return redirect('index')
                 else:
                     form.add_error(None, 'Invalid username or password!')
-                    messages.success(request, 'Invalid username or password!')
+                    messages.error(request, 'Invalid username or password!')
     else:
         form = UserLoginForm()
     return render(request, 'login.html', {'loginform': form, 'login_user':'Guest!'})

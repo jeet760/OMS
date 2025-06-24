@@ -1,8 +1,97 @@
 {% extends 'admin-console.html'%}
 {% load static %}
 {% block fpoauth %}
+<style>
+    sup{
+        color: red;
+    }
+    .disabled-button {
+        pointer-events: none;
+        opacity: 0.5;
+    }
+
+    .enabled-button {
+        pointer-events: auto;
+        opacity: 1;
+    }
+
+    #tnc{
+        color: blue;
+    }
+
+    /* Modal background */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Modal box */
+    .modal-box {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 50pc;
+        text-align: left;
+        position: relative;
+    }
+
+    #modal-content{
+        height: 40rem;
+    }
+
+    .modal-box h2 {
+        margin-top: 0;
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 10px; right: 15px;
+        cursor: pointer;
+        font-size: 20px;
+        border: none;
+        background: none;
+        background: #ef0808;
+    }
+
+    .btn {
+        padding: 8px 16px;
+        margin-top: 10px;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background: #2980b9;
+    }
+
+    .scrollable-box {
+        height: 200px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 10px;
+    }
+
+    ol {
+        list-style: decimal;
+        margin-left: 1.5em;  /* or padding-left */
+    }
+</style>
     <h2 class="text-xl font-semibold mb-4 text-gray-700">FPO Authorisation Details{% if user_approved == False %}<strong>(Yet to Approved!)</strong>{% endif %}</h2>
-    <form method="post" action="{% url 'profile-auth-save' %}" enctype="multipart/form-data">
+    <em>
+        <p class="text-sm font-semibold mb-4 text-red-500">
+            <sup>*</sup>Marks are mandatory fields.<br>
+            <sup>#</sup>Files/Documents to be uploaded should not exceed 5MB.
+        </p>
+    </em>
+    <form id="fpoForm" method="post" action="{% url 'profile-auth-save' %}" enctype="multipart/form-data">
         {% csrf_token %}
         <table id="billingAddressTable" class="w-full text-left text-sm border border-gray-300 bg-white">
             <thead class="text-gray-700 border-b border-gray-300">
@@ -42,7 +131,7 @@
                 </tr>
                 <tr class="border-b border-gray-300 hover:bg-gray-100">
                     <td class="py-2 px-3">4</td>
-                    <td class="py-2 px-3"><strong>Board Resolution</strong><sup>*</sup></td>
+                    <td class="py-2 px-3"><strong>Board Resolution</strong><sup>*#</sup></td>
                     <td class="py-2 px-3">{{auth_form.board_resolution}}</td>
                     <td class="py-2 px-3">{{auth_form.instance.board_resolution.name|cut:'fpodocs/'}}</td>
                     <td class="py-2 px-3">
@@ -56,7 +145,7 @@
                 </tr>
                 <tr class="border-b border-gray-300 hover:bg-gray-100">
                     <td class="py-2 px-3">5</td>
-                    <td class="py-2 px-3"><strong>CIN/Registration Certificate</strong><sup>*</sup></td>
+                    <td class="py-2 px-3"><strong>CIN/Registration Certificate</strong><sup>*#</sup></td>
                     <td class="py-2 px-3">{{auth_form.cin}}</td>
                     <td class="py-2 px-3">{{auth_form.instance.cin.name|cut:'fpodocs/'}}</td>
                     <td class="py-2 px-3">
@@ -70,7 +159,7 @@
                 </tr>
                 <tr class="border-b border-gray-300 hover:bg-gray-100">
                     <td class="py-2 px-3">6</td>
-                    <td class="py-2 px-3"><strong>PAN</strong><sup>*</sup></td>
+                    <td class="py-2 px-3"><strong>PAN</strong><sup>*#</sup></td>
                     <td class="py-2 px-3">{{auth_form.pan}}</td>
                     <td class="py-2 px-3">{{auth_form.instance.pan.name|cut:'fpodocs/'}}</td>
                     <td class="py-2 px-3">
@@ -84,7 +173,7 @@
                 </tr>
                 <tr class="border-b border-gray-300 hover:bg-gray-100">
                     <td class="py-2 px-3">7</td>
-                    <td class="py-2 px-3"><strong>Bank Account Details</strong><sup>*</sup></td>
+                    <td class="py-2 px-3"><strong>Bank Account Details</strong><sup>*#</sup></td>
                     <td class="py-2 px-3">{{auth_form.bank}}</td>
                     <td class="py-2 px-3">{{auth_form.instance.bank.name|cut:'fpodocs/'}}</td>
                     <td class="py-2 px-3">
@@ -98,7 +187,7 @@
                 </tr>
                 <tr class="border-b border-gray-300 hover:bg-gray-100">
                     <td class="py-2 px-3">8</td>
-                    <td class="py-2 px-3"><strong>FSSAI License</strong><sup>*</sup></td>
+                    <td class="py-2 px-3"><strong>FSSAI License</strong><sup>*#</sup></td>
                     <td class="py-2 px-3">{{auth_form.fssai}}</td>
                     <td class="py-2 px-3">{{auth_form.instance.fssai.name|cut:'fpodocs/'}}</td>
                     <td class="py-2 px-3">
@@ -156,10 +245,8 @@
             <tfoot>
                 <tr class="border-b border-gray-300 hover:bg-gray-100">
                     <td colspan="3">
-                        <label>
-                            <input type="checkbox" id="cbAgree" onclick="cbAgreeCheck()">
-                            I agree to the terms and conditions.
-                        </label>
+                        <input type="checkbox" id="cbAgree">
+                            I agree to the <a id="tnc" href="#" onclick="openModal('fpoModal')">terms and conditions.</a>
                     </td>
                 </tr>
                 <tr class="border-b border-gray-300 hover:bg-gray-100">
@@ -167,10 +254,124 @@
                     </td>
                     <td>
                         <a href="{% url 'index' %}" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">CANCEL</a>
-                        <button id="submitButton" type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">SUBMIT</button>
+                        <button id="submitButton" type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled-button">SUBMIT</button>
                     </td>
                 </tr>
             </tfoot>
         </table>
     </form>
+    <div class="modal-overlay" id="fpoModal">
+        <div class="modal-box">
+            <label><strong>Terms and Conditions for Seller Onboarding – Farmer Harvest Portal</strong></label>
+            <div id="modal-content" class="scrollable-box">
+              <p>
+                Welcome to <strong>Farmer Harvest</strong> – a hyper-local and hyper-connected digital 
+                commerce platform developed by Billion Next BoP Solutions Private Limited, 
+                exclusively designed to empower <strong>Farmer Collectives</strong> 
+                including FPOs, SHGs, and Producer Groups. We bridge the gap between producers and consumers 
+                by enabling the direct sale and purchase of farm produce and value-added products through our 
+                digital infrastructure. (More at <em><strong><a href="{% url 'about-us' %}" target="_blank">www.farmerharvest.in/about-us</a></strong></em>).
+              </p>
+              <p>
+                By registering as a seller on the Farmer Harvest portal and availing access to the Seller Hub, you agree to the following terms and conditions:
+              </p>
+              <ol>
+                <li>
+                    <div>
+                        <strong>Regulatory Compliance:</strong>
+                        <p>
+                            As selling food products in India requires regulatory clearances, 
+                            you are required to upload relevant documents (e.g., FSSAI license, PAN, GST, etc.) 
+                            as mentioned in the onboarding form.
+                            This ensures compliance with applicable food safety and trade regulations.
+                        </p>
+                    </div>
+                </li>
+                <li>
+                    <div>
+                        <strong>Data Storage and Security:</strong>
+                        <p>
+                            All documents uploaded by you shall be securely stored on Billion Next's cloud infrastructure 
+                            located within India, in compliance with applicable Indian data protection laws.
+                        </p>
+                    </div>
+                </li>
+                <li>
+                    <div>
+                        <strong>Payment Responsibility for Offline Transactions:</strong>
+                        <p>
+                            In the case of <strong>offline payments, bulk orders, cash-on-delivery, or direct transactions between 
+                            buyers and sellers</strong>, you as the seller (FPO/collective) shall be solely responsible for 
+                            payment collection and fulfilment. Farmer Harvest will have <strong>no involvement or liability</strong>
+                            in such transactions and will not mediate disputes arising thereof.
+                        </p>
+                    </div>
+                </li>
+                <li>
+                    <div>
+                        <strong>Online Payment Settlements:</strong>
+                        <p>
+                            For <strong>online transactions</strong> made through the platform, Farmer Harvest will collect payments 
+                            on your behalf and transfer the net payable amount to your registered bank account <strong>once every week</strong>
+                            after deducting applicable <strong>payment gateway charges and platform usage fees</strong>, if any.
+                        </p>
+                    </div>
+                </li>
+                <li>
+                    <strong>Platform Fees & Invoicing:</strong>
+                    <p>
+                        Farmer Harvest reserves the right to levy platform usage fees and/or license charges as agreed 
+                        with the seller. An invoice for such fees may be raised periodically based on transaction 
+                        volume or usage, and shall be duly communicated to the seller.
+                    </p>
+                </li>
+                <li>
+                    <strong>Document Authenticity & Liability:</strong>
+                    <p>
+                        By uploading documents, you certify their authenticity and accuracy. 
+                        In case of any fraudulent claims, forged documents, or non-compliance with regulations, 
+                        the liability shall solely rest with you as the seller. Farmer Harvest shall not be responsible 
+                        for any legal or regulatory consequences arising thereof.
+                    </p>
+                </li>
+                <li>
+                    <strong>Acceptance of Terms:</strong>
+                    <p>
+                        By completing the registration and proceeding with Seller Hub access, you confirm that you have <strong>read, 
+                        understood, and agreed</strong> to these Terms and Conditions and are willingly registering as a seller on the 
+                        Farmer Harvest platform.
+                    </p>
+                </li>
+              </ol>
+              <button class="btn" onclick="closeModal('fpoModal')">Agree and Close</button>
+            </div>
+        </div>
+      </div>
+<script>
+    const checkbox = document.getElementById('cbAgree');
+    const submitBtn = document.getElementById('submitButton');
+
+    checkbox.addEventListener('change', function () {
+        if (this.checked) {
+            submitBtn.classList.remove('disabled-button');
+            submitBtn.classList.add('enabled-button');
+        } else {
+            submitBtn.classList.remove('enabled-button');
+            submitBtn.classList.add('disabled-button');
+        }
+    });
+
+    function openModal(modalID) {
+          document.getElementById(modalID).style.display = 'flex';
+      }
+    
+      function closeModal(modalID) {
+          document.getElementById(modalID).style.display = 'none';
+          const submitBtn = document.getElementById('submitButton');
+          const checkbox = document.getElementById('cbAgree');
+          checkbox.checked = true;
+          submitBtn.classList.remove('disabled-button');
+          submitBtn.classList.add('enabled-button');
+      }
+</script>
 {% endblock %}
