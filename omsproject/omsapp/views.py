@@ -14,7 +14,7 @@ import requests
 import requests.cookies
 from .models import CustomUser, UserShippingAddresses, UserBillingAddresses, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, OrderInvoice, OrderDelivery, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder, FPOAuthorisationDocs, UserMessage
 from .models import STATES, USERTYPES, GST_TREATMENT
-from .forms import ItemForm, UserRegistrationForm, UserLoginForm, OrderForm, OrderDetailsForm, InvoiceForm, FPOAuthrisationForm
+from .forms import ItemForm, UserRegistrationForm, UserLoginForm, OrderForm, OrderDetailsForm, InvoiceForm, FPOAuthrisationForm, ItemImportExcelForm
 from django.contrib.gis.geoip2 import GeoIP2
 from .cart import Cart
 from .deliveryschedule import DeliverySchedule
@@ -22,6 +22,7 @@ import razorpay
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from urllib.parse import urlparse
+import pandas as pd
 
 
 
@@ -856,6 +857,7 @@ def admin_master(request):
         no_of_item_cat = Item.objects.values('itemCat').distinct().count()
         no_of_orders = Order.objects.all().__len__()
         no_of_bulkbuys = BulkBuy.objects.all().__len__()
+        enquiries = UserMessage.objects.all()
         coordinates = []
         master_console_context = {
             'total_users':total_users,
@@ -869,6 +871,7 @@ def admin_master(request):
             'no_of_item_cat':no_of_item_cat,
             'total_orders':no_of_orders,
             'total_bulkbuys':no_of_bulkbuys,
+            'enquiries':enquiries
         }
         return render(request, 'admin-master-console.html', context=master_console_context)
     else:
@@ -877,6 +880,70 @@ def admin_master(request):
 
 
 #region Items
+ITEM_TAXPREF = [
+    ('1','Taxable'),
+    ('2','Non-Taxable'),
+    ('3','Out-of-scope'),
+    ('4','Non-GST supply')
+]
+ITEM_TAXRATE = [
+    ('1',0),
+    ('2',5),
+    ('3',12),
+    ('4',18),
+    ('5',28)
+]
+ITEM_TYPE = [
+    ('1','Goods'),
+    ('2','Services'),
+]
+@login_required
+def item_import(request):
+    if request.method == 'POST' and request.user.is_authenticated:
+        item_type_dict = {v: k for k, v in ITEM_TYPE} #dict(ITEM_TYPE)
+        item_taxrate_dict = {v: k for k, v in ITEM_TAXRATE}#dict(ITEM_TAXRATE)
+        item_taxpref_dict = {v: k for k, v in ITEM_TAXPREF}#dict(ITEM_TAXPREF)
+        excel_form = ItemImportExcelForm(request.POST, request.FILES)
+        if excel_form.is_valid():
+            excel_file = request.FILES['excel_file']
+            try:
+                df = pd.read_excel(excel_file)
+                for _, row in df.iterrows():
+                    x = row['itemType']
+                    y = row['itemTaxRate']
+                    z = row['itemTaxPref']
+                    item_type = item_type_dict.get(x)
+                    item_taxrate = item_taxrate_dict.get(y)
+                    item_taxpref = item_taxpref_dict.get(z)
+                    Item.objects.create(
+                        itemType=item_type,
+                        itemName=row['itemName'],
+                        itemCat=row['itemCat'],
+                        itemSku=row['itemSku'],
+                        itemHSNCode=row['itemHSNCode'],
+                        itemUnit=row['itemUnit'],
+                        itemTaxPref=item_taxpref,
+                        itemTaxRate=item_taxrate,
+                        itemCostPrice=row['itemCostPrice'],
+                        itemPrice=row['itemPrice'],
+                        stockValue=row['stockValue'],
+                        itemImg=row['itemImg'],
+                        itemActive = True,
+                        itemInStock = True,
+                        marketType='All',
+                        featureItem = True,
+                        itemDesc = row['itemDesc'],
+                        userID_id = request.user.pk
+                    )
+                return redirect('item_list')
+            except Exception as e:
+                print(e)
+                messages.error(request,f'Error occured while importing the file!{e}')
+                return redirect('item_list')
+            else:
+                excel_form = ItemImportExcelForm
+    return redirect('item_list')
+
 @login_required
 def item_entry(request):
     itemform = ItemForm()
@@ -973,6 +1040,7 @@ def item_list(request):
     else:
         items = Item.objects.all()
     form = ItemForm()
+    excel_form = ItemImportExcelForm()
 
     total_items = Item.objects.filter(userID_id=request.user.pk)#total items placed by the vendor/FPO
     total_featured_items = Item.objects.filter(userID_id=request.user.pk, featureItem=True).__len__()#featured items as set by the FPO
@@ -981,7 +1049,8 @@ def item_list(request):
     total_active_items = Item.objects.filter(userID_id=request.user.pk, itemActive=True).__len__()#distinct categories of items stored by the FPO
     item_list_context = {
         'items': items, 
-        'form': form, 
+        'form': form,
+        'excel_form':excel_form, 
         'login_user':user_name,
         'user_approved':user_approved,
         'total_items':total_items,
@@ -1849,7 +1918,9 @@ def dashboard(request):
 #region Payment module (Razorpay integration)
 def initiate_payment(request):
     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-    amount = int(float(request.session['total_price'].strip()))*100 #To convert the amount into paise
+    total_price = int(float(request.session['total_price'].strip()))*100 #To convert the amount into paise
+    transportation_cost = int(float(request.session['transportation_cost'].strip()))*100
+    amount = total_price + transportation_cost
     payment = client.order.create({
         "amount": amount,  # Amount in paise (500.00 INR)
         "currency": "INR",
@@ -1877,7 +1948,7 @@ def payment_success(request):
             client.utility.verify_payment_signature(params_dict)
             # ✅ Payment verified
             total_price = int(float(request.session['total_price'].strip()))
-            transportation_cost = request.session['transportation_cost']
+            transportation_cost = int(float(request.session['transportation_cost'].strip()))
             request.session['pay_date']=timezone.now().isoformat()
             request.session['pay_ref']=params_dict['razorpay_payment_id']
             request.session['pay_status']=True

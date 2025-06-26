@@ -19,8 +19,8 @@
       }
     </style>
     <script>
-      let currentPage = 1;
-      const rowsPerPage = 10;
+      // let currentPage = 1;
+      // const rowsPerPage = 10;
 
       function toggleDropdown() {
         document.getElementById("dropdownMenu").classList.toggle("hidden");
@@ -94,22 +94,57 @@
         paginate();
       }
 
+      let currentPage = 1;
+      const rowsPerPage = 10;
+      let pageWindowStart = 1;
+      const pageWindowSize = 10;
+
       function paginate() {
         const rows = document.querySelectorAll('#itemTable tbody tr');
         const visibleRows = Array.from(rows).filter(row => row.dataset.visible !== "false");
         const totalPages = Math.ceil(visibleRows.length / rowsPerPage);
 
+        // Hide all rows first
         rows.forEach(row => row.style.display = 'none');
 
+        // Show only rows for current page
         visibleRows.forEach((row, index) => {
           row.style.display = (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) ? '' : 'none';
         });
 
         const pagination = document.getElementById('pagination');
-        if(pagination != null)
-        {
+        if (pagination != null) {
           pagination.innerHTML = '';
-          for (let i = 1; i <= totalPages; i++) {
+
+          // First page button
+          if (pageWindowStart > 1) {
+            const firstBtn = document.createElement('button');
+            firstBtn.textContent = '« First';
+            firstBtn.className = 'px-3 py-1 rounded bg-gray-500 text-white mx-1';
+            firstBtn.onclick = () => {
+              pageWindowStart = 1;
+              currentPage = 1;
+              paginate();
+            };
+            pagination.appendChild(firstBtn);
+          }
+
+          // Prev 10 button
+          if (pageWindowStart > 1) {
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = '« Prev 10';
+            prevBtn.className = 'px-3 py-1 rounded bg-gray-500 text-white mx-1';
+            prevBtn.onclick = () => {
+              pageWindowStart -= pageWindowSize;
+              currentPage = pageWindowStart;
+              paginate();
+            };
+            pagination.appendChild(prevBtn);
+          }
+
+          // Page number buttons (within window)
+          const pageWindowEnd = Math.min(pageWindowStart + pageWindowSize - 1, totalPages);
+          for (let i = pageWindowStart; i <= pageWindowEnd; i++) {
             const btn = document.createElement('button');
             btn.textContent = i;
             btn.className = 'px-3 py-1 rounded bg-gray-700 text-white mx-1';
@@ -119,6 +154,33 @@
               paginate();
             };
             pagination.appendChild(btn);
+          }
+
+          // Next 10 button
+          if (pageWindowStart + pageWindowSize <= totalPages) {
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Next 10 »';
+            nextBtn.className = 'px-3 py-1 rounded bg-gray-500 text-white mx-1';
+            nextBtn.onclick = () => {
+              pageWindowStart += pageWindowSize;
+              currentPage = pageWindowStart;
+              paginate();
+            };
+            pagination.appendChild(nextBtn);
+          }
+
+          // Last page button
+          if (pageWindowEnd < totalPages) {
+            const lastBtn = document.createElement('button');
+            lastBtn.textContent = 'Last »»';
+            lastBtn.className = 'px-3 py-1 rounded bg-gray-500 text-white mx-1';
+            lastBtn.onclick = () => {
+              const lastWindowStart = Math.floor((totalPages - 1) / pageWindowSize) * pageWindowSize + 1;
+              pageWindowStart = lastWindowStart;
+              currentPage = totalPages;
+              paginate();
+            };
+            pagination.appendChild(lastBtn);
           }
         }
       }

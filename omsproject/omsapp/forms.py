@@ -1,3 +1,4 @@
+from django import forms
 from django.forms import ModelForm, Form, TextInput, PasswordInput, CharField, Textarea, Select, FileInput, DateInput
 from .models import Item, Order, CustomUser, OrderDetails, OrderInvoice, FPOAuthorisationDocs
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -177,7 +178,6 @@ class UserLoginForm(Form):
             'id':'password'
         }))
 
-
 #endregion
 
 #region Item Form
@@ -287,6 +287,10 @@ class ItemForm(ModelForm):
             item.userID_id = userid
             item.save()
         return item
+
+class ItemImportExcelForm(Form):
+    excel_file = forms.FileField(label='Select File to Import Items',
+                                 widget=forms.ClearableFileInput(attrs={'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none'}))
 #endregion
 
 #region Order Form

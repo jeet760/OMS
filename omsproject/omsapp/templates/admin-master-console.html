@@ -346,9 +346,36 @@
 
         <!-- Notifications -->
         <section id="notifications" class="mt-10">
-          <h2 class="text-xl font-semibold mb-4">Notifications</h2>
+          <h2 class="text-xl font-semibold mb-4">Notifications/Messages</h2>
           <div class="bg-gray-800 p-4 shadow rounded">
-            <p>System notifications and alerts here.</p>
+            <table id="messageTable" class="w-full text-left text-sm">
+              <thead class="text-gray-400 border-b border-gray-700">
+                <tr>
+                  <th class="py-2 cursor-pointer" onclick="sortTable(0)">#</th>
+                  <th class="py-2 cursor-pointer" onclick="sortTable(1)">Date</th>
+                  <th class="py-2 cursor-pointer" onclick="sortTable(2)">Name</th>
+                  <th class="py-2 cursor-pointer" onclick="sortTable(3)">Email/Phone</th>
+                  <th class="py-2 cursor-pointer" onclick="sortTable(4)">Message</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for enquiry in enquiries %}
+                <tr class="border-b border-gray-700 hover:bg-gray-700">
+                  <td class="py-2">{{forloop.counter}}</td>
+                  <td class="py-2">{{forloop.msgDate}}</td>
+                  <td class="py-2">{{enquiry.name}}</td>
+                  <td class="py-2">{{enquiry.email}}</td>
+                  <td class="py-2">{{enquiry.msg}}</td>
+                </tr>
+                {%empty%}
+                <tr class="border-b border-gray-700 hover:bg-gray-700">
+                  <td class="py-2" colspan="5">
+                    No message has been received!
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
           </div>
         </section>
 

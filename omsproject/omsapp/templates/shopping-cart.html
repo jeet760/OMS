@@ -162,9 +162,17 @@
                                         {% for state_code in states %}
                                         {% if state_code.0 == ship_address.userState1 %}
                                         {% if ship_address.setDefault %}
+                                            {% if ship_address.pinCode1 == pincode %}
                                             <input type="radio" name="ship_address" value="{{ship_address.id}}" checked>{{ship_address.userAddress1}}, {{ship_address.userCity1}}, {{state_code.1}}, {{ship_address.pinCode1}}
+                                            {% else %}
+                                            <input type="radio" name="ship_address" value="{{ship_address.id}}" disabled>{{ship_address.userAddress1}}, {{ship_address.userCity1}}, {{state_code.1}}, {{ship_address.pinCode1}} <span style="color: red;">(Can't be Delivered Here!)</span>
+                                            {% endif %}
                                         {% else %}
-                                        <input type="radio" name="ship_address" value="{{ship_address.id}}">{{ship_address.userAddress1}}, {{ship_address.userCity1}}, {{state_code.1}}, {{ship_address.pinCode1}}
+                                            {% if ship_address.pinCode1 == pincode %}
+                                            <input type="radio" name="ship_address" value="{{ship_address.id}}">{{ship_address.userAddress1}}, {{ship_address.userCity1}}, {{state_code.1}}, {{ship_address.pinCode1}}
+                                            {% else %}
+                                            <input type="radio" name="ship_address" value="{{ship_address.id}}" disabled>{{ship_address.userAddress1}}, {{ship_address.userCity1}}, {{state_code.1}}, {{ship_address.pinCode1}} <span style="color: red;">(Can't be Delivered Here!)</span>
+                                            {% endif %}
                                         {% endif %}
                                         {% endif %}
                                         {% endfor %}
@@ -381,6 +389,19 @@
                 event.preventDefault();  // Prevent form submission
                 alert("There is no item to place order! Please add item to proceed.");
             }
+
+            const radios = document.querySelectorAll('input[name="ship_address"]');
+            let selected = false;
+            radios.forEach((radio) => {
+                if (radio.checked){
+                    selected = true
+                }
+            });
+            if(selected === false){
+                event.preventDefault();
+                alert("Please select the shipping address for delivery!");
+            }
+
         });
     </script>
 {% endblock %}
