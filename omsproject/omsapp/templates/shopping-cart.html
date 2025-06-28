@@ -51,13 +51,13 @@
                         <table id="itemTable">
                             <thead>
                                 <tr>
-                                    <th>#</th>
-                                    <th>Item Image</th>
-                                    <th class="shoping__product">Name</th>
-                                    <th>Price (in ₹)</th>
-                                    <th>Qty.</th>
-                                    <th>Total (in ₹)</th>
-                                    <th>Remove</th>
+                                    <th style="font-size:large;">#</th>
+                                    <th style="font-size:large;">Item Image</th>
+                                    <th style="font-size:large;" class="shoping__product">Name</th>
+                                    <th style="font-size:large;">Price (in ₹)</th>
+                                    <th style="font-size:large;">Qty.</th>
+                                    <th style="font-size:large;">Total (in ₹)</th>
+                                    <th style="font-size:large;">Remove</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -165,13 +165,13 @@
                                             {% if ship_address.pinCode1 == pincode %}
                                             <input type="radio" name="ship_address" value="{{ship_address.id}}" checked>{{ship_address.userAddress1}}, {{ship_address.userCity1}}, {{state_code.1}}, {{ship_address.pinCode1}}
                                             {% else %}
-                                            <input type="radio" name="ship_address" value="{{ship_address.id}}" disabled>{{ship_address.userAddress1}}, {{ship_address.userCity1}}, {{state_code.1}}, {{ship_address.pinCode1}} <span style="color: red;">(Can't be Delivered Here!)</span>
+                                            <input type="radio" name="ship_address" value="{{ship_address.id}}" disabled><span style="opacity: 0.5;">{{ship_address.userAddress1}}, {{ship_address.userCity1}}, {{state_code.1}}, {{ship_address.pinCode1}}</span> <span style="color: red;">(Can't be delivered Here!)</span>
                                             {% endif %}
                                         {% else %}
                                             {% if ship_address.pinCode1 == pincode %}
                                             <input type="radio" name="ship_address" value="{{ship_address.id}}">{{ship_address.userAddress1}}, {{ship_address.userCity1}}, {{state_code.1}}, {{ship_address.pinCode1}}
                                             {% else %}
-                                            <input type="radio" name="ship_address" value="{{ship_address.id}}" disabled>{{ship_address.userAddress1}}, {{ship_address.userCity1}}, {{state_code.1}}, {{ship_address.pinCode1}} <span style="color: red;">(Can't be Delivered Here!)</span>
+                                            <input type="radio" name="ship_address" value="{{ship_address.id}}" disabled><span style="opacity: 0.5;">{{ship_address.userAddress1}}, {{ship_address.userCity1}}, {{state_code.1}}, {{ship_address.pinCode1}}</span> <span style="color: red;">(Can't be delivered Here!)</span>
                                             {% endif %}
                                         {% endif %}
                                         {% endif %}
@@ -192,12 +192,12 @@
                         <div class="shoping__checkout">
                             <h5>Cart Total</h5>
                             <ul>
-                                <li>Total Qty.<span>{{ total_qty }}</span></li>
-                                <li>Subtotal <span>₹{{ total_price }}</span></li>
-                                <li>Delivery Charges<span>₹{{transportation_cost}}.00</span></li>
-                                <li>Total <span>₹{{ grand_total }}</span></li>
+                                <li>Total Qty.<span style="color: black;">{{ total_qty }}</span></li>
+                                <li>Subtotal <span style="color: black;">₹{{ total_price }}</span></li>
+                                <li>Delivery Charges<span style="color: black;">₹{{transportation_cost}}.00</span></li>
+                                <li>Total <span style="color: black;">₹{{ grand_total }}</span></li>
                                 <li>Schedule Date
-                                    <span>
+                                    <span style="color: black;">
                                         <select id="selectDeliveryDate" name="selectDeliveryDate" style="font-size: 12px; height: 30px; width: 130px;">
                                             {% for date in dateSeries %}
                                             <option value="{{date}}">
@@ -208,7 +208,7 @@
                                     </span>
                                 </li>
                                 <li>Schedule Time
-                                    <span>
+                                    <span style="color: black;">
                                         <select id="selectDeliveryTime" name="selectDeliveryTime" style="font-size: 12px; height: 30px; width: 120px;">
                                             {% for time in timeSeries %}
                                             <option value="{{time}}">
@@ -223,7 +223,7 @@
                             <textarea style="width: 100%; height: 100px;" name="orderNote" placeholder="Remark/Comment/Note"></textarea>
                             <ul>
                                 <li>Select Payment Method
-                                   <span>
+                                   <span style="color: black;">
                                     {% if user_type == '3' %}
                                     <select id="selectPaymentMethod" name="selectPaymentMethod" style="font-size: 12px; height: 30px; width: 120px;">
                                         <option value="1">Cash On Delivery</option>

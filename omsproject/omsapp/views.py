@@ -8,19 +8,18 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 from django.utils import timezone
 from django.urls import reverse
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator
 from datetime import datetime
-import json
-import requests
-import requests.cookies
 from .models import CustomUser, UserShippingAddresses, UserBillingAddresses, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, OrderInvoice, OrderDelivery, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder, FPOAuthorisationDocs, UserMessage
 from .models import STATES, USERTYPES, GST_TREATMENT
 from .forms import ItemForm, UserRegistrationForm, UserLoginForm, OrderForm, OrderDetailsForm, InvoiceForm, FPOAuthrisationForm, ItemImportExcelForm
-from django.contrib.gis.geoip2 import GeoIP2
+import json
+import requests
 from .cart import Cart
 from .deliveryschedule import DeliverySchedule
 import razorpay
-from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
 from urllib.parse import urlparse
 import pandas as pd
 
@@ -28,19 +27,7 @@ import pandas as pd
 
 #region StartPage_CommonPages
 def landing_page(request, category=None,fpo=None, region=None):
-    items = Item.objects.filter(itemActive=True).order_by('-itemInStock')
-    query = str(items.query)
-    if category is not None:
-        items = Item.objects.filter(itemCat=category)
-    if fpo is not None:
-        items = Item.objects.filter(userID_id=fpo)
-    if region is not None:
-        regionQuery = f"SELECT A.* FROM omsapp_item A INNER JOIN omsapp_customuser B ON A.userID_id = B.id AND B.userCity='{region}'"
-        with connection.cursor() as regionCursor:
-            regionCursor.execute(regionQuery)
-            items = regionCursor.fetchall()
-    
-    form = ItemForm()
+    items = Item.objects.filter(itemActive=True).order_by('-itemInStock').only('itemCat')
     user_type = ''
     user_name = 'Guest!'#display the username
     user_approved=''
@@ -56,11 +43,15 @@ def landing_page(request, category=None,fpo=None, region=None):
         if pincode == 'Delivery Pincode':
             pincode = request.user.pinCode1
         request.session['pincode'] = pincode
-        if user_type == '1':
-            items = items.exclude(userID_id = request.user.pk)
+        # if user_type == '1':
+        #     items = items.exclude(userID_id = request.user.pk)
         featureItems = Item.objects.filter(featureItem=True).exclude(userID_id = request.user.pk).filter(userID_id__pinCode=pincode)
     featureItems = featureItems.filter(itemActive=True).order_by('-itemInStock')
-    length = items.__len__()#get the total items
+    # length = items.__len__()#get the total items
+    """pagination in the landing page"""
+    paginator = Paginator(featureItems,12)
+    page_number = request.GET.get('page')
+    featureItems_page_obj = paginator.get_page(page_number)
 
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
@@ -68,8 +59,9 @@ def landing_page(request, category=None,fpo=None, region=None):
     region_list = fpo = fpo_list()
     landing_page_context = {
         'items': items, 
-        'form': form, 
-        'total_items':length, 
+        'featureItems_page_obj':featureItems_page_obj,
+        # 'form': form, 
+        # 'total_items':length, 
         'login_user':user_name,
         'user_type':user_type,
         'user_approved':user_approved, 
@@ -123,6 +115,10 @@ def shop(request, category=None, fpo=None, region=None):
     elif item_sort == 'price_desc':
         items = items.order_by('-itemPrice')
 
+    paginator = Paginator(items,12)
+    page_number = request.GET.get('page')
+    items_page_obj = paginator.get_page(page_number)
+
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
     total_price = cart.get_total_price()
@@ -131,6 +127,7 @@ def shop(request, category=None, fpo=None, region=None):
     max_price = items.aggregate(Max('itemPrice'))['itemPrice__max']
     shop_page_context ={
         'items': items, 
+        'items_page_obj':items_page_obj,
         'form': form, 
         'login_user':user_name,
         'user_approved':user_approved, 
@@ -428,16 +425,16 @@ def register(request):
                 UserShippingAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress1, userCity1=user.userCity1, userState1=user.userState1, pinCode1=user.pinCode1, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=0.00, address_long1=0.00, setDefault=True)
                 if user.userType != '1':
                     CustomUser.objects.filter(pk=user.id).update(userApproved=True,approvedOn=datetime.today(),isActive=True,activatedOn=datetime.today())
-                    login(request, user)
-                    user_name = user.last_name
-                return redirect('index')  # Redirect to a home page
+                    #login(request, user)
+                    #user_name = user.last_name
+                return redirect('login')  # Redirect to a home page
             else:
                 print(form.errors)
                 errors = form.errors.get_json_data()
                 for field, field_errors in errors.items():
                     for error in field_errors:
                         messages.error(request, f"{field.capitalize()}: {error['message']}")
-                return redirect('index')
+                return redirect('register')
         else:
             return redirect('register')
     else:
@@ -758,17 +755,14 @@ def login_view(request):
             try:
                 user = get_object_or_404(CustomUser,username=username)
             except:
-                form.add_error(None, 'User does not exist! Please check username and password.')
                 messages.error(request, 'User does not exist! Please check username and password.')
                 return redirect('login')
             if user.isActive == False:
-                form.add_error(None, 'Your Account is not active! Please, contact administrator to activate your account.')
                 messages.error(request, 'Your Account is not active! Please, contact administrator to activate your account.')
                 return redirect('login')
             if user.userType == '0' and user.is_superuser:
                 user_login = authenticate(request, username=username, password=password)
                 if user_login is None:
-                    form.add_error(None, 'Invalid username or password!')
                     messages.error(request, 'Invalid username or password!')
                     return redirect('login')
                 else:
@@ -784,7 +778,6 @@ def login_view(request):
                     login(request, user_login)
                     return redirect('index')
                 else:
-                    form.add_error(None, 'Invalid username or password!')
                     messages.error(request, 'Invalid username or password!')
     else:
         form = UserLoginForm()

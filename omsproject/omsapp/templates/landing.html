@@ -12,6 +12,22 @@
         font-weight: bold;
         border-radius: 5px;
     }
+    .pagination ul a {
+        padding: 4px 8px;
+        text-decoration: none;
+        background: #f2f2f2;
+        color: #333;
+        border-radius: 4px;
+    }
+
+    .pagination ul a:hover {
+        background: #007bff;
+        color: white;
+    }
+
+    .pagination ul li {
+        display: inline-block;
+    }
 </style>
 {% include 'herosection.html'%}
 <!-- Categories Section Begin (Carousel)
@@ -43,7 +59,7 @@ Categories Section End -->
                 <div class="featured__controls">
                     <ul>
                         <li class="active" data-filter="*">All</li>
-                        {% regroup featureItems|dictsort:"itemCat" by itemCat as categories_list %}
+                        {% regroup featureItems_page_obj|dictsort:"itemCat" by itemCat as categories_list %}
                         {% for category in categories_list %}
                         <li data-filter=".{{category.grouper|cut:' '}}">{{category.grouper}}</li>
                         {% endfor %}
@@ -53,7 +69,7 @@ Categories Section End -->
             </div>
         </div>
         <div class="row featured__filter">
-            {% for item in featureItems %}
+            {% for item in featureItems_page_obj %}
                 <!-- <div class="{% if item.itemInStock%}col-lg-3 col-md-4 col-sm-6 mix {{item.itemCat}}{% else %} col-lg-3 col-md-4 col-sm-6 mix {{item.itemCat}} out-of-stock{% endif %}"> -->
                 <div class="col-lg-3 col-md-4 col-sm-6 mix {{item.itemCat|cut:' '}}">
                     <!--<form action="{% url 'add_to_cart' item.itemID %}" method="post">-->
@@ -80,6 +96,44 @@ Categories Section End -->
                 {% empty %}
                 <p>Sorry, no item found!</p>
             {% endfor %}
+        </div>
+        <div class="pagination" style="margin-top: 20px; margin-left: 25%;">
+            <ul style="display: flex; list-style: none; padding: 0; gap: 8px; flex-wrap: wrap;">
+              
+              {# Previous button #}
+              {% if featureItems_page_obj.has_previous %}
+                <li><a href="?page={{ featureItems_page_obj.previous_page_number }}">« Prev</a></li>
+              {% endif %}
+          
+              {# First page #}
+              {% if featureItems_page_obj.number > 6 %}
+                <li><a href="?page=1">1</a></li>
+                <li>...</li>
+              {% endif %}
+          
+              {# Page range centered around current page (max 10 total) #}
+              {% for page_num in featureItems_page_obj.paginator.page_range %}
+                {% if page_num >= featureItems_page_obj.number|add:'-4' and page_num <= featureItems_page_obj.number|add:'5' %}
+                  {% if page_num == featureItems_page_obj.number %}
+                    <li><strong style="padding: 4px 8px; background: #007bff; color: white; border-radius: 4px;">{{ page_num }}</strong></li>
+                  {% else %}
+                    <li><a href="?page={{ page_num }}">{{ page_num }}</a></li>
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+          
+              {# Last page #}
+              {% if featureItems_page_obj.number < featureItems_page_obj.paginator.num_pages|add:'-5' %}
+                <li>...</li>
+                <li><a href="?page={{ featureItems_page_obj.paginator.num_pages }}">{{ featureItems_page_obj.paginator.num_pages }}</a></li>
+              {% endif %}
+          
+              {# Next button #}
+              {% if featureItems_page_obj.has_next %}
+                <li><a href="?page={{ featureItems_page_obj.next_page_number }}">Next »</a></li>
+              {% endif %}
+          
+            </ul>
         </div>
     </div>
 </section>

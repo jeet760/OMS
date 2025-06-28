@@ -1,14 +1,61 @@
 {% extends 'index.html' %}
 {% block success %}
+<style>
+    .success-container {
+      text-align: center;
+      background: #e6ffee;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
 
-<div class="alert alert-info" role="alert" id="orderSuccessful">
+    .success-icon {
+      font-size: 60px;
+      color: #28a745;
+    }
+
+    .success-title {
+      font-size: 24px;
+      margin-top: 15px;
+      color: #2d624d;
+    }
+
+    .success-message {
+      font-size: 16px;
+      margin-top: 10px;
+      color: #555;
+    }
+
+    .btn-home {
+      display: inline-block;
+      margin-top: 25px;
+      padding: 10px 20px;
+      background: #28a745;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    .btn-home:hover {
+      background: #218838;
+    }
+
+    a:hover{
+        color: red;
+    }
+</style>
+<div class="success-container">
+    <div class="success-icon">✅</div>
+    <div class="success-title">Success!</div>
+    <div class="success-message">Your order has been placed successfully with Order No.<a href="{% url 'orderdetails' orderID %}">{{orderNo}}</a>!</div>
     {% if orderType == 'Order' %}
-    <h2>Order Placed Successfully with Order No.<a href="{% url 'orderdetails' orderID %}">{{orderNo}}</a>!</h2>
+    <h2></h2>
     <p>Payment Reference Number: {{pay_ref}}</p>
     {% elif orderType == 'Bulk' %}
-    <h2>Bulk Buy Request Placed Successfully with Ref. No.<a href="{% url 'bulk-buy-orders' %}">{{orderNo}}</a>!</h2>
+    <div class="success-message">Your order has been placed successfully with Order No.<a href="{% url 'bulk-buy-orders' %}">{{orderNo}}</a>!</div>
     {% endif %}
-    <a class='btn btn-secondary' href="{% url 'index' %}">
+    <a href="{% url 'index' %}">
         Go Back to Homepage.
     </a>
 </div>
