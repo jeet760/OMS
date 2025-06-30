@@ -305,6 +305,7 @@
           <a href="{% url 'item_list' %}" class="block p-2 hover:bg-green-100 rounded">Items</a>
           <a href="{% url 'receivedorders' %}" class="block p-2 hover:bg-green-100 rounded">Orders</a>
           <a href="{% url 'bulk-buy-supply' %}" class="block p-2 hover:bg-green-100 rounded">Bulk Buy</a>
+          <a href="{% url 'revenue' %}" class="block p-2 hover:bg-green-100 rounded">Revenue</a>
           <a href="{% url 'user-form' %}" class="block p-2 hover:bg-green-100 rounded">Settings</a>
           <!-- <a href="#customers" class="block p-2 hover:bg-green-100 rounded">Customers</a> -->
           <!-- <a href="#notifications" class="block p-2 hover:bg-green-100 rounded">Notifications</a> -->
@@ -390,6 +391,12 @@
               <p>Customer list and actions here.</p>
             </div>
           </section> -->
+
+
+          <!-- FPO Revenue -->
+          <section id="settings">
+            {% block fpo_revenue %}{% endblock %}
+          </section>
 
           <!-- Settings -->
           <section id="settings">

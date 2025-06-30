@@ -86,7 +86,8 @@ urlpatterns = [
     path('profile/auth/', views.fpo_auth, name='profile-auth'),
     path('profile/auth/save', views.upload_fpo_docs, name='profile-auth-save'),
     path('profile/verify/<int:userID>', views.verify_fpo, name='profile-verify'),
-    # path('profile/doc/verify/<int:userID>', views.verify_fpo_doc, name='profile-doc-verify'),
+    
+    path('revenue/', views.fpo_revenue, name='revenue'),
 
     path('receivedorders/', views.ReceivedOrders, name='receivedorders'),
     path('invoicedorders/', views.invoiced_orders, name='invoicedorders'),

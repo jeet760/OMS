@@ -1,0 +1,33 @@
+{% extends 'admin-console.html' %}
+{% load static %}
+{% block fpo_revenue %}
+<h2 class="text-xl font-semibold mb-4">Revenue</h2>
+<div class="bg-white p-4 shadow rounded border border-gray-300">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <a href="#">
+            <div class="bg-green-500 text-white p-4 rounded shadow">
+                <h3 class="text-sm">Total</h3>
+                <p class="text-2xl font-semibold mt-1">{{item_total_revenue}}</p>
+            </div>
+        </a>
+        <a href="#">
+            <div class="bg-blue-500 text-white p-4 rounded shadow">
+                <h3 class="text-sm">Cash</h3>
+                <p class="text-2xl font-semibold mt-1">{{item_total_revenue_cod}}</p>
+            </div>
+        </a>
+        <a href="#">
+            <div class="bg-yellow-500 text-white p-4 rounded shadow">
+                <h3 class="text-sm">Institutional Credit</h3>
+                <p class="text-2xl font-semibold mt-1">{{item_total_revenue_inc}}</p>
+            </div>
+        </a>
+        <a href="#">
+            <div class="bg-purple-500 text-white p-4 rounded shadow">
+                <h3 class="text-sm">Online</h3>
+                <p class="text-2xl font-semibold mt-1">{{item_total_revenue_onl}}</p>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}

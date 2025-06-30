@@ -22,6 +22,7 @@ from .deliveryschedule import DeliverySchedule
 import razorpay
 from urllib.parse import urlparse
 import pandas as pd
+import socket
 
 
 
@@ -146,15 +147,22 @@ def shop(request, category=None, fpo=None, region=None):
     }
     return render(request, 'shop-grid.html', shop_page_context)
 
-def PinCodeAPI(request, pincode):
+def is_online(host='api.postalpincode.in', port=443, timeout=3):
     try:
+        socket.setdefaulttimeout(timeout)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        return True
+    except socket.error:
+        return False
+
+def PinCodeAPI(request, pincode):
+    if is_online() == True:
         api_response = requests.get(f'https://api.postalpincode.in/pincode/{pincode}') 
         postalData = api_response.json()
         postoffice_data = postalData[0]['PostOffice']
         return postoffice_data[0]['Name']+", "+postoffice_data[0]['Block']
-    except:
-        messages.error(request, 'There has been a connetion failure!')
-        return HttpResponse({})
+    else:
+        messages.error(request, 'Failed to connect to internet!')
 
 def shop_details(request, item_id):
     item = get_object_or_404(Item,pk=item_id)
@@ -754,31 +762,29 @@ def login_view(request):
             password = request.POST['password']
             try:
                 user = get_object_or_404(CustomUser,username=username)
+                if user.isActive == False:
+                    messages.error(request, 'Your Account is not active! Please, contact administrator to activate your account.')
+                    #return redirect('login')
+                else:
+                    # try:
+                    user_login = authenticate(request, username=username, password=password)
+                    if user_login is None:
+                        messages.error(request, 'Username-Password Mismatch!')
+                    else:
+                        login(request, user_login)
+                        if user.userType == '0' and user.is_superuser:
+                            return redirect('admin-master')
+                        elif user.userType == '1':
+                            return redirect('dashboard')
+                        else:
+                            return redirect('index')
+                    # except:
+                    #     messages.error(request, 'Username-Password Mismatch!')
             except:
                 messages.error(request, 'User does not exist! Please check username and password.')
-                return redirect('login')
-            if user.isActive == False:
-                messages.error(request, 'Your Account is not active! Please, contact administrator to activate your account.')
-                return redirect('login')
-            if user.userType == '0' and user.is_superuser:
-                user_login = authenticate(request, username=username, password=password)
-                if user_login is None:
-                    messages.error(request, 'Invalid username or password!')
-                    return redirect('login')
-                else:
-                    login(request, user_login)
-                    return redirect('admin-master')
-            elif user.userType == '1':
-                user_login = authenticate(request, username=username, password=password)
-                login(request, user_login)
-                return redirect('dashboard')
-            else:
-                user_login = authenticate(request, username=username, password=password)
-                if user_login is not None:
-                    login(request, user_login)
-                    return redirect('index')
-                else:
-                    messages.error(request, 'Invalid username or password!')
+                #return redirect('login')
+        else:
+            form = UserLoginForm()
     else:
         form = UserLoginForm()
     return render(request, 'login.html', {'loginform': form, 'login_user':'Guest!'})
@@ -1908,23 +1914,61 @@ def dashboard(request):
     return render(request, 'dashboard.html', {'dashboard':dashboard_context, 'login_user':user_name})
 #endregion
 
-#region Payment module (Razorpay integration)
-def initiate_payment(request):
-    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-    total_price = int(float(request.session['total_price'].strip()))*100 #To convert the amount into paise
-    transportation_cost = int(float(request.session['transportation_cost'].strip()))*100
-    amount = total_price + transportation_cost
-    payment = client.order.create({
-        "amount": amount,  # Amount in paise (500.00 INR)
-        "currency": "INR",
-        "payment_capture": '1'  # auto capture after payment
-    })
+#region Revenue page
+def fpo_revenue(request):
+    if request.user.is_authenticated:
+        user_name = request.user.last_name
+        user_approved=request.user.userApproved
+        """if the user is not an FPO then the page should not be displayed"""
+        if request.user.userType != '1':
+            return redirect('index')
+    else:
+        user_name = 'Guest!'
+        user_approved=''
 
-    context = {
-        'payment': payment,
-        'razorpay_key_id': settings.RAZORPAY_KEY_ID
+    item_total_revenue = OrderDetails.objects.filter(suborderID__vendorID__id=request.user.pk, orderStatus='Accepted').values('suborderID').aggregate(total_price_with_gst=Sum('itemPricewithGST'))['total_price_with_gst']
+    item_total_revenue_cod = OrderDetails.objects.filter(suborderID__vendorID__id=request.user.pk, orderStatus='Accepted',suborderID__paymentMode=1).values('suborderID').aggregate(total_price_with_gst=Sum('itemPricewithGST'))['total_price_with_gst']
+    item_total_revenue_inc = OrderDetails.objects.filter(suborderID__vendorID__id=request.user.pk, orderStatus='Accepted',suborderID__paymentMode=2).values('suborderID').aggregate(total_price_with_gst=Sum('itemPricewithGST'))['total_price_with_gst']
+    item_total_revenue_onl = OrderDetails.objects.filter(suborderID__vendorID__id=request.user.pk, orderStatus='Accepted',suborderID__paymentMode=3).values('suborderID').aggregate(total_price_with_gst=Sum('itemPricewithGST'))['total_price_with_gst']
+    rev_context = {
+        'item_total_revenue':item_total_revenue,
+        'item_total_revenue_cod':item_total_revenue_cod,
+        'item_total_revenue_inc':item_total_revenue_inc,
+        'item_total_revenue_onl':item_total_revenue_onl,
+        'login_user':user_name,
+        'user_approved':user_approved
     }
-    return render(request, 'checkout.html', context)
+    return render(request, 'fpo-revenue.html', context=rev_context)
+#endregion
+
+#region Payment module (Razorpay integration)
+def is_connected(host='api.razorpay.com', port=443, timeout=3):
+    try:
+        socket.setdefaulttimeout(timeout)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        return True
+    except socket.error:
+        return False
+
+def initiate_payment(request):
+    if is_connected() == True:
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        total_price = int(float(request.session['total_price'].strip()))*100 #To convert the amount into paise
+        transportation_cost = int(float(request.session['transportation_cost'].strip()))*100
+        amount = total_price + transportation_cost
+        payment = client.order.create({
+            "amount": amount,  # Amount in paise (500.00 INR)
+            "currency": "INR",
+            "payment_capture": '1'  # auto capture after payment
+        })
+        context = {
+            'payment': payment,
+            'razorpay_key_id': settings.RAZORPAY_KEY_ID
+        }
+        return render(request, 'checkout.html', context)
+    else:
+        messages.error(request,'Failed to connect to Internet!')
+        return redirect('shoppingcart')
 
 @csrf_exempt
 def payment_success(request):
