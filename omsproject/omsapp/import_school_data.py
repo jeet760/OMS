@@ -3,7 +3,8 @@ import sys
 import django
 
 # Step 1: Add project root to sys.path
-sys.path.append('/Users/satyajitnayak/Desktop/WORKSPACE/Dev/OMS/omsproject')
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(BASE_DIR)
 
 # Step 2: Set environment variable for Django settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'omsproject.settings')

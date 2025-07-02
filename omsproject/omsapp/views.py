@@ -486,6 +486,11 @@ def register(request):
         if request.user.is_authenticated == False: #update == None:#New registration
             if form.is_valid():
                 if request.POST['userType'] == '3':
+                    udise_exists = SchoolUDISE.objects.filter(udise_code=request.POST['udise_code']).exists()
+                    if udise_exists == False:
+                        messages.error(request,'Invalid UDISE Code!\nPlease use valid UDISE code.')
+                        return redirect('register')
+                    
                     check_reg = CustomUser.objects.filter(udise_code=request.POST['udise_code']).exists()
                     if check_reg:
                         messages.error(request, 'UDISE Code exists! Please login using UDISE Code.')
