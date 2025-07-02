@@ -11,7 +11,7 @@ USERTYPES = [
     ('', 'Select Usertype'),
     ('1', 'FPO'),
     ('2', 'Business'),
-    ('3', 'Institution'),
+    ('3', 'School'),
     ('4', 'Overseas'),
     ('5', 'Individual'),
 ]

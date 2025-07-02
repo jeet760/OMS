@@ -241,7 +241,7 @@
             <a href="#" onclick="filterTable('All')"><div class="bg-gray-800 p-4 shadow rounded">Total Users: <strong>{{total_users_no}}</strong></div></a>
             <a href="#" onclick="filterTable('FPO')"><div class="bg-gray-800 p-4 shadow rounded">Total FPOs: <strong>{{total_fpo}}</strong></div></a>
             <a href="#" onclick="filterTable('Business')"><div class="bg-gray-800 p-4 shadow rounded">Total Businesses: <strong>{{total_business}}</strong></div></a>
-            <a href="#" onclick="filterTable('Institution')"><div class="bg-gray-800 p-4 shadow rounded">Total Institutions: <strong>{{total_institutions}}</strong></div></a>
+            <a href="#" onclick="filterTable('School')"><div class="bg-gray-800 p-4 shadow rounded">Total Schools: <strong>{{total_institutions}}</strong></div></a>
             <a href="#" onclick="filterTable('Overseas')"><div class="bg-gray-800 p-4 shadow rounded">Total Overseas: <strong>{{total_overseas}}</strong></div></a>
             <a href="#" onclick="filterTable('Individual')"><div class="bg-gray-800 p-4 shadow rounded">Total Individuals: <strong>{{total_individual}}</strong></div></a>
           </div>
@@ -277,7 +277,7 @@
                   <td class="py-2">
                     {% if user.userType == '1' %}FPO
                     {% elif user.userType == '2' %}Business
-                    {% elif user.userType == '3' %}Institution
+                    {% elif user.userType == '3' %}School
                     {% elif user.userType == '4' %}Overseas
                     {% else %}Individual
                     {% endif %}

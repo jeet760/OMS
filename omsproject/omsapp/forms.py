@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 USERTYPE_CHOICES = [
     ('1', 'FPO'),
     ('2', 'Business'),
-    ('3', 'Institution'),
+    ('3', 'School'),
     ('4', 'Overseas'),
     ('5', 'Individual'),
 ]
@@ -87,7 +87,7 @@ class UserRegistrationForm(ModelForm):
             }),#last_name is the display name
             'org_name': TextInput(attrs={
                 'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
-                'placeholder': 'Business Name (Organisation/Company/Institution Name)',
+                'placeholder': 'Business Name (Organisation/Company/School Name)',
                 'id':'org_name'
             }),#organisation name
             'email':TextInput(attrs={

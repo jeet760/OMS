@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='customuser',
             name='userType',
-            field=models.CharField(choices=[('', 'Select Usertype'), ('1', 'FPO'), ('2', 'Business'), ('3', 'Institution'), ('4', 'Overseas'), ('5', 'Individual')], max_length=20),
+            field=models.CharField(choices=[('', 'Select Usertype'), ('1', 'FPO'), ('2', 'Business'), ('3', 'School'), ('4', 'Overseas'), ('5', 'Individual')], max_length=20),
         ),
     ]

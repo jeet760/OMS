@@ -13,7 +13,7 @@
             <div class="col-30">
                 {% if userform.userType == '1' %}FPO
                 {% elif userform.userType == '2' %}Business
-                {% elif userform.userType == '3' %}Institution
+                {% elif userform.userType == '3' %}School
                 {% elif userform.userType == '4' %}Overseas
                 {% else %}Individual
                 {% endif %}
@@ -38,7 +38,7 @@
                 <div class="col-30">
                     {{userform.org_name}}
                     <div id="passwordHelpInline" class="form-text">
-                        Note: Organisation/Company/Institution Name
+                        Note: Organisation/Company/School Name
                     </div>
                 </div>
             </div>

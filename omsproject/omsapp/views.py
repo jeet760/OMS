@@ -1863,7 +1863,7 @@ def bulk_buy_response_details(request, bbr_id):
 def USERTYPE_CHOICES(choice):
     if choice == '1': return 'FPO'
     elif choice == '2': return 'Business'
-    elif choice == '3': return 'Institution'
+    elif choice == '3': return 'School'
     elif choice == '4': return 'Overseas'
     else: return 'Individual'
 
