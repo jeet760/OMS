@@ -61,14 +61,12 @@ GST_TREATMENT=[
     ('3', 'Unregistered Business'),
     ('4', 'Individual'),
 ]
-"""class CustomUserManager(UserManager):
-    def create_user(self, username, email = None, password = None, **extra_fields):
-        return super().create_user(username, email, password, **extra_fields)"""
 
 class CustomUser(AbstractUser):
     id=AutoField(primary_key=True)
-    """"Basic details"""
+    #""""Basic details"""
     userType = CharField(max_length=20, choices=USERTYPES)
+    udise_code = CharField(max_length=11, default='00000000000', blank=True)#only for the school
     first_name = CharField(max_length=50)#name
     last_name = CharField(max_length=50)#displayname
     org_name=CharField(max_length=50, default='', blank=True)#business name
@@ -78,14 +76,14 @@ class CustomUser(AbstractUser):
     gstin = CharField(max_length=15, default='', blank=True)
     supply_place = CharField(max_length=70, choices=STATES)
     gst_tmt = CharField(max_length=20, choices=GST_TREATMENT)#gst treatment
-    """Billing Address"""
+    #"""Billing Address"""
     contactPerson = CharField(max_length=50, null=True, blank=True)
     contactNo = CharField(max_length=15, null=True, blank=True)
     userAddress = CharField(max_length=200,null=True)
     userCity = CharField(max_length=50,null=True)
     userState = CharField(max_length=20, choices=STATES,null=True)
     pinCode = CharField(max_length=6,null=True)
-    """Shipping Address"""
+    #"""Shipping Address"""
     contactPerson1 = CharField(max_length=50, null=True, blank=True)
     contactNo1 = CharField(max_length=15, null=True, blank=True)
     userAddress1 = CharField(max_length=200,null=True)
@@ -93,7 +91,7 @@ class CustomUser(AbstractUser):
     userState1 = CharField(max_length=20, choices=STATES,null=True)
     pinCode1 = CharField(max_length=6,null=True)
     userNote = CharField(max_length=300,null=True, blank=True)#remarks from user
-    """Account attributes"""
+    #"""Account attributes"""
     password = CharField(max_length=20, default='Admin@1234')
     userApproved = BooleanField(null=True)
     approvedOn = DateField(null=True)
@@ -109,6 +107,14 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.phone
+    
+    def save(self, *args, **kwargs):
+        if self.udise_code == '00000000000':
+            self.username = self.phone
+        else:
+            self.username = self.udise_code
+        super().save(*args, **kwargs)
+
 
 class Login(Model):
     id = AutoField(primary_key=True)
@@ -117,6 +123,21 @@ class Login(Model):
     password = CharField(max_length=10)
     def __str__(self):
         return self.id
+
+class SchoolUDISE(Model):
+    id=AutoField(primary_key=True)
+    state_name = CharField(max_length=50)
+    district_name = CharField(max_length=50)
+    sub_dist_name=CharField(max_length=50)
+    village_name = CharField(max_length=50)
+    udise_code = CharField(max_length=11)
+    school_name = CharField(max_length=50)
+    school_cat = CharField(max_length=20)
+    school_type = CharField(max_length=20)
+    loc_lat = FloatField()
+    loc_long = FloatField()
+    def __str__(self):
+        return f"{self.id}"
 
 #Addresses of all users
 class UserShippingAddresses(Model):

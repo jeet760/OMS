@@ -192,10 +192,11 @@
                         <div class="shoping__checkout">
                             <h5>Cart Total</h5>
                             <ul>
-                                <li>Total Qty.<span style="color: black;">{{ total_qty }}</span></li>
+                                <li>Total No. of Items <span style="color: black;">{{ no_of_cart_item }}</span></li>
+                                <li>Total Item Qty.<span style="color: black;">{{ total_qty }}</span></li>
                                 <li>Subtotal <span style="color: black;">₹{{ total_price }}</span></li>
                                 <li>Delivery Charges<span style="color: black;">₹{{transportation_cost}}.00</span></li>
-                                <li>Total <span style="color: black;">₹{{ grand_total }}</span></li>
+                                <li>Total <span>₹{{ grand_total }}</span></li>
                                 <li>Schedule Date
                                     <span style="color: black;">
                                         <select id="selectDeliveryDate" name="selectDeliveryDate" style="font-size: 12px; height: 30px; width: 130px;">

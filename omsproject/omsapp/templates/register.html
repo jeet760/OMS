@@ -27,6 +27,45 @@
              document.getElementById('pinCode1').readOnly = false;
           }
     }
+
+    function checkUserType(){
+        const userType=document.getElementById('userType').value;
+        if(userType == 3){
+            const udise_code=document.getElementById('udise_code').value;
+            var udise_len = document.getElementById('udise_code').value.length;
+            if(udise_len < 11){
+                alert('Please enter valid UDISE Code<11');
+            }
+            else{
+                let url = "{% url 'fetch-school' 0 %}".replace('0', udise_code);
+                fetch(url)  // Replace with your actual Django view URL
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();  // Parse JSON data
+                })
+                .then(data => {
+                    document.getElementById('first_name').value = JSON.stringify(data['school_name']).replace('"','').replace('"','').trim();
+                    document.getElementById('last_name').value = JSON.stringify(data['school_name']).replace('"','').replace('"','').trim();
+                    document.getElementById('org_name').value = JSON.stringify(data['school_name']).replace('"','').replace('"','').trim();
+                    document.getElementById('supply_place').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
+                    document.getElementById('userAddress').value = JSON.stringify(data['village_name']).replace('"','').replace('"','').trim();
+                    document.getElementById('userCity').value = JSON.stringify(data['sub_dist_name']).replace('"','').replace('"','')+" "+JSON.stringify(data['district_name']).replace('"','').replace('"','').trim();
+                    document.getElementById('userState').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
+                    document.getElementById('userAddress1').value = JSON.stringify(data['village_name']).replace('"','').replace('"','').trim();
+                    document.getElementById('userCity1').value = JSON.stringify(data['sub_dist_name']).replace('"','').replace('"','')+" "+JSON.stringify(data['district_name']).replace('"','').replace('"','').trim();
+                    document.getElementById('userState1').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
+                    //alert(JSON.stringify(data['school_name']).replace('"','').replace('"',''));
+                    //window.location.reload();
+                })
+                .catch(error => {
+                    alert(JSON.stringify(error));
+                    //console.error('Error fetching data:', error);
+                });
+            }
+        }
+    }
  </script>
     <!-- Checkout Section Begin -->
     <section class="checkout spad">
@@ -45,10 +84,16 @@
                     <div class="row">
                         <div class="col-lg-8 col-md-6">
                             <div class="row">
-                                <div class="col-lg-6">
+                                <div class="col-lg-3">
                                     <div class="checkout__input">
                                         <p>Usertype<span>*</span></p>
                                         {{userform.userType}}
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <div class="checkout__input">
+                                        <p>UDISE<span><em>(if School)</em></span></p>
+                                        {{userform.udise_code}}
                                     </div>
                                 </div>
                                 <div class="col-lg-6">
@@ -99,13 +144,17 @@
                                         {{userform.gstin}}
                                     </div>
                                 </div>
-                                <div class="col-lg-3">
+                                <div class="col-lg-6">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6">
                                     <div class="checkout__input">
                                         <p>Place of Supply<span>*</span></p>
                                         {{userform.supply_place}}
                                     </div>
                                 </div>
-                                <div class="col-lg-3">
+                                <div class="col-lg-6">
                                     <div class="checkout__input">
                                         <p>GST Treatment<span>*</span></p>
                                         {{userform.gst_tmt}}

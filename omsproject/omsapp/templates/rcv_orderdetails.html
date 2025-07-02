@@ -119,12 +119,12 @@ window.addEventListener('click', function(e) {
                 <strong>Order No.: <span class="px-4 py-2 text-sm text-blue-600">{{orderNo}}</span></strong>
             </td>
             <td>
-                <strong>Order From: <span class="px-4 py-2 text-sm text-blue-600">{{orderFrom}}</span></strong>
+                <strong>Payment Status: <span class="px-4 py-2 text-sm text-blue-600">{{payment_status}}</span></strong>
             </td>
         </tr>
         <tr>
             <td>
-                <strong>Order Note: <span class="px-4 py-2 text-sm text-blue-600">{{orderNote}}</span></strong>
+                <strong>Order From: <span class="px-4 py-2 text-sm text-blue-600">{{orderFrom}}</span></strong>
             </td>
             <td>
                 <strong>Payment Mode: <span class="px-4 py-2 text-sm text-blue-600">{{payment_mode}}</span></strong>
@@ -132,7 +132,7 @@ window.addEventListener('click', function(e) {
         </tr>
         <tr>
             <td>
-                <strong>Payment Status: <span class="px-4 py-2 text-sm text-blue-600">{{payment_status}}</span></strong>
+                <strong>Shipping Address: <span class="px-4 py-2 text-sm text-blue-600">{{shipping_address}}</span></strong>
             </td>
             <td>
                 <strong>Payment Date: <span class="px-4 py-2 text-sm text-blue-600">{{payment_date}}</span></strong>
@@ -140,9 +140,11 @@ window.addEventListener('click', function(e) {
         </tr>
         <tr>
             <td>
+                <strong>Order Note: <span class="px-4 py-2 text-sm text-blue-600">{{orderNote}}</span></strong>
+            </td>
+            <td>
                 <strong>Payment Ref. No.: <span class="px-4 py-2 text-sm text-blue-600">{{payment_ref}}</span></strong>
             </td>
-            <td></td>
         </tr>
     </table>
 
@@ -171,8 +173,13 @@ window.addEventListener('click', function(e) {
          <button class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 pointer-events-none opacity-50">Invoice</button>
          <a class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 pointer-events-none opacity-50" href="{% url 'confirmdelivery' suborderID %}">Mark As Delivered</a>
          {% elif suborder_status == 'Rejected' %}
-         <button class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 pointer-events-none opacity-50">Invoice</button>
-         <a class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 pointer-events-none opacity-50" href="{% url 'confirmdelivery' suborderID %}">Mark As Delivered</a>
+         <button class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 pointer-events-none opacity-50">Rejected</button>
+         <a class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 pointer-events-none opacity-50" href="{% url 'confirmdelivery' suborderID %}">Rejected</a>
+         <!-- <button class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 pointer-events-none opacity-50">Invoice</button>
+         <a class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 pointer-events-none opacity-50" href="{% url 'confirmdelivery' suborderID %}">Mark As Delivered</a> -->
+         {% elif suborder_status == 'Delivered' %}
+         <button class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 pointer-events-none opacity-50">Invoiced</button>
+         <a class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 pointer-events-none opacity-50" href="{% url 'confirmdelivery' suborderID %}">Delivered</a>
          {% else %}
          <button id="modify" onclick="enableAction()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 pointer-events-none opacity-50">Modify</button>
          <button class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">Invoice</button>
@@ -203,7 +210,13 @@ window.addEventListener('click', function(e) {
                       <td class="px-4 py-2 text-sm text-gray-700">{{orderitem.itemQty}}</td>
                       <td class="px-4 py-2 text-sm text-gray-700">{{orderitem.itemPrice}}</td>
                       <td class="px-4 py-2 text-sm text-gray-700">{{orderitem.itemPricewithGST}}</td>
-                      <td class="px-4 py-2 text-sm text-green-600">{{orderitem.remark}}</td>
+                      <td class="px-4 py-2 text-sm text-gray-700">
+                        {% if orderitem.orderStatus == 'Accepted' %}
+                        <span class="px-4 py-2 text-sm text-green-600">{{orderitem.remark}}</span>
+                        {% elif orderitem.orderStatus == 'Rejected' %}
+                        <span class="px-4 py-2 text-sm text-red-600">{{orderitem.remark}}</span>
+                        {% endif %}
+                      </td>
                       <td class="px-4 py-2 text-sm text-green-600 td_actions" style="display: none;">
                           <div id="actionControls" class="{% if orderitem.remark != None %}pointer-events-none opacity-50{% endif %}">
                               <button id="accept{{orderitem.id}}" onclick="acceptOrder('{{orderitem.id}}')">

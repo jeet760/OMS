@@ -48,9 +48,8 @@
 <div class="success-container">
     <div class="success-icon">✅</div>
     <div class="success-title">Success!</div>
-    <div class="success-message">Your order has been placed successfully with Order No.<a href="{% url 'orderdetails' orderID %}">{{orderNo}}</a>!</div>
     {% if orderType == 'Order' %}
-    <h2></h2>
+    <div class="success-message">Your order has been placed successfully with Order No.<a href="{% url 'orderdetails' orderID %}">{{orderNo}}</a>!</div>
     <p>Payment Reference Number: {{pay_ref}}</p>
     {% elif orderType == 'Bulk' %}
     <div class="success-message">Your order has been placed successfully with Order No.<a href="{% url 'bulk-buy-orders' %}">{{orderNo}}</a>!</div>

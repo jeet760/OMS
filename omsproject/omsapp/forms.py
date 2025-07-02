@@ -61,7 +61,7 @@ CustomUser = get_user_model()
 class UserRegistrationForm(ModelForm):
     class Meta:
         model = CustomUser
-        fields = ['userType','first_name','last_name','org_name','email', 'phone','phone1','gstin','supply_place','gst_tmt','userAddress','userCity','userState','pinCode','userAddress1','userCity1','userState1','pinCode1','userNote']
+        fields = ['userType','udise_code','first_name','last_name','org_name','email', 'phone','phone1','gstin','supply_place','gst_tmt','userAddress','userCity','userState','pinCode','userAddress1','userCity1','userState1','pinCode1','userNote']
         widgets = {
             'userType':Select(attrs={
                 'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
@@ -69,6 +69,12 @@ class UserRegistrationForm(ModelForm):
                 'id':'userType',
                 'style':'width:100%',
             }, choices=USERTYPE_CHOICES),
+            'udise_code': TextInput(attrs={
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
+                'placeholder': 'UDISE Number',
+                'id':'udise_code',
+                'onblur':"checkUserType()"
+            }),#first_name is the name
             'first_name': TextInput(attrs={
                 'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Name',
@@ -161,8 +167,11 @@ class UserRegistrationForm(ModelForm):
     def save(self, commit=True, param_password=None):
         user = super().save(commit=False)
         user.set_password(param_password)
+        # if user.udise_code == '00000000000':
+        #     user.username = user.phone
+        # else:
+        #     user.username = user.udise_code
         if commit:
-            user.username = user.phone
             user.save()
         return user
         

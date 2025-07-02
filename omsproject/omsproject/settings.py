@@ -51,7 +51,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-#AUTHENTICATION_BACKENDS = ['omsapp.backends.MyBackend', 'django.contrib.auth.backends.ModelBackend']
+AUTHENTICATION_BACKENDS = [
+    'omsapp.backends.PhoneOrUdiseBackend',   # your custom backend
+    'django.contrib.auth.backends.ModelBackend',  # optional fallback
+]
+
 
 ROOT_URLCONF = 'omsproject.urls'
 

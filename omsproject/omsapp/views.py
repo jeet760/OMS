@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.contrib import messages
 from django.db import connection
-from django.db.models import Q, Max, Min, Sum, Count, OuterRef, Subquery, F
+from django.db.models import Q, Max, Min, Sum, Count, OuterRef, Subquery, F, Value
+from django.db.models.functions import Concat
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
@@ -12,7 +13,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
 from datetime import datetime
-from .models import CustomUser, UserShippingAddresses, UserBillingAddresses, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, OrderInvoice, OrderDelivery, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder, FPOAuthorisationDocs, UserMessage
+from .models import CustomUser, UserShippingAddresses, UserBillingAddresses, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, OrderInvoice, OrderDelivery, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder, FPOAuthorisationDocs, UserMessage, SchoolUDISE
 from .models import STATES, USERTYPES, GST_TREATMENT
 from .forms import ItemForm, UserRegistrationForm, UserLoginForm, OrderForm, OrderDetailsForm, InvoiceForm, FPOAuthrisationForm, ItemImportExcelForm
 import json
@@ -205,6 +206,7 @@ def shopping_cart(request):
             item_stock = False
             break
     total_qty = cart.__len__()
+    no_of_cart_item = cart.cart.__len__()
     total_price = cart.get_total_price()
     transportation_cost = 0 if total_price > 999 else 99
     grand_total = total_price + transportation_cost
@@ -227,6 +229,7 @@ def shopping_cart(request):
         'user_type':user_type,
         'user_approved':user_approved,
         'cart': cart, 
+        'no_of_cart_item':no_of_cart_item,
         'total_qty':total_qty, 
         'total_price':total_price, 
         'transportation_cost':transportation_cost,
@@ -404,6 +407,62 @@ def user_form(request):
     }
     return render(request, 'user-form.html', context=user_form_context)
 
+LIST_STATES = [
+    ('1','Andhra Pradesh'),
+    ('2','Arunachal Pradesh'),
+    ('3','Assam'),
+    ('4','Bihar'),
+    ('5','Chhattisgarh'),
+    ('6','Goa'),
+    ('7','Gujarat'),
+    ('8','Haryana'),
+    ('9','Himachal Pradesh'),
+    ('10','Jharkhand'),
+    ('11','Karnataka'),
+    ('12','Kerala'),
+    ('13','Madhya Pradesh'),
+    ('14','Maharashtra'),
+    ('15','Manipur'),
+    ('16','Meghalaya'),
+    ('17','Mizoram'),
+    ('18','Nagaland'),
+    ('19','Odisha'),
+    ('20','Punjab'),
+    ('21','Rajasthan'),
+    ('22','Sikkim'),
+    ('23','Tamil Nadu'),
+    ('24','Telangana'),
+    ('25','Tripura'),
+    ('26','Uttar Pradesh'),
+    ('27','Uttarakhand'),
+    ('28','West Bengal'),
+    ('29','Andaman and Nicobar Islands [UT]'),
+    ('30','Chandigarh [UT]'),
+    ('31','Dadra and Nagar Haveli and Daman and Diu [UT]'),
+    ('32','Delhi [UT]'),
+    ('33','Jammu and Kashmir [UT]'),
+    ('34','Ladakh [UT]'),
+    ('35','Lakshadweep [UT]'),
+    ('36','Puducherry [UT]')
+]
+
+def fetch_school(request, udise):
+    school = get_object_or_404(SchoolUDISE, udise_code=udise)
+    school_name = school.school_name
+    list_state_reverse_dict = {k: v for v, k in LIST_STATES}
+    state_value = list_state_reverse_dict.get(school.state_name)
+    district_name = school.district_name
+    sub_dist_name = school.sub_dist_name
+    village_name = school.village_name
+    json_response = {
+        'school_name':school_name,
+        'state_name':state_value,
+        'district_name':district_name,
+        'sub_dist_name':sub_dist_name,
+        'village_name':village_name
+    }
+    return JsonResponse(json_response)
+
 def registration_form(request):
     form = UserRegistrationForm()#new register point: opening the registratino page without login
     user_name = 'Guest!'
@@ -426,11 +485,25 @@ def register(request):
         form = UserRegistrationForm(request.POST)#Point: After clicking register button
         if request.user.is_authenticated == False: #update == None:#New registration
             if form.is_valid():
-                user = form.save(param_password=request.POST['phone'])
+                if request.POST['userType'] == '3':
+                    check_reg = CustomUser.objects.filter(udise_code=request.POST['udise_code']).exists()
+                    if check_reg:
+                        messages.error(request, 'UDISE Code exists! Please login using UDISE Code.')
+                        return redirect('register')
+                    else:
+                        user = form.save(param_password=request.POST['udise_code'])
+                else:
+                    user = form.save(param_password=request.POST['phone'])
                 contact_person = user.last_name
                 contact_no = user.phone
-                UserBillingAddresses.objects.create(userID_id=user.pk,userAddress=user.userAddress, userCity=user.userCity, userState=user.userState, pinCode=user.pinCode, contactPerson=contact_person, contactNo=contact_no, address_lat=0.00, address_long=0.00, setDefault=True)
-                UserShippingAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress1, userCity1=user.userCity1, userState1=user.userState1, pinCode1=user.pinCode1, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=0.00, address_long1=0.00, setDefault=True)
+                loc_lat = 0.00
+                loc_long = 0.00
+                if user.userType == '3':
+                    school = get_object_or_404(SchoolUDISE, udise_code=user.udise_code)
+                    loc_lat=school.loc_lat
+                    loc_long=school.loc_long
+                UserBillingAddresses.objects.create(userID_id=user.pk,userAddress=user.userAddress, userCity=user.userCity, userState=user.userState, pinCode=user.pinCode, contactPerson=contact_person, contactNo=contact_no, address_lat=loc_lat, address_long=loc_long, setDefault=True)
+                UserShippingAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress1, userCity1=user.userCity1, userState1=user.userState1, pinCode1=user.pinCode1, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=loc_lat, address_long1=loc_long, setDefault=True)
                 if user.userType != '1':
                     CustomUser.objects.filter(pk=user.id).update(userApproved=True,approvedOn=datetime.today(),isActive=True,activatedOn=datetime.today())
                     #login(request, user)
@@ -761,27 +834,23 @@ def login_view(request):
             username = request.POST['username']
             password = request.POST['password']
             try:
-                user = get_object_or_404(CustomUser,username=username)
-                if user.isActive == False:
-                    messages.error(request, 'Your Account is not active! Please, contact administrator to activate your account.')
-                    #return redirect('login')
-                else:
-                    # try:
-                    user_login = authenticate(request, username=username, password=password)
-                    if user_login is None:
-                        messages.error(request, 'Username-Password Mismatch!')
+                user_login = authenticate(request, username=username, password=password)
+                if user_login:
+                    if user_login.isActive == False:
+                        messages.error(request, 'Your Account is not active! Please, contact administrator to activate your account.')
                     else:
                         login(request, user_login)
-                        if user.userType == '0' and user.is_superuser:
+                        if user_login.userType == '0' and user_login.is_superuser:
                             return redirect('admin-master')
-                        elif user.userType == '1':
+                        elif user_login.userType == '1':
                             return redirect('dashboard')
                         else:
                             return redirect('index')
-                    # except:
-                    #     messages.error(request, 'Username-Password Mismatch!')
-            except:
-                messages.error(request, 'User does not exist! Please check username and password.')
+                else:
+                    messages.error(request, 'Incorrect Username or Password!\nPlease try again.')
+            except Exception as ex:
+                print(ex)
+                messages.error(request, 'User does not exist!\nPlease check username and password.')
                 #return redirect('login')
         else:
             form = UserLoginForm()
@@ -1346,7 +1415,7 @@ def ReceivedOrders(request):
         invoiced_orders = SubOrder.objects.filter(orderStatus = 'Invoiced', vendorID_id=request.user.pk).__len__()
         delivered_orders = SubOrder.objects.filter(orderStatus = 'Delivered',vendorID_id=request.user.pk).__len__()
         rejected_orders = SubOrder.objects.filter(orderStatus = 'Rejected', vendorID_id=request.user.pk).__len__()
-        orders = SubOrder.objects.filter(vendorID_id=request.user.pk)
+        orders = SubOrder.objects.filter(vendorID_id=request.user.pk).order_by('-suborderID')
         context = {
             'received_sub_orders': received_orders, 
             'orders':orders,
@@ -1361,12 +1430,31 @@ def ReceivedOrders(request):
     else:
         return render(request, 'orders_received.html', {})
 
+LIST_PAYMENT_MODES = [
+    ('Cash on Delivery', 1),
+    ('Institutional Credit', 2),
+    ('Online', 3)
+]
+
 def received_orders_details(request, orderID):
     if request.user.pk is not None:
         orderNo = Order.objects.get(pk=orderID).orderNo
         orderFrom = Order.objects.get(pk=orderID).userID.last_name
+        userID = Order.objects.get(pk=orderID).userID.pk
+        shipping_address = UserShippingAddresses.objects.annotate(
+            address = Concat(
+                'userAddress1', Value(','),
+                'userCity1', Value(','),
+                'userState1', Value(','),
+                'pinCode1'
+            )
+        ).get(userID_id=userID, setDefault=True)
+        sa_state_name = STATE_CHOICES(shipping_address.userState1)
+        shipping_address.address = f"{shipping_address.userAddress1},{shipping_address.userCity1},{sa_state_name},{shipping_address.pinCode1}"
         orderNote = Order.objects.get(pk=orderID).orderNote
         payment_mode = Order.objects.get(pk=orderID).paymentMode
+        list_reverse_dict = {v: k for k, v in LIST_PAYMENT_MODES}
+        payment_mode = list_reverse_dict.get(payment_mode)
         payment_status = 'Paid' if Order.objects.get(pk=orderID).paymentStatus else 'Unpaid'
         payment_date = Order.objects.get(pk=orderID).paymentDate
         payment_ref = Order.objects.get(pk=orderID).paymentRefNo
@@ -1381,6 +1469,7 @@ def received_orders_details(request, orderID):
             'suborder_remark':suborder_details.remark,
             'suborder_status':suborder_details.orderStatus,
             'orderFrom':orderFrom,
+            'shipping_address':shipping_address.address,
             'orderNote':orderNote,
             'login_user':user_name, 
             'orderNo':orderNo, 
@@ -1397,50 +1486,66 @@ def received_orders_details(request, orderID):
     else:
         return render(request, 'rcv_orderdetails.html', {})
     
-def recived_order_status_update(request, param_sub_order_id):
+def recived_order_status_update(request, order_details_id):
     if request.user.is_authenticated:
         status = request.resolver_match.url_name
         reject_remark = request.GET.get('reject_remark')
-        mainOrderID = get_object_or_404(OrderDetails, id=param_sub_order_id).orderID.pk
+        mainOrderID = get_object_or_404(OrderDetails, id=order_details_id).orderID.pk
+        sub_order_id = get_object_or_404(OrderDetails, id=order_details_id).suborderID.pk
         if status == 'acceptorder':
-            update_status = OrderDetails.objects.filter(id=param_sub_order_id).update(orderStatus='Accepted', remark='Accepted'),
+            update_status = OrderDetails.objects.filter(id=order_details_id).update(orderStatus='Accepted', remark='Accepted')
+            update_status_of_suborder(sub_order_id)
             pass
         elif status =='rejectorder':
-            update_status = OrderDetails.objects.filter(id=param_sub_order_id).update(orderStatus='Rejected', remark=reject_remark),
+            update_status = OrderDetails.objects.filter(id=order_details_id).update(orderStatus='Rejected', remark='Rejected-'+reject_remark)
+            update_status_of_suborder(sub_order_id)
             pass
-        if update_status[0] > 0:
+        if update_status > 0:
             orderUpdate = Order.objects.filter(orderID=mainOrderID).update(orderStatus='Under Process')
             jsonData = {'Success':True}
         else:
             jsonData = {'Success':False}
         return JsonResponse(jsonData)#redirect('receivedorderdetails', orderID=mainOrderID)
 
+def update_status_of_suborder(param_sub_order_id):
+    no_of_items_in_suborder = OrderDetails.objects.filter(suborderID_id=param_sub_order_id).count()
+    no_of_accepted_items = OrderDetails.objects.filter(suborderID_id=param_sub_order_id, orderStatus='Accepted').count()
+    no_of_rejected_items = OrderDetails.objects.filter(suborderID_id=param_sub_order_id, orderStatus='Rejected').count()
+    if no_of_items_in_suborder == no_of_accepted_items+no_of_rejected_items:
+        suborder_update_status = SubOrder.objects.filter(pk=param_sub_order_id).update(orderStatus='Under Process', remark='Under Process')
+
 def received_order_status_all(request, param_order_id):#the order id is the suborder id
     if request.user.is_authenticated:
+        param_sub_order_id = param_order_id
         userid = request.user.pk
         status = request.resolver_match.url_name
-        mainOrderID = get_object_or_404(SubOrder, pk=param_order_id).orderID
+        mainOrderID = get_object_or_404(SubOrder, pk=param_sub_order_id).orderID
         if status == 'acceptall':
-            item_order_status = OrderDetails.objects.filter(suborderID=param_order_id).select_related('itemID').filter(itemID__userID=userid).update(orderStatus='Accepted', remark='Accepted')
-            suborder_update_status = SubOrder.objects.filter(pk=param_order_id).update(orderStatus='Under Process', remark='Accepted')
-            order_update_status = Order.objects.filter(orderID=mainOrderID.pk).update(orderStatus='Under Process', remark='CheckedAll')
+            item_order_status = OrderDetails.objects.filter(suborderID_id=param_sub_order_id).select_related('itemID').filter(itemID__userID=userid).update(orderStatus='Accepted', remark='Accepted')
+            suborder_update_status = SubOrder.objects.filter(pk=param_sub_order_id).update(orderStatus='Under Process', remark='Accepted')
+            order_update_status = Order.objects.filter(pk=mainOrderID.pk).update(orderStatus='Under Process', remark='CheckedAll')
+            calculate_status_of_all_orders(mainOrderID.pk)
             return JsonResponse({'Success': True})
         elif status == 'rejectall':
             reject_remark = request.GET.get('reject_remark')
-            item_order_status = OrderDetails.objects.filter(suborderID=param_order_id).select_related('itemID').filter(itemID__userID=userid).update(orderStatus='Rejected', remark=reject_remark)
-            suborder_update_status = SubOrder.objects.filter(pk=param_order_id).update(orderStatus='Rejected', remark=reject_remark)
-            order_update_status = Order.objects.filter(orderID=mainOrderID.pk).update(orderStatus='Under Process', remark='CheckedAll')
-            calculate_rejection_status_of_all_orders(mainOrderID.pk)
+            item_order_status = OrderDetails.objects.filter(suborderID_id=param_sub_order_id).select_related('itemID').filter(itemID__userID=userid).update(orderStatus='Rejected', remark='Rejected-'+reject_remark)
+            suborder_update_status = SubOrder.objects.filter(pk=param_sub_order_id).update(orderStatus='Rejected', remark='Rejected-'+reject_remark)
+            order_update_status = Order.objects.filter(pk=mainOrderID.pk).update(orderStatus='Under Process', remark='CheckedAll')
+            calculate_status_of_all_orders(mainOrderID.pk)
             return JsonResponse({'Success':True})
         else:
             return JsonResponse({'Success':False})
     pass
 
-def calculate_rejection_status_of_all_orders(orderID):
+def calculate_status_of_all_orders(orderID):
+    #The function checks whether the suborders in the order are accepted all or rejected all and updates the main order accordingly
     no_of_suborders = SubOrder.objects.filter(orderID_id=orderID).count()
     no_of_suborders_rejected = SubOrder.objects.filter(orderID_id=orderID, orderStatus='Rejected').count()
+    no_of_suborders_accepted = SubOrder.objects.filter(orderID_id=orderID, orderStatus='Accepted').count()
     if no_of_suborders == no_of_suborders_rejected:
         order_update_status = Order.objects.filter(orderID=orderID).update(orderStatus='Rejected', remark='Rejected')
+    elif no_of_suborders == no_of_suborders_accepted:
+        order_update_status = Order.objects.filter(orderID=orderID).update(orderStatus='Accepted', remark='Accepted')
     return JsonResponse({'Success':True})
 
 def upload_invoice(request,suborderID):
@@ -1450,7 +1555,7 @@ def upload_invoice(request,suborderID):
             userid = request.user.pk
             orderID = get_object_or_404(SubOrder,pk=suborderID).orderID.pk
             form.save(userID=userid, orderID=orderID, suborderID=suborderID)
-            update_status = SubOrder.objects.filter(pk=suborderID).update(orderStatus='Invoiced')
+            update_status = SubOrder.objects.filter(pk=suborderID).update(orderStatus='Invoiced', remark='Invoiced')
             no_of_invoices = OrderInvoice.objects.filter(orderID_id=orderID).count()
             no_of_suborders = SubOrder.objects.filter(orderID_id=orderID).count()
             if no_of_invoices == no_of_suborders:
@@ -1801,8 +1906,7 @@ def STATE_CHOICES(state):
 def PlacedOrders(request):
     if request.user.is_authenticated:
         pincode = request.user.pinCode1
-        orders = Order.objects.filter(userID=request.user.id)
-        #invoices = OrderInvoice.objects.select_related('orderID')
+        orders = Order.objects.filter(userID=request.user.id).order_by('-orderID')
         user_name = request.user.last_name
         user_type = request.user.userType
         user_approved = request.user.userApproved
