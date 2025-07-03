@@ -49,6 +49,7 @@ urlpatterns = [
     path('approve-user/<int:userID>', views.approve_user, name='approve-user'),
     path('activate-user/<int:userID>/<str:activate>', views.activate_user, name='activate-user'),
     path('fetch-school/<str:udise>', views.fetch_school, name='fetch-school'),
+    path('track-coordinate/', views.track_coordinate, name='track-coordinate'),
 
     path('user-form/', views.profile_view, name='user-form'),
     path('add-address/', views.add_address, name='add-address'),

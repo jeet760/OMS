@@ -916,7 +916,20 @@ def admin_console(request):
 
 @login_required
 def track_coordinate(request):
-    return render('admin-master')
+    address_qs = UserBillingAddresses.objects.values('userCity','address_lat','address_long').exclude(userID_id=1).exclude(address_lat=None).exclude(address_lat=0)
+    coordinates = list(address_qs)
+
+    # address_coordinates = UserBillingAddresses.objects.only('userAddress','address_lat','address_long')
+    # coordinates = []
+    # for obj in address_coordinates:
+    #     coordinates.append({
+    #         'userAddress': obj.userAddress,
+    #         'address_lat': obj.address_lat,
+    #         'address_long': obj.address_long,
+    #     })
+
+    return JsonResponse({'coordinates':coordinates})
+
 def admin_master(request):
     if request.user.is_authenticated:
         total_users = CustomUser.objects.all()
@@ -931,7 +944,7 @@ def admin_master(request):
         no_of_orders = Order.objects.all().__len__()
         no_of_bulkbuys = BulkBuy.objects.all().__len__()
         enquiries = UserMessage.objects.all()
-        coordinates = []
+        
         master_console_context = {
             'total_users':total_users,
             'total_users_no':no_of_users,
@@ -944,7 +957,7 @@ def admin_master(request):
             'no_of_item_cat':no_of_item_cat,
             'total_orders':no_of_orders,
             'total_bulkbuys':no_of_bulkbuys,
-            'enquiries':enquiries
+            'enquiries':enquiries,
         }
         return render(request, 'admin-master-console.html', context=master_console_context)
     else:

@@ -396,16 +396,36 @@
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                   attribution: '© OpenStreetMap contributors'
                 }).addTo(map);
-  
+
+                var locations = [];
                 // Example markers — in Django, these are generated from the context
-                var locations = [
-                  {name: "Bhubaneswar", lat: 20.2961, lon: 85.8245},
-                  {name: "Cuttack", lat: 20.4625, lon: 85.8828},
-                  {name: "Berhampur", lat: 19.3149, lon: 84.7941}
-                ];
-  
-                locations.forEach(function(loc) {
-                  L.marker([loc.lat, loc.lon]).addTo(map).bindPopup("<b>" + loc.name + "</b>");
+                let url = "{% url 'track-coordinate' %}";
+                fetch(url)  // Replace with your actual Django view URL
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();  // Parse JSON data
+                })
+                .then(data => {
+                  const addresses = data.coordinates;
+                  addresses.forEach(addr => {
+                    locations.push({
+                      name:addr.userCity,
+                      lat:addr.address_lat,
+                      lon:addr.address_long
+                    });
+                  });
+                  locations.forEach(function(loc) {
+                      console.log("lat"+loc.lat+", long"+loc.lon);
+                      L.marker([loc.lat, loc.lon]).addTo(map).bindPopup("<b>" + loc.name + "</b>");
+                  });
+                  //console.log(`Address: ${addr.userCity}, Lat: ${addr.address_lat}, Long: ${addr.address_long}`);
+                  alert('2.'+locations.length);
+                })
+                .catch(error => {
+                    //alert(JSON.stringify('error'));
+                    console.error('Error fetching data:', error);
                 });
               </script>
               <script>
