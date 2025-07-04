@@ -24,6 +24,8 @@ import razorpay
 from urllib.parse import urlparse
 import pandas as pd
 import socket
+import hmac
+import hashlib
 
 
 
@@ -2118,4 +2120,40 @@ def payment_success(request):
             return HttpResponseBadRequest("Payment verification failed")
     else:
         return HttpResponseBadRequest("Invalid request")
+
+@csrf_exempt  # Allow external POSTs (like Razorpay)
+def razorpay_webhook(request):
+    if request.method != 'POST':
+        return HttpResponseBadRequest('Invalid request method')
+
+    # Step 1: Get Razorpay webhook secret (same as you set in Razorpay dashboard)
+    webhook_secret = settings.RAZORPAY_WEBHOOK_SECRET
+
+    # Step 2: Extract payload and signature
+    payload = request.body
+    received_signature = request.headers.get('X-Razorpay-Signature')
+
+    # Step 3: Verify signature
+    expected_signature = hmac.new(
+        webhook_secret.encode(),
+        payload,
+        hashlib.sha256
+    ).hexdigest()
+
+    if hmac.compare_digest(received_signature, expected_signature):
+        data = json.loads(payload)
+        print("✅ Webhook verified and received successfully!")
+        print(json.dumps(data, indent=2))  # For dev use, later log/save to DB
+
+        # Optional: Handle specific events like 'payment.captured'
+        if data.get('event') == 'payment.captured':
+            payment_id = data['payload']['payment']['entity']['id']
+            amount = data['payload']['payment']['entity']['amount']
+            # Save to DB or mark order as paid here
+            print(f"Payment {payment_id} of ₹{amount/100} captured.")
+
+        return JsonResponse({'status': 'Webhook received'})
+    else:
+        print("❌ Invalid signature.")
+        return HttpResponseBadRequest('Invalid signature')
 #endregion
