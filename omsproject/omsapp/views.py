@@ -52,7 +52,8 @@ def landing_page(request, category=None,fpo=None, region=None):
         featureItems = Item.objects.filter(featureItem=True).exclude(userID_id = request.user.pk).filter(userID_id__pinCode=pincode)
     featureItems = featureItems.filter(itemActive=True).order_by('-itemInStock')
     # length = items.__len__()#get the total items
-    """pagination in the landing page"""
+    
+    #pagination in the landing page
     paginator = Paginator(featureItems,12)
     page_number = request.GET.get('page')
     featureItems_page_obj = paginator.get_page(page_number)
@@ -178,7 +179,13 @@ def shop_details(request, item_id):
         related_items = Item.objects.filter(itemCat = item.itemCat).filter(userID_id__pinCode=pincode)
     else:
         related_items = Item.objects.filter(itemCat = item.itemCat)
-    related_items = related_items.exclude(userID_id=request.user.pk)
+    related_items = related_items.exclude(userID_id=request.user.pk).order_by('itemID')
+
+    #pagination in the landing page
+    paginator = Paginator(related_items,12)
+    page_number = request.GET.get('page')
+    relatedItems_page_obj = paginator.get_page(page_number)
+
     user_name = 'Guest!'#display the username
     user_type = ''
     pincode='Delivery Pincode'
@@ -188,7 +195,8 @@ def shop_details(request, item_id):
         user_type=request.user.userType
     shop_details_context = {
         'item':item,
-        'related_items':related_items,
+        #'related_items':related_items,
+        'relatedItems_page_obj':relatedItems_page_obj,
         'login_user':user_name,
         'user_type':user_type,
         'pincode':pincode,

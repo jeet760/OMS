@@ -2,6 +2,24 @@
 {% load static %}
 {% block shopdetails %}
 
+<style>
+    .pagination ul a {
+        padding: 4px 8px;
+        text-decoration: none;
+        background: #f2f2f2;
+        color: #333;
+        border-radius: 4px;
+    }
+
+    .pagination ul a:hover {
+        background: #007bff;
+        color: white;
+    }
+
+    .pagination ul li {
+        display: inline-block;
+    }
+</style>
     <!-- Product Details Section Begin -->
     <section class="product-details spad">
         <div class="container">
@@ -12,16 +30,16 @@
                             <img class="product__details__pic__item--large"
                                 src="{{item.itemImg.url}}" alt="">
                         </div>
-                        <div class="product__details__pic__slider owl-carousel">
-                            <img data-imgbigurl="{% static 'img/product/details/product-details-2.jpg' %}"
-                                src="{% static 'img/product/details/thumb-1.jpg' %}" alt="">
-                            <img data-imgbigurl="{% static 'img/product/details/product-details-3.jpg' %}"
-                                src="{% static 'img/product/details/thumb-2.jpg' %}" alt="">
-                            <img data-imgbigurl="{% static 'img/product/details/product-details-5.jpg' %}"
-                                src="{% static 'img/product/details/thumb-3.jpg' %}" alt="">
-                            <img data-imgbigurl="{% static 'img/product/details/product-details-4.jpg' %}"
-                                src="{% static 'img/product/details/thumb-4.jpg' %}" alt="">
-                        </div>
+                        <!-- <div class="product__details__pic__slider owl-carousel">
+                            <img data-imgbigurl="{{item.itemImg.url}}"
+                                src="{{item.itemImg.url}}" alt="">
+                            <img data-imgbigurl="{{item.itemImg.url}}"
+                                src="{{item.itemImg.url}}" alt="">
+                            <img data-imgbigurl="{{item.itemImg.url}}"
+                                src="{{item.itemImg.url}}" alt="">
+                            <img data-imgbigurl="{{item.itemImg.url}}"
+                                src="{{item.itemImg.url}}" alt="">
+                        </div> -->
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-6">
@@ -74,10 +92,10 @@
                                 <a class="nav-link active" data-toggle="tab" href="#tabs-1" role="tab"
                                     aria-selected="true">Description</a>
                             </li>
-                            <li class="nav-item">
+                            <!-- <li class="nav-item">
                                 <a class="nav-link" data-toggle="tab" href="#tabs-2" role="tab"
                                     aria-selected="false">Information</a>
-                            </li>
+                            </li> -->
                             <li class="nav-item">
                                 <a class="nav-link" data-toggle="tab" href="#tabs-3" role="tab"
                                     aria-selected="false">Reviews <span>(1)</span></a>
@@ -86,19 +104,19 @@
                         <div class="tab-content">
                             <div class="tab-pane active" id="tabs-1" role="tabpanel">
                                 <div class="product__details__tab__desc">
-                                    <h6>Item Infomation</h6>
+                                    <h6>Item Description</h6>
                                     <p>{{item.itemDesc}}</p>
                                 </div>
                             </div>
-                            <div class="tab-pane" id="tabs-2" role="tabpanel">
+                            <!-- <div class="tab-pane" id="tabs-2" role="tabpanel">
                                 <div class="product__details__tab__desc">
                                     <h6>Item Infomation</h6>
                                     <p>{{item.itemDesc}}.</p>
                                 </div>
-                            </div>
+                            </div> -->
                             <div class="tab-pane" id="tabs-3" role="tabpanel">
                                 <div class="product__details__tab__desc">
-                                    <h6>Products Infomation</h6>
+                                    <h6>Review</h6>
                                     <p>{{item.itemDesc}}</p>
                                 </div>
                             </div>
@@ -121,7 +139,7 @@
                 </div>
             </div>
             <div class="row">
-                {% for relatedItem in related_items %}
+                {% for relatedItem in relatedItems_page_obj %}
                 <div class="col-lg-3 col-md-4 col-sm-6">
                     <div class="product__item">
                         <div class="product__item__pic set-bg" data-setbg="{{relatedItem.itemImg.url}}" onclick="itemRedirect('{{relatedItem.itemID}}')" style="cursor: pointer;">
@@ -138,6 +156,44 @@
                 </div>
                 {% endfor %}
             </div>
+        </div>
+        <div class="pagination" style="margin-top: 20px; margin-left: 25%;">
+            <ul style="display: flex; list-style: none; padding: 0; gap: 8px; flex-wrap: wrap;">
+              
+              {# Previous button #}
+              {% if relatedItems_page_obj.has_previous %}
+                <li><a href="?page={{ relatedItems_page_obj.previous_page_number }}">« Prev</a></li>
+              {% endif %}
+          
+              {# First page #}
+              {% if relatedItems_page_obj.number > 6 %}
+                <li><a href="?page=1">1</a></li>
+                <li>...</li>
+              {% endif %}
+          
+              {# Page range centered around current page (max 10 total) #}
+              {% for page_num in relatedItems_page_obj.paginator.page_range %}
+                {% if page_num >= relatedItems_page_obj.number|add:'-4' and page_num <= relatedItems_page_obj.number|add:'5' %}
+                  {% if page_num == relatedItems_page_obj.number %}
+                    <li><strong style="padding: 4px 8px; background: #007bff; color: white; border-radius: 4px;">{{ page_num }}</strong></li>
+                  {% else %}
+                    <li><a href="?page={{ page_num }}">{{ page_num }}</a></li>
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+          
+              {# Last page #}
+              {% if relatedItems_page_obj.number < relatedItems_page_obj.paginator.num_pages|add:'-5' %}
+                <li>...</li>
+                <li><a href="?page={{ relatedItems_page_obj.paginator.num_pages }}">{{ relatedItems_page_obj.paginator.num_pages }}</a></li>
+              {% endif %}
+          
+              {# Next button #}
+              {% if relatedItems_page_obj.has_next %}
+                <li><a href="?page={{ relatedItems_page_obj.next_page_number }}">Next »</a></li>
+              {% endif %}
+          
+            </ul>
         </div>
     </section>
     <!-- Related Product Section End -->
