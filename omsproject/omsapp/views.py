@@ -456,6 +456,14 @@ LIST_STATES = [
     ('36','Puducherry [UT]')
 ]
 
+LIST_USERTYPES = [
+    ('1','FPO'),
+    ('2','Business'),
+    ('3','School'),
+    ('4','Overseas'),
+    ('5','Individual'),
+]
+
 def fetch_school(request, udise):
     school = get_object_or_404(SchoolUDISE, udise_code=udise)
     school_name = school.school_name
@@ -926,7 +934,7 @@ def admin_console(request):
 
 @login_required
 def track_coordinate(request):
-    address_qs = UserBillingAddresses.objects.values('userCity','address_lat','address_long').exclude(userID_id=1).exclude(address_lat=None).exclude(address_lat=0)
+    address_qs = UserBillingAddresses.objects.values('userCity','address_lat','address_long', name=F('userID__last_name')).exclude(userID_id=1).exclude(address_lat=None).exclude(address_lat=0)
     coordinates = list(address_qs)
 
     # address_coordinates = UserBillingAddresses.objects.only('userAddress','address_lat','address_long')
@@ -942,6 +950,19 @@ def track_coordinate(request):
 
 def admin_master(request):
     if request.user.is_authenticated:
+        item_qs = Item.objects.values('itemCat').annotate(count=Count('itemID')).order_by('-count')
+        customer_qs = CustomUser.objects.values('userType').exclude(userType=0).annotate(count=Count('id')).order_by('-count')
+        list_usertype_reverse_dict = {k: v for k, v in LIST_USERTYPES}
+        #charts
+        item_labels = [entry['itemCat'] for entry in item_qs]
+        item_counts = [entry['count'] for entry in item_qs]
+        cust_type_code= [entry['userType'] for entry in customer_qs]
+        cust_counts = [entry['count'] for entry in customer_qs]
+        cust_labels = []
+        for code in cust_type_code:
+            usertype_value = list_usertype_reverse_dict.get(code)
+            cust_labels.append(usertype_value)
+        #end of charts
         total_users = CustomUser.objects.all()
         no_of_users = CustomUser.objects.all().__len__() - 1
         no_of_fpo = CustomUser.objects.filter(userType=1).__len__()
@@ -968,6 +989,10 @@ def admin_master(request):
             'total_orders':no_of_orders,
             'total_bulkbuys':no_of_bulkbuys,
             'enquiries':enquiries,
+            'item_labels': json.dumps(item_labels),
+            'item_counts': json.dumps(item_counts),
+            'cust_labels':json.dumps(cust_labels),
+            'cust_counts':json.dumps(cust_counts)
         }
         return render(request, 'admin-master-console.html', context=master_console_context)
     else:
