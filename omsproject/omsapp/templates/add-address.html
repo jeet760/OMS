@@ -13,7 +13,16 @@
           <select name="selectAddress" id="selectAddress" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
             <option value="bill">Billing Address</option>
             <option value="ship">Shipping Address</option>
+            {% if user_type == '1' %}
+            {% if add_address_from == 'userform' %}
+            <option value="serv">Serving Address</option>
+            <option value="both">All</option>
+            {% else %}
             <option value="both">Both</option>
+            {% endif %}
+            {% else %}
+            <option value="both">Both</option>
+            {% endif %}
           </select>
         </div>
         <div>

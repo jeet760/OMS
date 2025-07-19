@@ -22,8 +22,11 @@ def import_data():
         for row in reader:
             SchoolUDISE.objects.create(
                 state_name = row['state_name'],
+                state_code = row['state_code'],
                 district_name = row['district_name'],
+                district_code = None if row['district_code']=='' else row['district_code'],
                 sub_dist_name = row['subdistrict_name'],
+                sub_dist_code = None if row['subdistrict_code']=='' else row['subdistrict_code'],
                 village_name = row['village_name'],
                 udise_code = row['udise_school_code'],
                 school_name = row['school_name'],

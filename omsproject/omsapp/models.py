@@ -15,44 +15,44 @@ USERTYPES = [
     ('4', 'Overseas'),
     ('5', 'Individual'),
 ]
-STATES=[
+LIST_STATES = [
     ('', 'Select State'),
-    ('1', 'Andhra Pradesh'),
-    ('2', 'Arunachal Pradesh'),
-    ('3', 'Assam'),
-    ('4', 'Bihar'),
-    ('5', 'Chhattisgarh'),
-    ('6', 'Goa'),
-    ('7', 'Gujarat'),
-    ('8', 'Haryana'),
-    ('9', 'Himachal Pradesh'),
-    ('10', 'Jharkhand'),
-    ('11', 'Karnataka'),
-    ('12', 'Kerala'),
-    ('13', 'Madhya Pradesh'),
-    ('14', 'Maharashtra'),
-    ('15', 'Manipur'),
-    ('16', 'Meghalaya'),
-    ('17', 'Mizoram'),
-    ('18', 'Nagaland'),
-    ('19', 'Odisha'),
-    ('20', 'Punjab'),
-    ('21', 'Rajasthan'),
-    ('22', 'Sikkim'),
-    ('23', 'Tamil Nadu'),
-    ('24', 'Telangana'),
-    ('25', 'Tripura'),
-    ('26', 'Uttar Pradesh'),
-    ('27', 'Uttarakhand'),
-    ('28', 'West Bengal'),
-    ('29', 'Andaman and Nicobar Islands [UT]'),
-    ('30', 'Chandigarh [UT]'),
-    ('31', 'Dadra and Nagar Haveli and Daman and Diu [UT]'),
-    ('32', 'Delhi [UT]'),
-    ('33', 'Jammu and Kashmir [UT]'),
-    ('34', 'Ladakh [UT]'),
-    ('35', 'Lakshadweep [UT]'),
-    ('36', 'Puducherry [UT]'),
+    ('28','Andhra Pradesh'),
+    ('12','Arunachal Pradesh'),
+    ('18','Assam'),
+    ('10','Bihar'),
+    ('22','Chhattisgarh'),
+    ('30','Goa'),
+    ('24','Gujarat'),
+    ('6','Haryana'),
+    ('2','Himachal Pradesh'),
+    ('20','Jharkhand'),
+    ('29','Karnataka'),
+    ('32','Kerala'),
+    ('23','Madhya Pradesh'),
+    ('27','Maharashtra'),
+    ('14','Manipur'),
+    ('17','Meghalaya'),
+    ('15','Mizoram'),
+    ('13','Nagaland'),
+    ('21','Odisha'),
+    ('3','Punjab'),
+    ('8','Rajasthan'),
+    ('11','Sikkim'),
+    ('33','Tamil Nadu'),
+    ('36','Telangana'),
+    ('16','Tripura'),
+    ('9','Uttar Pradesh'),
+    ('5','Uttarakhand'),
+    ('19','West Bengal'),
+    ('35','Andaman And Nicobar Islands [UT]'),
+    ('4','Chandigarh [UT]'),
+    ('7','Delhi [UT]'),
+    ('1','Jammu And Kashmir [UT]'),
+    ('37','Ladakh [UT]'),
+    ('31','Lakshadweep [UT]'),
+    ('34','Puducherry [UT]'),
+    ('38','The Dadra And Nagar Haveli And Daman And Diu [UT]'),
 ]
 GST_TREATMENT=[
     ('', 'Select GST Treatment'),
@@ -74,23 +74,16 @@ class CustomUser(AbstractUser):
     phone = CharField(max_length=12, unique=True)
     phone1 = CharField(max_length=12, default='', blank=True)
     gstin = CharField(max_length=15, default='', blank=True)
-    supply_place = CharField(max_length=70, choices=STATES)
+    supply_place = CharField(max_length=70, choices=LIST_STATES)
     gst_tmt = CharField(max_length=20, choices=GST_TREATMENT)#gst treatment
-    #"""Billing Address"""
+    #"""Registered Address"""
     contactPerson = CharField(max_length=50, null=True, blank=True)
     contactNo = CharField(max_length=15, null=True, blank=True)
     userAddress = CharField(max_length=200,null=True)
     userCity = CharField(max_length=50,null=True)
-    userState = CharField(max_length=20, choices=STATES,null=True)
+    userState = CharField(max_length=20, choices=LIST_STATES,null=True)
+    userDistrict = CharField(max_length=20, null=True)
     pinCode = CharField(max_length=6,null=True)
-    #"""Shipping Address"""
-    contactPerson1 = CharField(max_length=50, null=True, blank=True)
-    contactNo1 = CharField(max_length=15, null=True, blank=True)
-    userAddress1 = CharField(max_length=200,null=True)
-    userCity1 = CharField(max_length=50,null=True)
-    userState1 = CharField(max_length=20, choices=STATES,null=True)
-    pinCode1 = CharField(max_length=6,null=True)
-    userNote = CharField(max_length=300,null=True, blank=True)#remarks from user
     #"""Account attributes"""
     password = CharField(max_length=20, default='Admin@1234')
     userApproved = BooleanField(null=True)
@@ -109,10 +102,11 @@ class CustomUser(AbstractUser):
         return self.phone
     
     def save(self, *args, **kwargs):
-        if self.udise_code == '00000000000':
-            self.username = self.phone
-        else:
-            self.username = self.udise_code
+        if not self.username:
+            if self.userType == '3':
+                self.username = self.udise_code
+            else:
+                self.username = self.phone
         super().save(*args, **kwargs)
 
 
@@ -127,8 +121,11 @@ class Login(Model):
 class SchoolUDISE(Model):
     id=AutoField(primary_key=True)
     state_name = CharField(max_length=50)
+    state_code = IntegerField(null=True)
     district_name = CharField(max_length=50)
+    district_code = IntegerField(null=True)
     sub_dist_name=CharField(max_length=50)
+    sub_dist_code = IntegerField(null=True)
     village_name = CharField(max_length=50)
     udise_code = CharField(max_length=11)
     school_name = CharField(max_length=50)
@@ -145,7 +142,8 @@ class UserShippingAddresses(Model):
     userID = ForeignKey(CustomUser, on_delete=CASCADE)
     userAddress1 = CharField(max_length=200)
     userCity1 = CharField(max_length=50)
-    userState1 = CharField(max_length=20, choices=STATES)
+    userState1 = CharField(max_length=20, choices=LIST_STATES)
+    userDistrict1 = CharField(max_length=20, null=True)
     pinCode1 = CharField(max_length=6)
     contactPerson1 = CharField(max_length=50, null=True, blank=True)
     contactNo1 = CharField(max_length=15, null=True, blank=True)
@@ -160,13 +158,33 @@ class UserBillingAddresses(Model):
     userID = ForeignKey(CustomUser, on_delete=CASCADE)
     userAddress = CharField(max_length=200)
     userCity = CharField(max_length=50)
-    userState = CharField(max_length=20, choices=STATES)
+    userState = CharField(max_length=20, choices=LIST_STATES)
+    userDistrict = CharField(max_length=20, null=True)
     pinCode = CharField(max_length=6)
     contactPerson = CharField(max_length=50, null=True, blank=True)
     contactNo = CharField(max_length=15, null=True, blank=True)
     address_lat = FloatField(null=True, blank=True)
     address_long = FloatField(null=True, blank=True)
     setDefault = BooleanField(default=False, null=True)
+    def __str__(self):
+        return self.userID
+
+class FPOServingAddresses(Model):
+    id = AutoField(primary_key=True)
+    userID = ForeignKey(CustomUser, on_delete=CASCADE)
+    userAddress1 = CharField(max_length=200)
+    userCity1 = CharField(max_length=50)
+    userState1 = CharField(max_length=20, choices=LIST_STATES)
+    userDistrict1 = CharField(max_length=20, null=True)
+    pinCode1 = CharField(max_length=6)
+    contactPerson1 = CharField(max_length=50, null=True, blank=True)
+    contactNo1 = CharField(max_length=15, null=True, blank=True)
+    address_lat1 = FloatField(null=True, blank=True)
+    address_long1 = FloatField(null=True, blank=True)
+    zoom = models.IntegerField(default=13)
+    radius = models.FloatField(default=5000)
+    label = models.CharField(max_length=100, null=True, blank=True)
+    isActive = BooleanField(default=True)
     def __str__(self):
         return self.userID
 

@@ -12,43 +12,50 @@ USERTYPE_CHOICES = [
     ('4', 'Overseas'),
     ('5', 'Individual'),
 ]
-STATES=[
-    ('1', 'Andhra Pradesh'),
-    ('2', 'Arunachal Pradesh'),
-    ('3', 'Assam'),
-    ('4', 'Bihar'),
-    ('5', 'Chhattisgarh'),
-    ('6', 'Goa'),
-    ('7', 'Gujarat'),
-    ('8', 'Haryana'),
-    ('9', 'Himachal Pradesh'),
-    ('10', 'Jharkhand'),
-    ('11', 'Karnataka'),
-    ('12', 'Kerala'),
-    ('13', 'Madhya Pradesh'),
-    ('14', 'Maharashtra'),
-    ('15', 'Manipur'),
-    ('16', 'Meghalaya'),
-    ('17', 'Mizoram'),
-    ('18', 'Nagaland'),
-    ('19', 'Odisha'),
-    ('20', 'Punjab'),
-    ('21', 'Rajasthan'),
-    ('22', 'Sikkim'),
-    ('23', 'Tamil Nadu'),
-    ('24', 'Telangana'),
-    ('25', 'Tripura'),
-    ('26', 'Uttar Pradesh'),
-    ('27', 'Uttarakhand'),
-    ('28', 'West Bengal'),
-    ('29', 'Andaman and Nicobar Islands [UT]'),
-    ('30', 'Chandigarh [UT]'),
-    ('31', 'Dadra and Nagar Haveli and Daman and Diu [UT]'),
-    ('32', 'Delhi [UT]'),
-    ('33', 'Jammu and Kashmir [UT]'),
-    ('34', 'Ladakh [UT]'),
-    ('35', 'Lakshadweep [UT]'),
-    ('36', 'Puducherry [UT]'),
+LIST_STATES = [
+    ('', 'Select State'),
+    ('28','Andhra Pradesh'),
+    ('12','Arunachal Pradesh'),
+    ('18','Assam'),
+    ('10','Bihar'),
+    ('22','Chhattisgarh'),
+    ('30','Goa'),
+    ('24','Gujarat'),
+    ('6','Haryana'),
+    ('2','Himachal Pradesh'),
+    ('20','Jharkhand'),
+    ('29','Karnataka'),
+    ('32','Kerala'),
+    ('23','Madhya Pradesh'),
+    ('27','Maharashtra'),
+    ('14','Manipur'),
+    ('17','Meghalaya'),
+    ('15','Mizoram'),
+    ('13','Nagaland'),
+    ('21','Odisha'),
+    ('3','Punjab'),
+    ('8','Rajasthan'),
+    ('11','Sikkim'),
+    ('33','Tamil Nadu'),
+    ('36','Telangana'),
+    ('16','Tripura'),
+    ('9','Uttar Pradesh'),
+    ('5','Uttarakhand'),
+    ('19','West Bengal'),
+    ('35','Andaman And Nicobar Islands'),
+    ('4','Chandigarh'),
+    ('7','Delhi'),
+    ('1','Jammu And Kashmir'),
+    ('37','Ladakh'),
+    ('31','Lakshadweep'),
+    ('34','Puducherry'),
+    ('38','The Dadra And Nagar Haveli And Daman And Diu'),
+]
+LIST_DISTRICTS = [
+    ('', 'Select District'),
+]
+LIST_SUBDISTRICT = [
+    ('', 'Select Block/Sub-District'),
 ]
 GST_TREATMENT=[
     ('1', 'Registered Business (Regular)'),
@@ -61,7 +68,7 @@ CustomUser = get_user_model()
 class UserRegistrationForm(ModelForm):
     class Meta:
         model = CustomUser
-        fields = ['userType','udise_code','first_name','last_name','org_name','email', 'phone','phone1','gstin','supply_place','gst_tmt','userAddress','userCity','userState','pinCode','userAddress1','userCity1','userState1','pinCode1','userNote']
+        fields = ['userType','udise_code','first_name','last_name','org_name','email', 'phone','phone1','gstin','supply_place','gst_tmt','userAddress','userCity','userState','userDistrict','pinCode']#,'userAddress1','userCity1','userState1','userDistrict1','pinCode1','userNote'
         widgets = {
             'userType':Select(attrs={
                 'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
@@ -73,8 +80,8 @@ class UserRegistrationForm(ModelForm):
                 'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'UDISE Number',
                 'id':'udise_code',
-                'onblur':"checkUserType()"
-            }),#first_name is the name
+                'type':'number'
+            }),#UDISE code of the school
             'first_name': TextInput(attrs={
                 'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Name',
@@ -114,7 +121,7 @@ class UserRegistrationForm(ModelForm):
             'supply_place':Select(attrs={
                 'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'id':'supply_place'
-            }, choices=STATES),
+            }, choices=LIST_STATES),
             'gst_tmt':Select(attrs={
                 'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 registration-select',
                 'id':'gst_tmt'
@@ -124,45 +131,23 @@ class UserRegistrationForm(ModelForm):
                 'placeholder': 'Address',
                 'id':'userAddress'
             }),
-            'userCity':TextInput(attrs={
-                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
-                'placeholder': 'City',
+            'userCity':Select(attrs={
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 registration-select',
                 'id':'userCity'
-            }),
+            }, choices=LIST_SUBDISTRICT),
             'userState':Select(attrs={
                 'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 registration-select',
                 'id':'userState'
-            }, choices=STATES),
+            }, choices=LIST_STATES),
+            'userDistrict':Select(attrs={
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 registration-select',
+                'id':'userDistrict'
+            }, choices=LIST_DISTRICTS),
             'pinCode':TextInput(attrs={
                 'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Pincode',
                 'id':'pinCode'
             }),
-            'userAddress1':TextInput(attrs={
-                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
-                'placeholder': 'Address',
-                'id':'userAddress1'
-            }),
-            'userCity1':TextInput(attrs={
-                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
-                'placeholder': 'City',
-                'id':'userCity1'
-            }),
-            'userState1':Select(attrs={
-                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 registration-select',
-                'id':'userState1'
-            }, choices=STATES),
-            'pinCode1':TextInput(attrs={
-                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
-                'placeholder': 'Pincode',
-                'id':'pinCode1'
-            }),
-            'userNote':Textarea(attrs={
-                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
-                'placeholder': 'Note/Remark/Comment',
-                'style':'height:5rem',
-                'id':'userNote'
-            })
         }
     def save(self, commit=True, param_password=None):
         user = super().save(commit=False)

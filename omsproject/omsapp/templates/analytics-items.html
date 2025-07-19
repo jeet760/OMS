@@ -1,0 +1,16 @@
+{% extends 'analytics.html' %}
+{% load static %}
+{% block analytics_items %}
+<table id="userTable" class="w-full text-left text-sm">
+    <thead class="text-gray-400 border-b border-gray-700">
+      <tr>
+        <th class="py-2 cursor-pointer" onclick="sortTable(0)">#</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="border-b border-gray-700 hover:bg-gray-700">
+            <td class="py-2"></td>
+        </tr>
+    </tbody>
+</table>
+{% endblock %}

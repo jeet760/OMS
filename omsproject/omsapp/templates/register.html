@@ -1,7 +1,7 @@
 {% extends 'index.html' %}
 {% load static %}
 {% block checkout%}
-<script>
+<!-- <script>
     function addressClick(){      
        var cb_sameAddress = document.getElementById('cb_sameAddress');
        if(cb_sameAddress.checked)
@@ -27,51 +27,12 @@
              document.getElementById('pinCode1').readOnly = false;
           }
     }
-
-    function checkUserType(){
-        const userType=document.getElementById('userType').value;
-        if(userType == 3){
-            const udise_code=document.getElementById('udise_code').value;
-            var udise_len = document.getElementById('udise_code').value.length;
-            if(udise_len < 11){
-                alert('Please enter valid UDISE Code<11');
-            }
-            else{
-                let url = "{% url 'fetch-school' 0 %}".replace('0', udise_code);
-                fetch(url)  // Replace with your actual Django view URL
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();  // Parse JSON data
-                })
-                .then(data => {
-                    document.getElementById('first_name').value = JSON.stringify(data['school_name']).replace('"','').replace('"','').trim();
-                    document.getElementById('last_name').value = JSON.stringify(data['school_name']).replace('"','').replace('"','').trim();
-                    document.getElementById('org_name').value = JSON.stringify(data['school_name']).replace('"','').replace('"','').trim();
-                    document.getElementById('supply_place').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
-                    document.getElementById('userAddress').value = JSON.stringify(data['village_name']).replace('"','').replace('"','').trim();
-                    document.getElementById('userCity').value = JSON.stringify(data['sub_dist_name']).replace('"','').replace('"','')+" "+JSON.stringify(data['district_name']).replace('"','').replace('"','').trim();
-                    document.getElementById('userState').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
-                    document.getElementById('userAddress1').value = JSON.stringify(data['village_name']).replace('"','').replace('"','').trim();
-                    document.getElementById('userCity1').value = JSON.stringify(data['sub_dist_name']).replace('"','').replace('"','')+" "+JSON.stringify(data['district_name']).replace('"','').replace('"','').trim();
-                    document.getElementById('userState1').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
-                    //alert(JSON.stringify(data['school_name']).replace('"','').replace('"',''));
-                    //window.location.reload();
-                })
-                .catch(error => {
-                    alert(JSON.stringify("Invalid UDISE Code"));
-                    //console.error('Error fetching data:', error);
-                });
-            }
-        }
-    }
- </script>
+ </script> -->
     <!-- Checkout Section Begin -->
     <section class="checkout spad">
         <div class="container">
             <div class="checkout__form">
-                <h4>Basic Details</h4>
+                <h4>User Details</h4>
                 <form method="POST" id="formRegister" action="{% url 'register-user' %}">
                     {% csrf_token %}
                     {% if messages %}
@@ -138,59 +99,68 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-lg-6">
-                                    <div class="checkout__input">
-                                        <p>GSTIN</p>
-                                        {{userform.gstin}}
-                                    </div>
-                                </div>
-                                <div class="col-lg-6">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-lg-6">
+                                <div class="col-lg-7">
                                     <div class="checkout__input">
                                         <p>Place of Supply<span>*</span></p>
                                         {{userform.supply_place}}
                                     </div>
                                 </div>
-                                <div class="col-lg-6">
+                                <div class="col-lg-5">
                                     <div class="checkout__input">
                                         <p>GST Treatment<span>*</span></p>
                                         {{userform.gst_tmt}}
                                     </div>
                                 </div>
                             </div>
-                            <h4>Billing Address</h4>
                             <div class="row">
                                 <div class="col-lg-6">
                                     <div class="checkout__input">
-                                        <p>Address<span>*</span></p>
-                                        {{userform.userAddress}}
+                                        <p>GSTIN<span><em>[if Registered Business(Regular/Composition)]</em></span></p>
+                                        {{userform.gstin}}
                                     </div>
                                 </div>
                                 <div class="col-lg-6">
-                                    <div class="checkout__input">
-                                        <p>Town/City<span>*</span></p>
-                                        {{userform.userCity}}
-                                    </div>
                                 </div>
                             </div>
+                            <h4>Registered Address</h4>
                             <div class="row">
-                                <div class="col-lg-6">
-                                    <div class="checkout__input">
-                                        <p>State<span>*</span></p>
-                                        {{userform.userState}}
-                                    </div>
-                                </div>
-                                <div class="col-lg-6">
+                                <div class="col-lg-3">
                                     <div class="checkout__input">
                                         <p>Postcode / ZIP<span>*</span></p>
                                         {{userform.pinCode}}
                                     </div>
                                 </div>
+                                <div class="col-lg-4">
+                                    <div class="checkout__input">
+                                        <p>State<span>*</span></p>
+                                        {{userform.userState}}
+                                    </div>
+                                </div>
                             </div>
-                            <div class="checkout__input__checkbox">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="checkout__input">
+                                        <p>District<span>*</span></p>
+                                        {{userform.userDistrict}}
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="checkout__input">
+                                        <p>Block/Sub District<span>*</span></p>
+                                        {{userform.userCity}}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="checkout__input">
+                                        <p>Address<span>*</span></p>
+                                        {{userform.userAddress}}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- <div class="checkout__input__checkbox">
                                 <label for="cb_sameAddress">
                                     Same Shipping Address?
                                     <input type="checkbox" id="cb_sameAddress" onclick="addressClick()">
@@ -233,12 +203,11 @@
                                         {{userform.userNote}}
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                             <div class="row">
                                 <div class="col-lg-12">
                                     <button type="button" class="site-btn" style="background-color: red;">CANCEL</button>
                                     <button type="submit" class="site-btn">{% if user.is_authenticated %}UPDATE{% else %}REGISTER{% endif %}</button>
-                                    <!-- <button type="button" class="site-btn" onclick="checkUserType()">Check</button> -->
                                 </div>
                             </div>
                         </div>
@@ -248,4 +217,258 @@
         </div>
     </section>
     <!-- Checkout Section End -->
+<script>
+window.onload = function () {
+  document.getElementById('udise_code').disabled = true;
+};
+document.getElementById('userType').addEventListener("change", function(){
+    if(this.value == "3"){
+        document.getElementById('udise_code').disabled = false;
+    }
+    else{
+        document.getElementById('udise_code').disabled = true;
+    }
+});
+
+document.getElementById("udise_code").addEventListener("blur", function() {
+    checkUserType();
+});
+function checkUserType(){
+    const userType=document.getElementById('userType').value;
+    if(userType == 3){
+        const udise_code=document.getElementById('udise_code').value;
+        var udise_len = document.getElementById('udise_code').value.length;
+        if(udise_len < 11){
+            alert('Please enter valid UDISE Code!');
+        }
+        else{
+            let url = "{% url 'fetch-school' 0 %}".replace('0', udise_code);
+            fetch(url)  // Replace with your actual Django view URL
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();  // Parse JSON data
+            })
+            .then(data => {
+                document.getElementById('first_name').value = JSON.stringify(data['school_name']).replace('"','').replace('"','').trim();
+                document.getElementById('last_name').value = JSON.stringify(data['school_name']).replace('"','').replace('"','').trim();
+                document.getElementById('org_name').value = JSON.stringify(data['school_name']).replace('"','').replace('"','').trim();
+                document.getElementById('supply_place').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
+                document.getElementById('userAddress').value = JSON.stringify(data['village_name']).replace('"','').replace('"','').trim();
+                document.getElementById('userCity').value = JSON.stringify(data['sub_dist_name']).replace('"','').replace('"','')+" "+JSON.stringify(data['district_name']).replace('"','').replace('"','').trim();
+                document.getElementById('userState').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
+                document.getElementById('userAddress1').value = JSON.stringify(data['village_name']).replace('"','').replace('"','').trim();
+                document.getElementById('userCity1').value = JSON.stringify(data['sub_dist_name']).replace('"','').replace('"','')+" "+JSON.stringify(data['district_name']).replace('"','').replace('"','').trim();
+                document.getElementById('userState1').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
+                //alert(JSON.stringify(data['school_name']).replace('"','').replace('"',''));
+                //window.location.reload();
+            })
+            .catch(error => {
+                alert(JSON.stringify("Invalid UDISE Code"));
+                //console.error('Error fetching data:', error);
+            });
+        }
+    }
+}
+document.getElementById("gstin").addEventListener("blur", function() {
+    check_gstin();
+});
+function check_gstin(){
+    const gst_tmt = document.getElementById('gst_tmt').value;
+    if(gst_tmt == 1 || gst_tmt == 2){
+        const gstin = document.getElementById('gstin').value;
+        const gstin_length = document.getElementById('gstin').value.length;
+        if(gstin_length < 15 || gstin_length > 15){
+            alert('Please, enter valid GSTIN!');
+        }
+    }
+}
+
+document.getElementById("pinCode").addEventListener("blur", function() {
+    var pincode = document.getElementById('pinCode').value;
+    var postal_api = "https://api.postalpincode.in/pincode/"+pincode;
+    fetch(postal_api)
+    .then(response => response.json())
+    .then(data => {
+        const select_userstate = document.getElementById("userState");
+
+        var postal_data = data;
+        if (postal_data[0]['Status'] == "Error"){
+            alert('Pin Code not found!');
+            return;
+        }
+        else{
+            var state = postal_data[0]['PostOffice'][0]['Circle'];
+            for (let i = 0; i < select_userstate.options.length; i++) {
+                if (select_userstate.options[i].text === state) {
+                    select_userstate.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+        
+
+        var statecode = document.getElementById("userState").value;
+        var district = postal_data[0]['PostOffice'][0]['District'];
+        fetch_districts(statecode,district);
+    })
+    .catch(error => {
+        console.log(error);
+    })
+});
+
+// document.getElementById("userState").addEventListener("blur", function() {
+//     var statecode = document.getElementById("userState").value;
+//     fetch_districts(statecode,'');
+// });
+
+// document.getElementById("userDistrict").addEventListener("blur", function() {
+//     var statecode = document.getElementById("userState").value;
+//     var districtcode = document.getElementById("userDistrict").value;
+//     fetch_subdistricts(statecode, districtcode);
+// });
+
+document.getElementById("first_name").addEventListener("keydown", function() {
+    document.getElementById("last_name").value = document.getElementById("first_name").value;
+});
+
+function fetch_districts(statecode, district){
+    if (statecode!=null && statecode!=''){
+        const userDistrict = document.getElementById('userDistrict');
+        //clear the select and then load
+        document.getElementById("userDistrict").options.length = 0
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.text = 'Select District';
+        userDistrict.appendChild(defaultOption);   
+
+        var api = "https://api.data.gov.in/resource/37231365-78ba-44d5-ac22-3deec40b9197?api-key=579b464db66ec23bdd0000011c8e390297d348f14342ed5a091d6a99&format=json&limit=1000&filters%5Bstate_code%5D="+statecode;
+        fetch(api)
+        .then(response => response.json())
+        .then(data => {
+            data.records.sort((a, b) => a.district_name_english.localeCompare(b.district_name_english));
+            // console.log(data);
+            if (Array.isArray(data.records)) {
+                for (const record of data.records) {
+                    // console.log(`District: ${record.district_name_english}, Code: ${record.district_code}`);
+                    const option = document.createElement('option');
+                    option.value = record.district_code;
+                    option.text = record.district_name_english;
+                    userDistrict.appendChild(option);   
+                }
+
+                let arr_districts = [];
+                for (let i = 0; i < userDistrict.options.length; i++) {
+                    arr_districts.push(userDistrict.options[i].text);
+                }
+                
+                district = fuzzySearch(district,arr_districts);
+                console.log(district[0]);
+                for (let i = 0; i < userDistrict.options.length; i++) {
+                    if (userDistrict.options[i].text === district[0]) {
+                        userDistrict.selectedIndex = i;
+                        break;
+                    }
+                }
+                var statecode = document.getElementById("userState").value;
+                var districtcode = document.getElementById("userDistrict").value;
+                fetch_subdistricts(statecode,districtcode);
+
+            } else {
+            console.error("Expected 'records' to be an array.");
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+    }
+}
+
+function levenshteinDistance(a, b) {
+  const matrix = Array.from({ length: b.length + 1 }, (_, i) => [i]);
+
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
+  }
+
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      const cost = b[i - 1] === a[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,     // Deletion
+        matrix[i][j - 1] + 1,     // Insertion
+        matrix[i - 1][j - 1] + cost // Substitution
+      );
+    }
+  }
+
+  return matrix[b.length][a.length];
+}
+
+function fuzzySearch(query, list, threshold = 70) {
+  query = query.toLowerCase();
+  return list.filter(item => {
+    const itemLower = item.toLowerCase();
+    const distance = levenshteinDistance(query, itemLower);
+    const maxLen = Math.max(query.length, itemLower.length);
+    const similarity = ((maxLen - distance) / maxLen) * 100;
+    return similarity >= threshold;
+  });
+}
+
+function fetch_subdistricts(statecode, districtcode){
+    if(districtcode!=null && districtcode!=''){
+        const userCity = document.getElementById('userCity');
+        //clear the select and then load
+        document.getElementById("userCity").options.length = 0
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.text = 'Select Block/Sub-District';
+        userCity.appendChild(defaultOption);   
+
+        var api = "https://api.data.gov.in/resource/6be51a29-876a-403a-a6da-42fde795e751?api-key=579b464db66ec23bdd0000011c8e390297d348f14342ed5a091d6a99&format=json&limit=1000&filters%5Bstate_code%5D="+statecode+"&filters%5Bdistrict_code%5D="+districtcode;
+        fetch(api)
+        .then(response => response.json())
+        .then(data => {
+            //console.log(data);
+            data.records.sort((a, b) => a.subdistrict_name_english.localeCompare(b.subdistrict_name_english));
+            if (Array.isArray(data.records)) {
+            for (const record of data.records) {
+                // console.log(`District: ${record.subdistrict_name_english}, Code: ${record.subdistrict_code}`);
+                const option = document.createElement('option');
+                option.value = record.subdistrict_code;
+                option.text = record.subdistrict_name_english;
+                userCity.appendChild(option);   
+            }
+            } else {
+            console.error("Expected 'records' to be an array.");
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+    }
+}
+
+// document.getElementById("formRegister").addEventListener("submit", function(event) {
+//     const form = event.target;
+//     const inputs = form.querySelectorAll("input, select");
+//     let isValid = true;
+//     inputs.forEach((field) => {
+//     if (field.value.trim() === "") {
+//         isValid = false;
+//         field.style.border = "2px solid red"; // Optional visual cue
+//     } else {
+//         field.style.border = ""; // Reset style
+//     }
+//     });
+//     if (!isValid) {
+//     event.preventDefault();
+//     alert("Please fill in all required fields.");
+//     } else {
+//     form.submit(); // All fields are valid — submit the form
+//     }
+// });
+</script>
 {% endblock %}

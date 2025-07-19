@@ -49,7 +49,7 @@ urlpatterns = [
     path('approve-user/<int:userID>', views.approve_user, name='approve-user'),
     path('activate-user/<int:userID>/<str:activate>', views.activate_user, name='activate-user'),
     path('fetch-school/<str:udise>', views.fetch_school, name='fetch-school'),
-    path('track-coordinate/', views.track_coordinate, name='track-coordinate'),
+    path('track-coordinate/', views.show_fpo_customers_in_map, name='track-coordinate'),
 
     path('user-form/', views.profile_view, name='user-form'),
     path('add-address/', views.add_address, name='add-address'),
@@ -58,6 +58,7 @@ urlpatterns = [
     path('update-address/billing/<int:id>', views.update_billiing_address, name='update-billing'),
     path('update-address/shipping/<int:id>', views.update_shipping_address, name='update-shipping'),
     path('update-address/default/<int:id>', views.set_default_address, name='update-default-address'),
+    path('update-serving-address/<int:id>', views.change_status_serving_address, name='update-serving-address'),
 
     path('accounts/login/', views.login_required, name='login'),
     path('items/', views.item_list, name='item_list'),
@@ -108,4 +109,8 @@ urlpatterns = [
     path('payment/', views.initiate_payment, name='initiate_payment'),
     path('payment/success/', views.payment_success, name='payment_success'),
     path('webhook/', views.razorpay_webhook, name='razorpay_webhook'),
+
+    #analytics
+    path('analytics/<int:userID>/', views.user_analytics, name='analytics'),
+    path('analytics/', views.user_analytics_items, name='analytics-items'),
 ]

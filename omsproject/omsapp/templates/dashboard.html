@@ -1,34 +1,273 @@
 {% extends 'admin-console.html' %}
 {% load static %}
 {% block dashboard %}
+<style>
+    #map {
+        height: 500px;
+        margin-bottom: 20px;
+    }
+    input[type=text] {
+        width: 200px;
+    }
+
+    .leaflet-control-geocoder-form input {
+        color: black; /* Change this to any color you want */
+        font-weight: bold;
+    }
+
+    /* Optional: change placeholder color */
+    .leaflet-control-geocoder-form input::placeholder {
+        color: #999999;
+        font-style: italic;
+    }
+</style>
 <h2 class="text-xl font-semibold mb-4">Dashboard</h2>
 <div class="bg-white p-4 shadow rounded border border-gray-300">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <a href="{% url 'item_list' %}">
-            <div class="bg-yellow-500 text-white p-4 rounded shadow">
-                <h3 class="text-sm">Total Items</h3>
-                <p class="text-2xl font-semibold mt-1">{{dashboard.total_items}}</p>
+    <!-- <section id="values">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a href="{% url 'item_list' %}">
+                <div class="bg-yellow-500 text-white p-4 rounded shadow">
+                    <h3 class="text-sm">Total Items</h3>
+                    <p class="text-2xl font-semibold mt-1">{{dashboard.total_items}}</p>
+                </div>
+            </a>
+            <a href="{% url 'receivedorders' %}">
+                <div class="bg-blue-500 text-white p-4 rounded shadow">
+                    <h3 class="text-sm">Total Orders</h3>
+                    <p class="text-2xl font-semibold mt-1">{{dashboard.received_orders}}</p>
+                </div>
+            </a>
+            <a href="{% url 'bulk-buy-supply' %}">
+                <div class="bg-pink-500 text-white p-4 rounded shadow">
+                    <h3 class="text-sm">Total Bulk-Buy Requests</h3>
+                    <p class="text-2xl font-semibold mt-1">{{dashboard.bulk_buy}}</p>
+                </div>
+            </a>
+            <a href="{% url 'bulk-buy-supply' %}">
+                <div class="bg-purple-500 text-white p-4 rounded shadow">
+                    <h3 class="text-sm">Revenue</h3>
+                    <p class="text-2xl font-semibold mt-1">₹{{dashboard.total_revenue}}</p>
+                </div>
+            </a>
+        </div>
+    </section> -->
+    <section id="analytics_map">
+        <h2 class="text-xl font-semibold mb-4">Analytics</h2>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-5">
+            <a href="#" onclick="showing_users_in_map('3')">
+                <div class="bg-yellow-500 text-white p-4 rounded shadow">
+                    <h3 class="text-sm">School</h3>
+                    <p class="text-2xl font-semibold mt-1" id="schools"></p>
+                </div>
+            </a>
+            <a href="#" onclick="showing_users_in_map('5')">
+                <div class="bg-purple-500 text-white p-4 rounded shadow">
+                    <h3 class="text-sm">Individual</h3>
+                    <p class="text-2xl font-semibold mt-1" id="individuals"></p>
+                </div>
+            </a>
+            <!-- <a href="#" onclick="showing_users_in_map('1')">
+                <div class="bg-blue-500 text-white p-4 rounded shadow">
+                    <h3 class="text-sm">FPO</h3>
+                    <p class="text-2xl font-semibold mt-1" id="fpos"></p>
+                </div>
+            </a>
+            <a href="#" onclick="showing_users_in_map('2')">
+                <div class="bg-pink-500 text-white p-4 rounded shadow">
+                    <h3 class="text-sm">Business</h3>
+                    <p class="text-2xl font-semibold mt-1" id="businesses"></p>
+                </div>
+            </a>
+            <a href="#" onclick="showing_users_in_map('4')">
+                <div class="bg-green-500 text-white p-4 rounded shadow">
+                    <h3 class="text-sm">Overseas</h3>
+                    <p class="text-2xl font-semibold mt-1" id="overseas"></p>
+                </div>
+            </a> -->
+        </div>
+        <br>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white-500 text-black p-4 rounded shadow">
+                <h3 class="text-sm">Total Schools</h3>
+                <p class="text-2xl font-semibold mt-1" id="total_schools"></p>
             </div>
-        </a>
-        <a href="{% url 'receivedorders' %}">
-            <div class="bg-blue-500 text-white p-4 rounded shadow">
-                <h3 class="text-sm">Total Orders</h3>
-                <p class="text-2xl font-semibold mt-1">{{dashboard.received_orders}}</p>
+            <div class="bg-white-500 text-black p-4 rounded shadow">
+                <h3 class="text-sm">Registered Schools</h3>
+                <p class="text-2xl font-semibold mt-1" id="registered_schools"></p>
             </div>
-        </a>
-        <a href="{% url 'bulk-buy-supply' %}">
-            <div class="bg-pink-500 text-white p-4 rounded shadow">
-                <h3 class="text-sm">Total Bulk-Buy Requests</h3>
-                <p class="text-2xl font-semibold mt-1">{{dashboard.bulk_buy}}</p>
+            <div class="bg-white-500 text-black  p-4 rounded shadow">
+                <h3 class="text-sm">Ordering Schools</h3>
+                <p class="text-2xl font-semibold mt-1" id="ordering_schools"></p>
             </div>
-        </a>
-        <a href="{% url 'bulk-buy-supply' %}">
-            <div class="bg-purple-500 text-white p-4 rounded shadow">
-                <h3 class="text-sm">Revenue</h3>
-                <p class="text-2xl font-semibold mt-1">₹{{dashboard.total_revenue}}</p>
-            </div>
-        </a>
-    </div>
+        </div>
+        <div class="bg-white p-4 shadow rounded">
+        <div id="map"></div>
+        <!-- Hidden inputs to store lat/lon -->
+        <!-- Latitude:  <input type="text" id="lat" name="latitude" style="color: black;" readonly><br>
+        Longitude: <input type="text" id="lon" name="longitude" style="color: black;" readonly> -->
+        <!-- <script>
+            // Initial map center (Odisha)
+            const defaultLatLng = [20.9517, 85.0985];
+        
+            const map = L.map('map').setView(defaultLatLng, 13);
+
+            let serviceAreaCircle = L.circle(defaultLatLng, {
+            radius: 5000,  // 5 km in meters
+            color: '#007bff',         // Circle border
+            fillColor: '#007bff',     // Fill color
+            fillOpacity: 0.15         // Transparency
+            }).addTo(map);
+        
+            // Add OpenStreetMap tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+        
+            // Add a draggable marker
+            const marker = L.marker(defaultLatLng, { draggable: true }).addTo(map);
+        
+            // Update hidden inputs on marker move
+            function updateLatLng(latlng) {
+            document.getElementById('lat').value = latlng.lat.toFixed(6);
+            document.getElementById('lon').value = latlng.lng.toFixed(6);
+
+            // 🟢 Update circle position
+            serviceAreaCircle.setLatLng(latlng);
+            }
+        
+            marker.on('dragend', function (e) {
+            updateLatLng(marker.getLatLng());
+            });
+
+            // 📍 Click to place/move marker
+            map.on('click', function (e) {
+            const clickedLatLng = e.latlng;
+            marker.setLatLng(clickedLatLng);
+            updateLatLng(clickedLatLng);
+            });
+
+        
+            // Add search control
+            L.Control.geocoder({
+            defaultMarkGeocode: false
+            })
+            .on('markgeocode', function(e) {
+            const center = e.geocode.center;
+            map.setView(center, 16);
+            marker.setLatLng(center);
+            updateLatLng(center);
+            })
+            .addTo(map);
+            
+            // Wait until the control is added, then update placeholder
+            setTimeout(() => {
+            const input = document.querySelector('.leaflet-control-geocoder-form input');
+            if (input) {
+                input.placeholder = "Search for your office, area, or building...";
+            }
+            }, 100);  // Delay to ensure DOM is ready
+
+            // Initialize lat/lon fields
+            updateLatLng(defaultLatLng);
+        </script>             -->
+        <script>
+            // Center the map on Odisha
+            var map = L.map('map').setView([20.9517, 85.0985], 7);
+            // Load OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            function showing_users_in_map(userType){
+                //the green marker
+                var greenIcon = new L.Icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+
+                var redIcon = new L.Icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+                
+                var yellowIcon = new L.Icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+
+                var blackIcon = new L.Icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-black.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+
+                var locations = [];
+                // Example markers — in Django, these are generated from the context
+                let url = "{% url 'track-coordinate' %}?type="+userType;
+                fetch(url)  // Replace with your actual Django view URL
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();  // Parse JSON data
+                })
+                .then(data => {
+                    document.getElementById('total_schools').textContent = data.total_schools;
+                    document.getElementById('registered_schools').textContent = data.registered_schools;
+                    document.getElementById('ordering_schools').textContent = data.ordering_schools;
+                    console.log(document.getElementById('total_schools'));
+                    const addresses = data.coordinates;
+                    addresses.forEach(addr => {
+                    locations.push({
+                        name:addr.name,
+                        order_count:addr.order_count,
+                        lat:addr.address_lat,
+                        lon:addr.address_long,
+                        icon:addr.icon
+                    });
+                    });
+                    locations.forEach(function(loc) {
+                        //console.log("lat"+loc.lat+", long"+loc.lon);
+                        //console.log(loc.name+","+loc.icon)
+                        var icon = new L.icon();
+                        if(loc.icon == 'green'){
+                            icon = greenIcon;
+                        }
+                        else if(loc.icon == 'black'){
+                            icon = blackIcon;
+                        }
+                        else if(loc.icon == 'yellow'){
+                            icon = yellowIcon;
+                        }
+                        else{
+                            icon = redIcon;
+                        }
+                        L.marker([loc.lat, loc.lon], {icon:icon}).addTo(map).bindPopup("<b>" + loc.name + "<br>No. of Orders:"+ loc.order_count + "</b>");
+                    });
+                })
+                .catch(error => {
+                    alert('Error in fetching data.', error);
+                    //console.error('Error fetching data:', error);
+                });
+            }
+            </script>
+        </div>
+    </section>
 </div>
 {% endblock %}
 

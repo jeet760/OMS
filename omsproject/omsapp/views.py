@@ -13,8 +13,8 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
 from datetime import datetime
-from .models import CustomUser, UserShippingAddresses, UserBillingAddresses, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, OrderInvoice, OrderDelivery, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder, FPOAuthorisationDocs, UserMessage, SchoolUDISE
-from .models import STATES, USERTYPES, GST_TREATMENT
+from .models import CustomUser, UserShippingAddresses, UserBillingAddresses, FPOServingAddresses, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, OrderInvoice, OrderDelivery, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder, FPOAuthorisationDocs, UserMessage, SchoolUDISE
+from .models import LIST_STATES, USERTYPES, GST_TREATMENT
 from .forms import ItemForm, UserRegistrationForm, UserLoginForm, OrderForm, OrderDetailsForm, InvoiceForm, FPOAuthrisationForm, ItemImportExcelForm
 import json
 import requests
@@ -26,8 +26,7 @@ import pandas as pd
 import socket
 import hmac
 import hashlib
-
-
+import random
 
 #region StartPage_CommonPages
 def landing_page(request, category=None,fpo=None, region=None):
@@ -45,12 +44,15 @@ def landing_page(request, category=None,fpo=None, region=None):
         user_type = request.user.userType
         user_approved = request.user.userApproved
         if pincode == 'Delivery Pincode':
-            pincode = request.user.pinCode1
+            pincode = request.user.pinCode
         request.session['pincode'] = pincode
         # if user_type == '1':
         #     items = items.exclude(userID_id = request.user.pk)
         featureItems = Item.objects.filter(featureItem=True).exclude(userID_id = request.user.pk).filter(userID_id__pinCode=pincode)
     featureItems = featureItems.filter(itemActive=True).order_by('-itemInStock')
+    counter = featureItems.__len__()
+    featureItems = featureItems.filter(userID_id__isActive=True)
+    counter1 = featureItems.__len__()
     # length = items.__len__()#get the total items
     
     #pagination in the landing page
@@ -61,7 +63,7 @@ def landing_page(request, category=None,fpo=None, region=None):
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
     total_price = cart.get_total_price()
-    region_list = fpo = fpo_list()
+    region_list = fpo = fpo_list(request)
     landing_page_context = {
         'items': items, 
         'featureItems_page_obj':featureItems_page_obj,
@@ -109,6 +111,9 @@ def shop(request, category=None, fpo=None, region=None):
             pincode = region
             request.session['pincode'] = pincode
         items = Item.objects.filter(userID_id__pinCode=pincode).filter(itemActive=True).order_by('-itemInStock') #if the user is logged in, then only the items available in user's pincode will be available to it.
+        counter = items.__len__()
+        items = items.filter(userID_id__isActive=True)
+        counter1 = items.__len__()
         if user_type == '1':
             items = items.exclude(userID_id = request.user.pk)
     else:#if the user is not logged in and explicitly enters the pincode
@@ -127,7 +132,7 @@ def shop(request, category=None, fpo=None, region=None):
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
     total_price = cart.get_total_price()
-    region_list = fpo = fpo_list()
+    region_list = fpo = fpo_list(request)
     min_price = items.aggregate(Min('itemPrice'))['itemPrice__min']
     max_price = items.aggregate(Max('itemPrice'))['itemPrice__max']
     shop_page_context ={
@@ -252,7 +257,8 @@ def shopping_cart(request):
         'pincode':pincode,
         'billing_addresses':billing_addresses,
         'shipping_addresses':shipping_addresses,
-        'states':STATES,
+        'add_address_from':'cart',
+        'states':LIST_STATES,
         'item_stock':item_stock
     }
     return render(request, 'shopping-cart.html', context=shopping_cart_context)
@@ -310,8 +316,8 @@ def checkout(request):
     else:
         return redirect('login')
 
-def fpo_list():
-    fpo = CustomUser.objects.filter(userType=1)
+def fpo_list(request):
+    fpo = CustomUser.objects.filter(userType=1).exclude(pk=request.user.pk)
     return fpo
 
 def error_404_view(request):
@@ -412,48 +418,49 @@ def user_form(request):
     user_form_context = {
         'user':user,
         'fpo_docs':fpo_docs,
-        'states':STATES,
+        'states':LIST_STATES,
         'gst_tmts': GST_TREATMENT
     }
     return render(request, 'user-form.html', context=user_form_context)
 
 LIST_STATES = [
-    ('1','Andhra Pradesh'),
-    ('2','Arunachal Pradesh'),
-    ('3','Assam'),
-    ('4','Bihar'),
-    ('5','Chhattisgarh'),
-    ('6','Goa'),
-    ('7','Gujarat'),
-    ('8','Haryana'),
-    ('9','Himachal Pradesh'),
-    ('10','Jharkhand'),
-    ('11','Karnataka'),
-    ('12','Kerala'),
-    ('13','Madhya Pradesh'),
-    ('14','Maharashtra'),
-    ('15','Manipur'),
-    ('16','Meghalaya'),
-    ('17','Mizoram'),
-    ('18','Nagaland'),
-    ('19','Odisha'),
-    ('20','Punjab'),
-    ('21','Rajasthan'),
-    ('22','Sikkim'),
-    ('23','Tamil Nadu'),
-    ('24','Telangana'),
-    ('25','Tripura'),
-    ('26','Uttar Pradesh'),
-    ('27','Uttarakhand'),
-    ('28','West Bengal'),
-    ('29','Andaman and Nicobar Islands [UT]'),
-    ('30','Chandigarh [UT]'),
-    ('31','Dadra and Nagar Haveli and Daman and Diu [UT]'),
-    ('32','Delhi [UT]'),
-    ('33','Jammu and Kashmir [UT]'),
-    ('34','Ladakh [UT]'),
-    ('35','Lakshadweep [UT]'),
-    ('36','Puducherry [UT]')
+    ('', 'Select State'),
+    ('28','Andhra Pradesh'),
+    ('12','Arunachal Pradesh'),
+    ('18','Assam'),
+    ('10','Bihar'),
+    ('22','Chhattisgarh'),
+    ('30','Goa'),
+    ('24','Gujarat'),
+    ('6','Haryana'),
+    ('2','Himachal Pradesh'),
+    ('20','Jharkhand'),
+    ('29','Karnataka'),
+    ('32','Kerala'),
+    ('23','Madhya Pradesh'),
+    ('27','Maharashtra'),
+    ('14','Manipur'),
+    ('17','Meghalaya'),
+    ('15','Mizoram'),
+    ('13','Nagaland'),
+    ('21','Odisha'),
+    ('3','Punjab'),
+    ('8','Rajasthan'),
+    ('11','Sikkim'),
+    ('33','Tamil Nadu'),
+    ('36','Telangana'),
+    ('16','Tripura'),
+    ('9','Uttar Pradesh'),
+    ('5','Uttarakhand'),
+    ('19','West Bengal'),
+    ('35','Andaman And Nicobar Islands [UT]'),
+    ('4','Chandigarh [UT]'),
+    ('7','Delhi [UT]'),
+    ('1','Jammu And Kashmir [UT]'),
+    ('37','Ladakh [UT]'),
+    ('31','Lakshadweep [UT]'),
+    ('34','Puducherry [UT]'),
+    ('38','The Dadra And Nagar Haveli And Daman And Diu [UT]'),
 ]
 
 LIST_USERTYPES = [
@@ -492,11 +499,20 @@ def registration_form(request):
         'login_user':user_name,
         'total_qty':total_qty,
         'total_price':total_price,
-        'states':STATES,
+        'states':LIST_STATES,
         'gst_tmts':GST_TREATMENT,
         'user_types':USERTYPES,
     }
     return render(request, 'register.html', context=register_context)
+
+def create_fpo_regn_id(state_code,district_code,subdist_code):
+    num = random.randint(1,99)
+    regn_id = ''
+    if num < 10:
+        regn_id = state_code+district_code+subdist_code+'0'+str(num)
+    else:
+        regn_id = state_code+district_code+subdist_code+str(num)
+    return regn_id
 
 def register(request):
     if request.method == 'POST':
@@ -515,22 +531,28 @@ def register(request):
                         return redirect('register')
                     else:
                         user = form.save(param_password=request.POST['udise_code'])
+                        messages.success(request,f'You can use your phone number {request.POST['phone']} or UDISE Code {request.POST['udise_code']} as Username.\nPassword is your phone number.')
+                elif request.POST['userType'] == '1':
+                    regn_no = create_fpo_regn_id(request.POST['userState'],request.POST['userDistrict'],request.POST['userCity'])
+                    user = form.save(param_password=request.POST['phone'], commit=False)
+                    user.username = regn_no
+                    user.save()
+                    messages.success(request,f'Your Registration Code is {regn_no}.\nYou can also use this code or phone number {request.POST['phone']} as Username.\nPassword is your phone number.')
                 else:
                     user = form.save(param_password=request.POST['phone'])
+                    messages.success(request,f'You can use phone number {request.POST['phone']} as Username.\nPassword is your phone number.')
                 contact_person = user.last_name
                 contact_no = user.phone
-                loc_lat = 0.00
-                loc_long = 0.00
+                loc_lat = 20.9517
+                loc_long = 85.0985
                 if user.userType == '3':
                     school = get_object_or_404(SchoolUDISE, udise_code=user.udise_code)
                     loc_lat=school.loc_lat
                     loc_long=school.loc_long
                 UserBillingAddresses.objects.create(userID_id=user.pk,userAddress=user.userAddress, userCity=user.userCity, userState=user.userState, pinCode=user.pinCode, contactPerson=contact_person, contactNo=contact_no, address_lat=loc_lat, address_long=loc_long, setDefault=True)
-                UserShippingAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress1, userCity1=user.userCity1, userState1=user.userState1, pinCode1=user.pinCode1, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=loc_lat, address_long1=loc_long, setDefault=True)
+                UserShippingAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress, userCity1=user.userCity, userState1=user.userState, pinCode1=user.pinCode, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=loc_lat, address_long1=loc_long, setDefault=True)
                 if user.userType != '1':
                     CustomUser.objects.filter(pk=user.id).update(userApproved=True,approvedOn=datetime.today(),isActive=True,activatedOn=datetime.today())
-                    #login(request, user)
-                    #user_name = user.last_name
                 return redirect('login')  # Redirect to a home page
             else:
                 print(form.errors)
@@ -583,7 +605,8 @@ def profile_view(request):
         user_type=''
     shipping_addresses = UserShippingAddresses.objects.filter(userID = request.user.pk)
     billing_addresses = UserBillingAddresses.objects.filter(userID = request.user.pk)
-    contact_person = [CustomUser.objects.get(pk=request.user.pk).contactPerson, CustomUser.objects.get(pk=request.user.pk).contactPerson1, CustomUser.objects.get(pk=request.user.pk).contactNo, CustomUser.objects.get(pk=request.user.pk).contactNo1]
+    serving_addresses = FPOServingAddresses.objects.filter(userID=request.user.pk)
+    contact_person = [CustomUser.objects.get(pk=request.user.pk).contactPerson, CustomUser.objects.get(pk=request.user.pk).contactPerson, CustomUser.objects.get(pk=request.user.pk).contactNo, CustomUser.objects.get(pk=request.user.pk).contactNo]
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
     total_price = cart.get_total_price()
@@ -595,11 +618,13 @@ def profile_view(request):
         'user_type':user_type,
         'total_qty':total_qty,
         'total_price':total_price,
-        'states':STATES,
+        'states':LIST_STATES,
         'gst_tmts':GST_TREATMENT,
         'user_types':USERTYPES,
         'shipping_addresses':shipping_addresses,
         'billing_addresses':billing_addresses,
+        'serving_addresses':serving_addresses,
+        'add_address_from':'userform',
         'fpo_docs':fpo_docs
     }
     return render(request, 'user-form.html', context=register_context)
@@ -719,11 +744,17 @@ def fpo_approve_check(userID):
             return False
 
 def activate_user(request, userID, activate):
+    referer = request.META.get('HTTP_REFERER')
+    parsed_url = urlparse(referer)
+    path_only = parsed_url.path  # e.g., /some/path/
     if activate == 'false':
         CustomUser.objects.filter(pk=userID).update(isActive=False,activatedOn=datetime.now())
     else:
         CustomUser.objects.filter(pk=userID).update(isActive=True,activatedOn=datetime.now())
-    return redirect('admin-master')
+    if path_only == '/admin-master/':
+        return redirect('admin-master')
+    else:
+        return redirect('logout')
 
 def add_address(request):
     if request.user.is_authenticated:
@@ -744,6 +775,8 @@ def add_address(request):
             UserShippingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
             UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=0.00, address_long1=0.00, setDefault=setDefault)
             CustomUser.objects.filter(pk=userID).update(userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson)
+        elif type_of_address == 'serv':
+            FPOServingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=0.00, address_long1=0.00)
         elif type_of_address == 'both':
             UserBillingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
             UserBillingAddresses.objects.get_or_create(userID_id=userID, userAddress=userAddress, userCity=userCity,userState=userState,pinCode=pinCode,contactNo=contactNo, contactPerson=contactPerson, address_lat=0.00, address_long=0.00, setDefault=setDefault)
@@ -848,6 +881,16 @@ def set_default_address(request, id):
             CustomUser.objects.filter(id=userID).update(userAddress1=ship_address.userAddress1,userCity1=ship_address.userCity1,userState1=ship_address.userState1,pinCode1=ship_address.pinCode1, ship_address_lat=0.00, ship_address_long=0.00)
     return redirect('user-form')    
 
+def change_status_serving_address(request,id):
+    if request.user.is_authenticated:
+        userID = request.user.pk
+        checkStatus = get_object_or_404(FPOServingAddresses,pk=id).isActive
+        if checkStatus == True:
+            FPOServingAddresses.objects.filter(userID_id=userID,pk=id).update(isActive=False)
+        else:
+            FPOServingAddresses.objects.filter(userID_id=userID,pk=id).update(isActive=True)
+    return redirect('user-form')
+
 def login_view(request):
     if request.method == 'POST':
         form = UserLoginForm(request.POST)
@@ -915,7 +958,6 @@ def reset_password(request):
 
 @login_required
 def logout_view(request):
-
     logout(request)
     return redirect('index')
 #endregion
@@ -936,17 +978,118 @@ def admin_console(request):
 def track_coordinate(request):
     address_qs = UserBillingAddresses.objects.values('userCity','address_lat','address_long', name=F('userID__last_name')).exclude(userID_id=1).exclude(address_lat=None).exclude(address_lat=0)
     coordinates = list(address_qs)
-
-    # address_coordinates = UserBillingAddresses.objects.only('userAddress','address_lat','address_long')
-    # coordinates = []
-    # for obj in address_coordinates:
-    #     coordinates.append({
-    #         'userAddress': obj.userAddress,
-    #         'address_lat': obj.address_lat,
-    #         'address_long': obj.address_long,
-    #     })
-
     return JsonResponse({'coordinates':coordinates})
+
+def show_fpo_customers_in_map(request):
+    user_type = request.GET.get('type')
+    all_customers = CustomUser.objects.all()
+
+    #logged in FPO data
+    fpo_user_id = request.user.pk
+    fpo_name = get_object_or_404(CustomUser, id=fpo_user_id).last_name
+    fpo_lat= 21.2634154
+    fpo_long = 85.8801451
+    fpo_icon = 'black'
+    fpo_dist = get_object_or_404(CustomUser, id=fpo_user_id).userDistrict
+    fpo_subdist = get_object_or_404(CustomUser, id=fpo_user_id).userCity
+
+    #all customers who have ordered and their orders have been invoiced or delivered
+    customer_user_ids = SubOrder.objects.values('customerID_id',name=F('customerID_id__last_name'),user_type=F('customerID_id__userType')).filter(vendorID_id = fpo_user_id, customerID_id__userType=user_type).filter(Q(orderStatus='Invoiced')|Q(orderStatus='Delivered'))
+
+
+    #to contain all data to plot on map
+    map_data = []
+    map_data.append({'name':fpo_name, 'address_lat':fpo_lat, 'address_long':fpo_long, 'order_count':0, 'icon':fpo_icon})
+    
+    #checking the user type
+    if user_type == '1':#fpo
+        all_registered_fpo_ids = all_customers.filter(userType=user_type)
+    elif user_type == '2':#business
+        all_registered_biz_ids = all_customers.filter(userType=user_type)
+    elif user_type == '3':#school
+        all_registered_schools_ids = all_customers.filter(userType=user_type)#registered schools
+        registered_schools_counts = all_registered_schools_ids.count()
+        if registered_schools_counts > 0:
+            school_context = plot_schools_on_map(map_data, all_registered_schools_ids, customer_user_ids)
+            map_data = school_context['map_data']
+            school_counts = school_context['school_counts']
+            ordering_school_counts = school_context['ordering_school_counts']
+        else:
+            messages.error(request, 'No school found!')
+    elif user_type == '4':#overseas
+        all_registered_overseas_ids = all_customers.filter(userType=user_type)
+    elif user_type == '5':#individual
+        all_registered_indv_ids = all_customers.filter(userType=user_type)
+        registered_indvs_count = all_registered_indv_ids.count()
+        registered_schools_counts = registered_indvs_count
+        indv_context = plot_individuals_on_map(map_data, all_registered_indv_ids, customer_user_ids)
+        map_data = indv_context['map_data']
+        school_counts = indv_context['indv_counts']
+        ordering_school_counts = indv_context['ordering_indv_counts']
+
+
+    return JsonResponse({'coordinates':map_data, 'total_schools':school_counts, 'registered_schools':registered_schools_counts, 'ordering_schools':ordering_school_counts})
+
+def plot_schools_on_map(map_data, all_registered_schools_ids, customer_user_ids):
+    #fetch all schools in the area, then fetch the registered schools, then the ordering schools
+    all_schools = SchoolUDISE.objects.all().filter(district_name='Kendujhar', sub_dist_name='Harichadanpur')#all schools
+    school_counts = all_schools.count()
+    for school in all_schools:
+        map_data.append({'name':school.school_name, 'address_lat':school.loc_lat, 'address_long':school.loc_long, 'order_count':0, 'icon':'yellow'})
+    
+    ordering_school_counts = 0
+    for school in all_registered_schools_ids:
+        school_id = school.id
+        school_name = school.last_name
+        address_lat = get_object_or_404(UserBillingAddresses,userID_id=school_id).address_lat
+        address_long = get_object_or_404(UserBillingAddresses,userID_id=school_id).address_long
+        order_count = 0
+        icon = 'red'
+        for customer in customer_user_ids:
+            customer_id = customer['customerID_id']
+            if school_id == customer_id:#schools those have ordered and their orders have been delivered/invoiced
+                ordering_school_counts+=1
+                order_count = SubOrder.objects.values('suborderID').filter(customerID_id=customer_id).count()
+                icon = 'green'
+        map_data.append({'name':school_name, 'address_lat':address_lat, 'address_long':address_long, 'order_count':order_count, 'icon':icon})
+        return_context = {
+            'map_data':map_data,
+            'school_counts':school_counts,
+            'ordering_school_counts':ordering_school_counts
+        }
+    return return_context
+
+def plot_individuals_on_map(map_data, all_registered_indv_ids, customer_user_ids):
+    ordering_indv_counts = 0
+    for indv in all_registered_indv_ids:
+        indv_id = indv.id
+        indv_name = indv.last_name
+        address_lat = get_object_or_404(UserBillingAddresses,userID_id=indv_id).address_lat
+        address_long = get_object_or_404(UserBillingAddresses,userID_id=indv_id).address_long
+        order_count = 0
+        icon = 'red'
+        for customer in customer_user_ids:
+            customer_id = customer['customerID_id']
+            if indv_id == customer_id:#schools those have ordered and their orders have been delivered/invoiced
+                ordering_indv_counts+=1
+                order_count = SubOrder.objects.values('suborderID').filter(customerID_id=customer_id).count()
+                icon = 'green'
+        map_data.append({'name':indv_name, 'address_lat':address_lat, 'address_long':address_long, 'order_count':order_count, 'icon':icon})
+        return_context = {
+            'map_data':map_data,
+            'indv_counts':all_registered_indv_ids.count(),
+            'ordering_indv_counts':ordering_indv_counts
+        }
+    return return_context
+
+def plot_fpos_on_map():
+    return ''
+
+def plot_business_on_map():
+    return ''
+
+def plot_overseas_on_map():
+    return ''
 
 def admin_master(request):
     if request.user.is_authenticated:
@@ -1687,7 +1830,7 @@ def bulk_buy(request):
         user_type = request.user.userType
         user_approved = request.user.userApproved
         user_address = f"{request.user.userAddress} {request.user.userCity} {STATE_CHOICES(request.user.userState)} {request.user.pinCode}"
-        user_address1 = f"{request.user.userAddress1} {request.user.userCity1} {STATE_CHOICES(request.user.userState1)} {request.user.pinCode1}"
+        user_address1 = user_address#f"{request.user.userAddress1} {request.user.userCity1} {STATE_CHOICES(request.user.userState1)} {request.user.pinCode1}"
         user_phone = request.user.phone
         items = Item.objects.filter(itemActive=True).order_by('-itemInStock').exclude(userID_id=request.user.pk).values('itemName').distinct().order_by('itemName')
         #items = items.exclude(userID_id=request.user.pk)
@@ -1991,7 +2134,7 @@ def placed_order_details(request,orderID):
     user_name = 'Guest!'
     if request.user.is_authenticated:
         user_name = request.user.last_name
-        pincode = request.user.pinCode1
+        pincode = request.user.pinCode
         #order_invoices = order_invoices(request, orderID)
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
@@ -2189,4 +2332,66 @@ def razorpay_webhook(request):
     else:
         print("❌ Invalid signature.")
         return HttpResponseBadRequest('Invalid signature')
+#endregion
+
+#region analytics
+def all_analytics_data(userID):
+    user_type= get_object_or_404(CustomUser, pk=userID).userType
+    if user_type == '1':
+        user_all_orders = SubOrder.objects.all().filter(vendorID_id=userID)
+        last_name = CustomUser.objects.get(pk=userID).last_name
+        no_of_orders = user_all_orders.count()
+        no_of_rejected_orders = user_all_orders.filter(orderStatus='Rejected').count()
+        no_of_delivered_orders = user_all_orders.filter(orderStatus='Delivered').count()
+        no_of_ordered_items = OrderDetails.objects.all().filter(orderID_id__userID_id=userID).count()
+        no_of_suppliers = SubOrder.objects.values('customerID_id').filter(orderID_id__userID_id=userID).distinct().count()
+        no_of_invoices = OrderInvoice.objects.all().filter(orderID__userID_id=userID).count()
+    else:
+        user_all_orders = Order.objects.all().filter(userID_id=userID)
+        last_name = CustomUser.objects.get(pk=userID).last_name
+        no_of_orders = user_all_orders.count()
+        no_of_rejected_orders = user_all_orders.filter(orderStatus='Rejected').count()
+        no_of_delivered_orders = user_all_orders.filter(orderStatus='Delivered').count()
+        no_of_ordered_items = OrderDetails.objects.all().filter(orderID_id__userID_id=userID).count()
+        no_of_suppliers = SubOrder.objects.values('vendorID_id').filter(orderID_id__userID_id=userID).distinct().count()
+        no_of_invoices = OrderInvoice.objects.all().filter(orderID__userID_id=userID).count()
+    analytics_context = {
+        'last_name': last_name,
+        'userID':userID,
+        'order_nos':no_of_orders,
+        'no_of_rejected_orders':no_of_rejected_orders,
+        'no_of_delivered_orders':no_of_delivered_orders,
+        'no_of_ordered_items':no_of_ordered_items,
+        'suppliers_nos':no_of_suppliers,
+        'no_of_invoices':no_of_invoices
+    }
+    return analytics_context
+def user_analytics(request, userID):
+    analytics_context = all_analytics_data(userID)
+    ua_context = {
+        'last_name': analytics_context['last_name'],
+        'userID':analytics_context['userID'],
+        'order_nos':analytics_context['order_nos'],
+        'no_of_rejected_orders':analytics_context['no_of_rejected_orders'],
+        'no_of_delivered_orders':analytics_context['no_of_delivered_orders'],
+        'no_of_ordered_items':analytics_context['no_of_ordered_items'],
+        'suppliers_nos':analytics_context['suppliers_nos'],
+        'no_of_invoices':analytics_context['no_of_invoices']
+    }
+    return render(request, 'analytics.html', context=ua_context)
+
+def user_analytics_items(request):
+    userID = request.GET.get('id')
+    analytics_context = all_analytics_data(userID)
+    uai_context = {
+        'last_name': analytics_context['last_name'],
+        'userID':analytics_context['userID'],
+        'order_nos':analytics_context['order_nos'],
+        'no_of_rejected_orders':analytics_context['no_of_rejected_orders'],
+        'no_of_delivered_orders':analytics_context['no_of_delivered_orders'],
+        'no_of_ordered_items':analytics_context['no_of_ordered_items'],
+        'suppliers_nos':analytics_context['suppliers_nos'],
+        'no_of_invoices':analytics_context['no_of_invoices']
+    }
+    return render(request, 'analytics-items.html', context=uai_context)
 #endregion

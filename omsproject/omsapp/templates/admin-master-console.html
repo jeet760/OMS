@@ -8,31 +8,55 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+  <!-- Leaflet Geocoder -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
   <style>
     .sidebar-transition {
       transition: transform 0.3s ease-in-out;
     }
     .chart-wrapper {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 20px;  /* space between charts */
-        padding: 20px;
-      }
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;  /* space between charts */
+      padding: 20px;
+    }
 
     .chart-container {
-        width: 100%;
-        height: 100%;
-      }
+      width: 100%;
+      height: 100%;
+    }
 
     canvas {
-        width: 100% !important;
-        height: 100% !important;
-      }
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    #map {
+      height: 500px;
+      margin-bottom: 20px;
+    }
+    input[type=text] {
+      width: 200px;
+    }
+
+    .leaflet-control-geocoder-form input {
+      color: black; /* Change this to any color you want */
+      font-weight: bold;
+    }
+
+    /* Optional: change placeholder color */
+    .leaflet-control-geocoder-form input::placeholder {
+      color: #999999;
+      font-style: italic;
+    }
   </style>
   <script>
     let currentPage = 1;
@@ -378,7 +402,8 @@
                   <th class="py-2 cursor-pointer" onclick="sortTable(4)">Pincode</th>
                   <th class="py-2 cursor-pointer" onclick="sortTable(5)">Date joined</th>
                   <th class="py-2 cursor-pointer" onclick="sortTable(5)">Date Approved</th>
-                  <th class="py-2 cursor-pointer" onclick="sortTable(6)">Status</th>
+                  <th class="py-2 cursor-pointer">Status</th>
+                  <th class="py-2 cursor-pointer">View</th>
                   <th class="py-2">Actions</th>
                 </tr>
               </thead>
@@ -416,7 +441,7 @@
                     <span class="px-2 py-1 text-xs bg-green-600 rounded">Approved</span>
                     {% else %}
                     {% if user.userType == '1' %}
-                    <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="{% url 'profile-verify' user.pk %}">View</a>
+                    <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="{% url 'profile-verify' user.pk %}">Verify</a>
                     {% else %}
                     <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="{% url 'approve-user' user.pk %}">Approve</a>
                     {% endif %}
@@ -426,6 +451,9 @@
                     {% else %}
                     <a class="px-2 py-1 text-xs bg-green-600 rounded hover:bg-green-700" href="{% url 'activate-user' user.pk 'true' %}">Activate</a>
                     {% endif %}
+                  </td>
+                  <td class="py-2">
+                    <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="{% url 'analytics' user.pk %}">View</a>
                   </td>
                 </tr>
                 {% endfor %}
@@ -501,99 +529,75 @@
         <section id="analytics" class="mt-10">
           <h2 class="text-xl font-semibold mb-4">Analytics</h2>
           <div class="bg-gray-800 p-4 shadow rounded">
-            <p>Analytics</p>
-            <p id="output"></p>
-            <button onclick="getLocation()">Get Location</button>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div id="map" style="height: 400px; width: 600px; margin-top: 10px;"></div>
-              <script>
-                // Center the map on Odisha
-                var map = L.map('map').setView([20.9517, 85.0985], 7);
-  
-                // Load OpenStreetMap tiles
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                  attribution: '© OpenStreetMap contributors'
-                }).addTo(map);
+            <div id="map"></div>
+            <!-- Hidden inputs to store lat/lon -->
+            Latitude:  <input type="text" id="lat" name="latitude" style="color: black;" readonly><br>
+            Longitude: <input type="text" id="lon" name="longitude" style="color: black;" readonly>
+            <script>
+              // Initial map center (Odisha)
+              const defaultLatLng = [20.9517, 85.0985];
+            
+              const map = L.map('map').setView(defaultLatLng, 13);
 
-                var locations = [];
-                // Example markers — in Django, these are generated from the context
-                let url = "{% url 'track-coordinate' %}";
-                fetch(url)  // Replace with your actual Django view URL
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();  // Parse JSON data
-                })
-                .then(data => {
-                  const addresses = data.coordinates;
-                  addresses.forEach(addr => {
-                    locations.push({
-                      name:addr.name + ", " + addr.userCity,
-                      lat:addr.address_lat,
-                      lon:addr.address_long
-                    });
-                  });
-                  locations.forEach(function(loc) {
-                      //console.log("lat"+loc.lat+", long"+loc.lon);
-                      L.marker([loc.lat, loc.lon]).addTo(map).bindPopup("<b>" + loc.name + "</b>");
-                  });
-                })
-                .catch(error => {
-                  alert('Error fetching data:', error);
-                    //console.error('Error fetching data:', error);
-                });
-              </script>
-              <script>
-                function getLocation() {
-                  if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(showPosition, showError, {
-                    enableHighAccuracy: true,
-                    timeout: 10000,     // 10 seconds
-                    maximumAge: 0
-                  });
-                  } else {
-                    document.getElementById("output").innerText = "Geolocation is not supported by this browser.";
-                  }
-                }
+              let serviceAreaCircle = L.circle(defaultLatLng, {
+                radius: 5000,  // 5 km in meters
+                color: '#007bff',         // Circle border
+                fillColor: '#007bff',     // Fill color
+                fillOpacity: 0.15         // Transparency
+              }).addTo(map);
             
-                function showPosition(position) {
-                  const lat = position.coords.latitude;
-                  const lon = position.coords.longitude;
-                  document.getElementById("output").innerText = `Latitude: ${lat}, Longitude: ${lon}`;
+              // Add OpenStreetMap tile layer
+              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+              }).addTo(map);
             
-                  // Optional: send lat/lon to Django backend using fetch()
-                  /*
-                  fetch('/save-location/', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: JSON.stringify({ latitude: lat, longitude: lon })
-                  });
-                  */
-                }
+              // Add a draggable marker
+              const marker = L.marker(defaultLatLng, { draggable: true }).addTo(map);
             
-                function showError(error) {
-                  let message = "";
-                  switch (error.code) {
-                    case error.PERMISSION_DENIED:
-                      message = "❌ Permission denied. Please allow location access.";
-                      break;
-                    case error.POSITION_UNAVAILABLE:
-                      message = "⚠️ Location info unavailable. Check your GPS/network.";
-                      break;
-                    case error.TIMEOUT:
-                      message = "⏱️ Timeout! Try again or check network.";
-                      break;
-                    default:
-                      message = "❗ Unknown error occurred.";
-                  }
-                  document.getElementById("output").innerText = message;
+              // Update hidden inputs on marker move
+              function updateLatLng(latlng) {
+                document.getElementById('lat').value = latlng.lat.toFixed(6);
+                document.getElementById('lon').value = latlng.lng.toFixed(6);
+
+                // 🟢 Update circle position
+                serviceAreaCircle.setLatLng(latlng);
+              }
+            
+              marker.on('dragend', function (e) {
+                updateLatLng(marker.getLatLng());
+              });
+
+              // 📍 Click to place/move marker
+              map.on('click', function (e) {
+                const clickedLatLng = e.latlng;
+                marker.setLatLng(clickedLatLng);
+                updateLatLng(clickedLatLng);
+              });
+
+            
+              // Add search control
+              L.Control.geocoder({
+                defaultMarkGeocode: false
+              })
+              .on('markgeocode', function(e) {
+                const center = e.geocode.center;
+                map.setView(center, 16);
+                marker.setLatLng(center);
+                updateLatLng(center);
+              })
+              .addTo(map);
+              
+              // Wait until the control is added, then update placeholder
+              setTimeout(() => {
+                const input = document.querySelector('.leaflet-control-geocoder-form input');
+                if (input) {
+                  input.placeholder = "Search for your office, area, or building...";
                 }
-              </script>
-            </div>
+              }, 100);  // Delay to ensure DOM is ready
+
+              // Initialize lat/lon fields
+              updateLatLng(defaultLatLng);
+            </script>            
           </div>
         </section>
       </div>

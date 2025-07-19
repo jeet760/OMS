@@ -25,6 +25,16 @@
       <section id="basicdetails">
         <h2 class="text-xl font-semibold mb-4 text-gray-700">1. Basic Details</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Registration ID -->
+          <div>
+            <label for="registrationID" class="block text-gray-600 mb-2">Registration ID</label>
+            {{user.username}}
+          </div>
+          <!-- UDISE Code for school -->
+          <div>
+            <label for="udise_code" class="block text-gray-600 mb-2">UDISE Code</label>
+            {{user.udise_code}}
+          </div>
           <!-- Usertype -->
           <div>
             <label for="userType" class="block text-gray-600 mb-2">Usertype</label>
@@ -49,11 +59,6 @@
             <label for="org_name" class="block text-gray-600 mb-2">Business Name</label>
             {{user.org_name}}
           </div>
-          <!-- Email -->
-          <div>
-            <label for="email" class="block text-gray-600 mb-2">Email</label>
-            {{user.email}}
-          </div>
           <!-- Phone Number -->
           <div>
             <label for="phone" class="block text-gray-600 mb-2">Phone Number</label>
@@ -64,10 +69,10 @@
             <label for="phone1" class="block text-gray-600 mb-2">Alternate Phone No.</label>
             {% if user.phone1 == "" %}None{% else %}{{user.phone1}}{% endif %}
           </div>
-          <!-- GSTIN -->
+          <!-- Email -->
           <div>
-            <label for="gstin" class="block text-gray-600 mb-2">GSTIN</label>
-            {{user.gstin}}
+            <label for="email" class="block text-gray-600 mb-2">Email</label>
+            {{user.email}}
           </div>
           <!-- Place of Supply -->
           <div>
@@ -86,6 +91,11 @@
             {{gst.1}}
             {% endif %}
             {% endfor %}
+          </div>
+          <!-- GSTIN -->
+          <div>
+            <label for="gstin" class="block text-gray-600 mb-2">GSTIN</label>
+            {{user.gstin}}
           </div>
           <div class="flex justify-end space-x-4 pt-4">
             <button type="button" class="px-6 py-2 bg-yellow-600 rounded hover:bg-yellow-700" onclick="openModal('modalBasicDetails')">Edit</button>
@@ -138,12 +148,18 @@
                 <button type="button" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white" onclick="openBillingAddressModal('{{address.id}}')">Edit</button>
               </td>
             </tr>
+            {% empty %}
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+              <td class="py-2 px-3" colspan="7">
+                No Billing Address is found!
+              </td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>
       </section>
       <!-- Shipping Details -->
-      <section id="addressdetails">
+      <section id="shippingdetails">
         <h2 class="text-xl font-semibold mb-4 text-gray-700">2.2. Shipping Addresses</h2>
         <table id="shippingAddressTable" class="w-full text-left text-sm border border-gray-300 bg-white">
           <thead class="text-gray-700 border-b border-gray-300">
@@ -182,10 +198,68 @@
                 <button type="button" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white" onclick="openShippingAddressModal('{{address.id}}')">Edit</button>
               </td>
             </tr>
+            {% empty %}
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+              <td class="py-2 px-3" colspan="7">
+                No Shipping Address is found!
+              </td>
+            </tr>
           {% endfor %}
           </tbody>
         </table>
       </section>
+      <!-- Serving Deetails-->
+      {% if user_type == '1' %}
+      <section id="servingdetails">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">2.3. Serving Addresses</h2>
+        <table id="shippingAddressTable" class="w-full text-left text-sm border border-gray-300 bg-white">
+          <thead class="text-gray-700 border-b border-gray-300">
+          <tr>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'shippingAddressTable')">#</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(1, 'shippingAddressTable')">Address</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(2, 'shippingAddressTable')">Town</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(3, 'shippingAddressTable')">State</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(4, 'shippingAddressTable')">Post Code</th>
+              <th class="py-2 px-3">Status</th>
+              <th class="py-2 px-3">Action</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for address in serving_addresses %}
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+              <td class="py-2 px-3">{{forloop.counter}}</td>
+              <td class="py-2 px-3">{{address.userAddress1}}</td>
+              <td class="py-2 px-3">{{address.userCity1}}</td>
+              <td class="py-2 px-3">
+                {% for state in states %}
+                {% if state.0 == address.userState1%}
+                {{state.1}}
+                {% endif %}
+                {% endfor %}
+              </td>
+              <td class="py-2 px-3">{{address.pinCode1}}</td>
+              <td class="py-2 px-3">
+                {% if address.isActive %}
+                <a class="px-2 py-1 text-xs rounded bg-green-600 text-white" href="{% url 'update-serving-address' address.pk %}">Active</a>
+                {% else %}
+                <a class="px-2 py-1 text-xs rounded bg-red-600 text-white" href="{% url 'update-serving-address' address.pk %}">Inactive</a>
+                {% endif %}
+              </td>
+              <td class="py-2 px-3">
+                <button type="button" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white" onclick="openShippingAddressModal('{{address.id}}')">Edit</button>
+              </td>
+            </tr>
+          {% empty %}
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+              <td class="py-2 px-3" colspan="7">
+                No Serving Address is found!
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </section>
+      {% endif %}
       <!-- Document Details -->
       <section id="fpoDocs">
         <h2 class="text-xl font-semibold mb-4 text-gray-700">3. Document Details</h2>
@@ -287,6 +361,11 @@
         {%endif%}
       </section>
     </form>
+    <!-- Account Deactivation Details -->
+    <section id="accountSettings">
+      <h2 class="text-xl font-semibold mb-4 text-gray-700">4. Account</h2>
+      <button type="button" class="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700" onclick="deactivateUser('{{user.pk}}')">Deactivate Your FPO Account</button>
+    </section>
   </div>
   <!-- Basic Details -->
   <div class="modal-overlay" id="modalBasicDetails">
@@ -297,6 +376,11 @@
           <form method="post" action="{% url 'update-profile' %}">
             {% csrf_token %}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Registration ID -->
+              <div>
+                <label for="registrationID" class="block text-gray-600 mb-2">Registration ID</label>
+                {{user.username}}
+              </div>
               <!-- Usertype -->
               <div>
                 <label for="userType" class="block text-gray-600 mb-2">Usertype</label>
@@ -320,12 +404,6 @@
                 {{userform.org_name}}
                 <!-- <input type="text" id="businessName" name="businessName" value="{{userform.org_name}}" placeholder="Business or company name" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" /> -->
               </div>
-              <!-- Email -->
-              <div>
-                <label for="email" class="block text-gray-600 mb-2">Email</label>
-                {{userform.email}}
-                <!-- <input type="email" id="email" name="email" placeholder="you@example.com" value="{{userform.email}}" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" /> -->
-              </div>
               <!-- Phone Number -->
               <div>
                 <label for="phone" class="block text-gray-600 mb-2">Phone Number</label>
@@ -338,11 +416,11 @@
                 {{userform.phone1}}
                 <!-- <input type="tel" id="altPhone" name="altPhone" placeholder="Alternate contact" value="{{userform.phone1}}" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" /> -->
               </div>
-              <!-- GSTIN -->
+              <!-- Email -->
               <div>
-                <label for="gstin" class="block text-gray-600 mb-2">GSTIN</label>
-                {{userform.gstin}}
-                <!-- <input type="text" id="gstin" name="gstin" placeholder="GST Identification Number" value="{{userform.gstin}}" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" /> -->
+                <label for="email" class="block text-gray-600 mb-2">Email</label>
+                {{userform.email}}
+                <!-- <input type="email" id="email" name="email" placeholder="you@example.com" value="{{userform.email}}" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" /> -->
               </div>
               <!-- Place of Supply -->
               <div>
@@ -353,6 +431,12 @@
               <div>
                 <label for="gst_tmt" class="block text-gray-600 mb-2">GST Treatment</label>
                 {{userform.gst_tmt}}
+              </div>
+              <!-- GSTIN -->
+              <div>
+                <label for="gstin" class="block text-gray-600 mb-2">GSTIN</label>
+                {{userform.gstin}}
+                <!-- <input type="text" id="gstin" name="gstin" placeholder="GST Identification Number" value="{{userform.gstin}}" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" /> -->
               </div>
             </div>
             <div class="flex justify-end space-x-4 pt-4">
@@ -388,6 +472,10 @@
               <div>
                 <label for="pinCode" class="block text-gray-600 mb-2">Postcode</label>
                 {{userform.pinCode}}
+              </div>
+              <div class="md:col-span-2">
+                <label for="userAddress" class="block text-gray-600 mb-2">Address</label>
+                {{userform.userAddress}}
               </div>
               <div>
                 <label for="contactPerson" class="block text-gray-600 mb-2">Contact Person</label>
@@ -568,6 +656,17 @@
       alert(error);
     });
   }
+
+  function deactivateUser(userID){
+      url = "{% url 'activate-user' 0 'false' %}".replace(0,userID);
+      var msg = prompt('Upon deactivation, the you cannot access FarmerHarvest account. Are you sure to deactive the User?\nProvide Reason:');
+      if(msg){
+        window.location.href = url;
+      }
+      else{
+        alert('The user remains active.');
+      }
+    }
 </script>
   {% endblock %}
 <!-- </body>
