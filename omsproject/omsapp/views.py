@@ -1001,6 +1001,8 @@ def show_fpo_customers_in_map(request):
     map_data = []
     map_data.append({'name':fpo_name, 'address_lat':fpo_lat, 'address_long':fpo_long, 'order_count':0, 'icon':fpo_icon})
     
+    school_counts = 0
+    ordering_school_counts = 0
     #checking the user type
     if user_type == '1':#fpo
         all_registered_fpo_ids = all_customers.filter(userType=user_type)
