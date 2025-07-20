@@ -1017,18 +1017,17 @@ def show_fpo_customers_in_map(request):
             map_data = school_context['map_data']
             school_counts = school_context['school_counts']
             ordering_school_counts = school_context['ordering_school_counts']
-        else:
-            messages.error(request, "No School found!")
     elif user_type == '4':#overseas
         all_registered_overseas_ids = all_customers.filter(userType=user_type)
     elif user_type == '5':#individual
         all_registered_indv_ids = all_customers.filter(userType=user_type)
         registered_indvs_count = all_registered_indv_ids.count()
         registered_schools_counts = registered_indvs_count
-        indv_context = plot_individuals_on_map(map_data, all_registered_indv_ids, customer_user_ids)
-        map_data = indv_context['map_data']
-        school_counts = indv_context['indv_counts']
-        ordering_school_counts = indv_context['ordering_indv_counts']
+        if registered_schools_counts > 0:
+            indv_context = plot_individuals_on_map(map_data, all_registered_indv_ids, customer_user_ids)
+            map_data = indv_context['map_data']
+            school_counts = indv_context['indv_counts']
+            ordering_school_counts = indv_context['ordering_indv_counts']
 
 
     return JsonResponse({'coordinates':map_data, 'total_schools':school_counts, 'registered_schools':registered_schools_counts, 'ordering_schools':ordering_school_counts})

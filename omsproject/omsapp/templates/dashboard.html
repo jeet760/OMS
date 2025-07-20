@@ -248,6 +248,9 @@
                     document.getElementById('total_schools').textContent = data.total_schools;
                     document.getElementById('registered_schools').textContent = data.registered_schools;
                     document.getElementById('ordering_schools').textContent = data.ordering_schools;
+                    if(data.total_schools == 0){
+                        alert('No registration is found!');
+                    }
                     //console.log(document.getElementById('total_schools'));
                     const addresses = data.coordinates;
                     addresses.forEach(addr => {
