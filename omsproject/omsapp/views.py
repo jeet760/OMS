@@ -1003,6 +1003,7 @@ def show_fpo_customers_in_map(request):
     
     school_counts = 0
     ordering_school_counts = 0
+    registered_schools_counts = 0
     #checking the user type
     if user_type == '1':#fpo
         all_registered_fpo_ids = all_customers.filter(userType=user_type)
@@ -1017,7 +1018,7 @@ def show_fpo_customers_in_map(request):
             school_counts = school_context['school_counts']
             ordering_school_counts = school_context['ordering_school_counts']
         else:
-            messages.error(request, 'No school found!')
+            messages.error(request, "No School found!")
     elif user_type == '4':#overseas
         all_registered_overseas_ids = all_customers.filter(userType=user_type)
     elif user_type == '5':#individual

@@ -87,16 +87,16 @@
         </div>
         <br>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-white-500 text-black p-4 rounded shadow">
-                <h3 class="text-sm">Total Schools</h3>
+            <div id="div_total" class="bg-white-500 text-black p-4 rounded shadow">
+                <h3 class="text-sm" id="h3_total">Total</h3>
                 <p class="text-2xl font-semibold mt-1" id="total_schools"></p>
             </div>
-            <div class="bg-white-500 text-black p-4 rounded shadow">
-                <h3 class="text-sm">Registered Schools</h3>
+            <div id="div_regd" class="bg-white-500 text-black p-4 rounded shadow">
+                <h3 class="text-sm" id="h3_regd">Registered</h3>
                 <p class="text-2xl font-semibold mt-1" id="registered_schools"></p>
             </div>
-            <div class="bg-white-500 text-black  p-4 rounded shadow">
-                <h3 class="text-sm">Ordering Schools</h3>
+            <div id="div_order" class="bg-white-500 text-black  p-4 rounded shadow">
+                <h3 class="text-sm" id="h3_order">Ordering</h3>
                 <p class="text-2xl font-semibold mt-1" id="ordering_schools"></p>
             </div>
         </div>
@@ -179,6 +179,24 @@
             }).addTo(map);
 
             function showing_users_in_map(userType){
+                switch(userType){
+                    case '3':
+                        document.getElementById('div_total').style.backgroundColor = "rgb(245, 158, 11)";
+                        document.getElementById('div_regd').style.backgroundColor = "rgb(245, 158, 11)";
+                        document.getElementById('div_order').style.backgroundColor = "rgb(245, 158, 11)";
+                        document.getElementById('div_total').style.color = "rgb(255, 255, 255)";
+                        document.getElementById('div_regd').style.color = "rgb(255, 255, 255)";
+                        document.getElementById('div_order').style.color = "rgb(255, 255, 255)";
+                        break;
+                    case '5':
+                        document.getElementById('div_total').style.backgroundColor = "rgb(139, 92, 246)";
+                        document.getElementById('div_regd').style.backgroundColor = "rgb(139, 92, 246)";
+                        document.getElementById('div_order').style.backgroundColor = "rgb(139, 92, 246)";
+                        document.getElementById('div_total').style.color = "rgb(255, 255, 255)";
+                        document.getElementById('div_regd').style.color = "rgb(255, 255, 255)";
+                        document.getElementById('div_order').style.color = "rgb(255, 255, 255)";
+                        break;
+                }
                 //the green marker
                 var greenIcon = new L.Icon({
                     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
@@ -230,7 +248,7 @@
                     document.getElementById('total_schools').textContent = data.total_schools;
                     document.getElementById('registered_schools').textContent = data.registered_schools;
                     document.getElementById('ordering_schools').textContent = data.ordering_schools;
-                    console.log(document.getElementById('total_schools'));
+                    //console.log(document.getElementById('total_schools'));
                     const addresses = data.coordinates;
                     addresses.forEach(addr => {
                     locations.push({
