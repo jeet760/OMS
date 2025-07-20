@@ -255,14 +255,11 @@ function checkUserType(){
                 document.getElementById('last_name').value = JSON.stringify(data['school_name']).replace('"','').replace('"','').trim();
                 document.getElementById('org_name').value = JSON.stringify(data['school_name']).replace('"','').replace('"','').trim();
                 document.getElementById('supply_place').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
-                document.getElementById('userAddress').value = JSON.stringify(data['village_name']).replace('"','').replace('"','').trim();
-                document.getElementById('userCity').value = JSON.stringify(data['sub_dist_name']).replace('"','').replace('"','')+" "+JSON.stringify(data['district_name']).replace('"','').replace('"','').trim();
                 document.getElementById('userState').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
-                document.getElementById('userAddress1').value = JSON.stringify(data['village_name']).replace('"','').replace('"','').trim();
-                document.getElementById('userCity1').value = JSON.stringify(data['sub_dist_name']).replace('"','').replace('"','')+" "+JSON.stringify(data['district_name']).replace('"','').replace('"','').trim();
-                document.getElementById('userState1').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
-                //alert(JSON.stringify(data['school_name']).replace('"','').replace('"',''));
-                //window.location.reload();
+                let district = JSON.stringify(data['district_name']).replace('"','').replace('"','').trim();
+                fetch_districts(document.getElementById('userState').value,district);
+                document.getElementById('userCity').value = JSON.stringify(data['sub_dist_name']).replace('"','').replace('"','');
+                document.getElementById('userAddress').value = JSON.stringify(data['village_name']).replace('"','').replace('"','').trim();
             })
             .catch(error => {
                 alert(JSON.stringify("Invalid UDISE Code"));
