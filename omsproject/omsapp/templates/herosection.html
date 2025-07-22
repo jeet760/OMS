@@ -8,13 +8,12 @@
                     <div class="hero__categories">
                         <div class="hero__categories__all">
                             <i class="fa fa-bars"></i>
-                            <span>Browse Categories</span>
+                            <span>Available Categories</span>
                         </div>
                         <ul>
                             {% regroup items|dictsort:"itemCat" by itemCat as categories_list %}
-                            <li><strong><a href="{% url 'index' %}">All</a></strong></li>
                             {% for category in categories_list %}
-                            <li><a href="{% url 'index' category.grouper %}">{{category.grouper}}</a></li>
+                            <li><a href="#">{{category.grouper}}</a></li>
                             {% endfor %}
                         </ul>
                     </div>

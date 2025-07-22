@@ -57,6 +57,7 @@ urlpatterns = [
     path('update-profile/', views.update_profile, name='update-profile'),
     path('update-address/billing/<int:id>', views.update_billiing_address, name='update-billing'),
     path('update-address/shipping/<int:id>', views.update_shipping_address, name='update-shipping'),
+    path('update-address/serving/<int:id>', views.update_serving_address, name='update-serving'),
     path('update-address/default/<int:id>', views.set_default_address, name='update-default-address'),
     path('update-serving-address/<int:id>', views.change_status_serving_address, name='update-serving-address'),
 

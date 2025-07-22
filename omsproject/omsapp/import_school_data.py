@@ -17,6 +17,7 @@ from omsapp.models import SchoolUDISE
 import csv
 
 def import_data():
+    SchoolUDISE.objects.all().delete()
     with open('omsproject/udisebasic.csv', newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
@@ -34,6 +35,7 @@ def import_data():
                 school_type = row['school_type'],
                 loc_lat = float(row['latitude']),
                 loc_long = float(row['longitude']),
+                total_students = int(row['class_students'])
             )
     print("Data imported successfully.")
 

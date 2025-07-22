@@ -33,7 +33,7 @@
         <div class="container">
             <div class="checkout__form">
                 <h4>User Details</h4>
-                <form method="POST" id="formRegister" action="{% url 'register-user' %}">
+                <form method="POST" id="formRegister" class="formRegister" action="{% url 'register-user' %}">
                     {% csrf_token %}
                     {% if messages %}
                     {% for message in messages %}
@@ -126,7 +126,7 @@
                             <div class="row">
                                 <div class="col-lg-3">
                                     <div class="checkout__input">
-                                        <p>Postcode / ZIP<span>*</span></p>
+                                        <p>PIN Code / ZIP<span>*</span></p>
                                         {{userform.pinCode}}
                                     </div>
                                 </div>
@@ -230,10 +230,11 @@ document.getElementById('userType').addEventListener("change", function(){
     }
 });
 
-document.getElementById("udise_code").addEventListener("blur", function() {
-    checkUserType();
+document.getElementById("udise_code").addEventListener("blur", function(event) {
+    const form = event.target.closest(".formRegister");
+    checkUserType(form);
 });
-function checkUserType(){
+function checkUserType(form){
     const userType=document.getElementById('userType').value;
     if(userType == 3){
         const udise_code=document.getElementById('udise_code').value;
@@ -257,11 +258,13 @@ function checkUserType(){
                 document.getElementById('supply_place').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
                 document.getElementById('userState').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
                 let district = JSON.stringify(data['district_name']).replace('"','').replace('"','').trim();
-                fetch_districts(document.getElementById('userState').value,district);
+                let sub_district = JSON.stringify(data['sub_dist_name']).replace('"','').replace('"','');
+                fetch_districts(document.getElementById('userState').value,district,sub_district, form);
                 document.getElementById('userCity').value = JSON.stringify(data['sub_dist_name']).replace('"','').replace('"','');
                 document.getElementById('userAddress').value = JSON.stringify(data['village_name']).replace('"','').replace('"','').trim();
             })
             .catch(error => {
+                console.error(error);
                 alert(JSON.stringify("Invalid UDISE Code"));
                 //console.error('Error fetching data:', error);
             });
@@ -282,38 +285,84 @@ function check_gstin(){
     }
 }
 
-document.getElementById("pinCode").addEventListener("blur", function() {
-    var pincode = document.getElementById('pinCode').value;
-    var postal_api = "https://api.postalpincode.in/pincode/"+pincode;
-    fetch(postal_api)
-    .then(response => response.json())
-    .then(data => {
-        const select_userstate = document.getElementById("userState");
+document.querySelectorAll(".pinCode").forEach(function (input) {
+    input.addEventListener("blur", function (event) {
+        const form = event.target.closest(".formRegister");
+        if (form) {
+            // Now 'form' refers to the specific form this input is in
+            const pincode = event.target.value;
+            // You can now call:
+            const form = event.target.closest(".formRegister");
+            //var pincode = document.getElementById('pinCode').value;
+            var postal_api = "https://api.postalpincode.in/pincode/"+pincode;
+            fetch(postal_api)
+            .then(response => response.json())
+            .then(data => {
+                const select_userstate = document.getElementById("userState");
 
-        var postal_data = data;
-        if (postal_data[0]['Status'] == "Error"){
-            alert('Pin Code not found!');
-            return;
-        }
-        else{
-            var state = postal_data[0]['PostOffice'][0]['Circle'];
-            for (let i = 0; i < select_userstate.options.length; i++) {
-                if (select_userstate.options[i].text === state) {
-                    select_userstate.selectedIndex = i;
-                    break;
+                var postal_data = data;
+                if (postal_data[0]['Status'] == "Error"){
+                    alert('Pin Code not found!');
+                    return;
                 }
-            }
+                else{
+                    var state = postal_data[0]['PostOffice'][0]['Circle'];
+                    for (let i = 0; i < select_userstate.options.length; i++) {
+                        if (select_userstate.options[i].text === state) {
+                            select_userstate.selectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+                
+
+                var statecode = document.getElementById("userState").value;
+                var district = postal_data[0]['PostOffice'][0]['District'];
+                var sub_district = postal_data[0]['PostOffice'][0]['Block'];
+                fetch_districts(statecode, district, sub_district,form);
+            })
+            .catch(error => {
+                console.log(error);
+            })
         }
+    });
+});
+
+// document.getElementById("pinCode").addEventListener("blur", function() {
+    
+//     const form = inputElement.closest(".formRegister");
+//     var pincode = document.getElementById('pinCode').value;
+//     var postal_api = "https://api.postalpincode.in/pincode/"+pincode;
+//     fetch(postal_api)
+//     .then(response => response.json())
+//     .then(data => {
+//         const select_userstate = document.getElementById("userState");
+
+//         var postal_data = data;
+//         if (postal_data[0]['Status'] == "Error"){
+//             alert('Pin Code not found!');
+//             return;
+//         }
+//         else{
+//             var state = postal_data[0]['PostOffice'][0]['Circle'];
+//             for (let i = 0; i < select_userstate.options.length; i++) {
+//                 if (select_userstate.options[i].text === state) {
+//                     select_userstate.selectedIndex = i;
+//                     break;
+//                 }
+//             }
+//         }
         
 
-        var statecode = document.getElementById("userState").value;
-        var district = postal_data[0]['PostOffice'][0]['District'];
-        fetch_districts(statecode,district);
-    })
-    .catch(error => {
-        console.log(error);
-    })
-});
+//         var statecode = document.getElementById("userState").value;
+//         var district = postal_data[0]['PostOffice'][0]['District'];
+//         var sub_district = postal_data[0]['PostOffice'][0]['Block'];
+//         fetch_districts(statecode, district, sub_district);
+//     })
+//     .catch(error => {
+//         console.log(error);
+//     })
+// });
 
 // document.getElementById("userState").addEventListener("blur", function() {
 //     var statecode = document.getElementById("userState").value;
@@ -330,142 +379,5 @@ document.getElementById("first_name").addEventListener("keydown", function() {
     document.getElementById("last_name").value = document.getElementById("first_name").value;
 });
 
-function fetch_districts(statecode, district){
-    if (statecode!=null && statecode!=''){
-        const userDistrict = document.getElementById('userDistrict');
-        //clear the select and then load
-        document.getElementById("userDistrict").options.length = 0
-        const defaultOption = document.createElement('option');
-        defaultOption.value = '';
-        defaultOption.text = 'Select District';
-        userDistrict.appendChild(defaultOption);   
-
-        var api = "https://api.data.gov.in/resource/37231365-78ba-44d5-ac22-3deec40b9197?api-key=579b464db66ec23bdd0000011c8e390297d348f14342ed5a091d6a99&format=json&limit=1000&filters%5Bstate_code%5D="+statecode;
-        fetch(api)
-        .then(response => response.json())
-        .then(data => {
-            data.records.sort((a, b) => a.district_name_english.localeCompare(b.district_name_english));
-            // console.log(data);
-            if (Array.isArray(data.records)) {
-                for (const record of data.records) {
-                    // console.log(`District: ${record.district_name_english}, Code: ${record.district_code}`);
-                    const option = document.createElement('option');
-                    option.value = record.district_code;
-                    option.text = record.district_name_english;
-                    userDistrict.appendChild(option);   
-                }
-
-                let arr_districts = [];
-                for (let i = 0; i < userDistrict.options.length; i++) {
-                    arr_districts.push(userDistrict.options[i].text);
-                }
-                
-                district = fuzzySearch(district,arr_districts);
-                console.log(district[0]);
-                for (let i = 0; i < userDistrict.options.length; i++) {
-                    if (userDistrict.options[i].text === district[0]) {
-                        userDistrict.selectedIndex = i;
-                        break;
-                    }
-                }
-                var statecode = document.getElementById("userState").value;
-                var districtcode = document.getElementById("userDistrict").value;
-                fetch_subdistricts(statecode,districtcode);
-
-            } else {
-            console.error("Expected 'records' to be an array.");
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-        });
-    }
-}
-
-function levenshteinDistance(a, b) {
-  const matrix = Array.from({ length: b.length + 1 }, (_, i) => [i]);
-
-  for (let j = 0; j <= a.length; j++) {
-    matrix[0][j] = j;
-  }
-
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      const cost = b[i - 1] === a[j - 1] ? 0 : 1;
-      matrix[i][j] = Math.min(
-        matrix[i - 1][j] + 1,     // Deletion
-        matrix[i][j - 1] + 1,     // Insertion
-        matrix[i - 1][j - 1] + cost // Substitution
-      );
-    }
-  }
-
-  return matrix[b.length][a.length];
-}
-
-function fuzzySearch(query, list, threshold = 70) {
-  query = query.toLowerCase();
-  return list.filter(item => {
-    const itemLower = item.toLowerCase();
-    const distance = levenshteinDistance(query, itemLower);
-    const maxLen = Math.max(query.length, itemLower.length);
-    const similarity = ((maxLen - distance) / maxLen) * 100;
-    return similarity >= threshold;
-  });
-}
-
-function fetch_subdistricts(statecode, districtcode){
-    if(districtcode!=null && districtcode!=''){
-        const userCity = document.getElementById('userCity');
-        //clear the select and then load
-        document.getElementById("userCity").options.length = 0
-        const defaultOption = document.createElement('option');
-        defaultOption.value = '';
-        defaultOption.text = 'Select Block/Sub-District';
-        userCity.appendChild(defaultOption);   
-
-        var api = "https://api.data.gov.in/resource/6be51a29-876a-403a-a6da-42fde795e751?api-key=579b464db66ec23bdd0000011c8e390297d348f14342ed5a091d6a99&format=json&limit=1000&filters%5Bstate_code%5D="+statecode+"&filters%5Bdistrict_code%5D="+districtcode;
-        fetch(api)
-        .then(response => response.json())
-        .then(data => {
-            //console.log(data);
-            data.records.sort((a, b) => a.subdistrict_name_english.localeCompare(b.subdistrict_name_english));
-            if (Array.isArray(data.records)) {
-            for (const record of data.records) {
-                // console.log(`District: ${record.subdistrict_name_english}, Code: ${record.subdistrict_code}`);
-                const option = document.createElement('option');
-                option.value = record.subdistrict_code;
-                option.text = record.subdistrict_name_english;
-                userCity.appendChild(option);   
-            }
-            } else {
-            console.error("Expected 'records' to be an array.");
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-        });
-    }
-}
-
-// document.getElementById("formRegister").addEventListener("submit", function(event) {
-//     const form = event.target;
-//     const inputs = form.querySelectorAll("input, select");
-//     let isValid = true;
-//     inputs.forEach((field) => {
-//     if (field.value.trim() === "") {
-//         isValid = false;
-//         field.style.border = "2px solid red"; // Optional visual cue
-//     } else {
-//         field.style.border = ""; // Reset style
-//     }
-//     });
-//     if (!isValid) {
-//     event.preventDefault();
-//     alert("Please fill in all required fields.");
-//     } else {
-//     form.submit(); // All fields are valid — submit the form
-//     }
-// });
 </script>
 {% endblock %}

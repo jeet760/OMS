@@ -129,6 +129,7 @@ class SchoolUDISE(Model):
     village_name = CharField(max_length=50)
     udise_code = CharField(max_length=11)
     school_name = CharField(max_length=50)
+    total_students = IntegerField(default=0)
     school_cat = CharField(max_length=20)
     school_type = CharField(max_length=20)
     loc_lat = FloatField()

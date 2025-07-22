@@ -29,9 +29,9 @@
                 <ul>
                     {% if user_type == '1' %}
                         {% if user_approved == True %}
-                        <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>Seller Hub</a></li>
+                        <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>FPO Hub</a></li>
                         {% else %}
-                        <li><a href="{% url 'profile-auth' %}"><i class="fa fa-user"></i>Request for Seller Hub</a></li>
+                        <li><a href="{% url 'profile-auth' %}"><i class="fa fa-user"></i>Request for FPO Hub</a></li>
                         {% endif %}
                     {% else %}
                         <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>My Profile</a></li>
@@ -112,9 +112,9 @@
                                             <ul class="header__menu__dropdown">
                                                 {% if user_type == '1' %}
                                                     {% if user_approved == True %}
-                                                    <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>Seller Hub</a></li>
+                                                    <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>FPO Hub</a></li>
                                                     {% else %}
-                                                    <li><a href="{% url 'profile-auth' %}"><i class="fa fa-user"></i>Request for Seller Hub</a></li>
+                                                    <li><a href="{% url 'profile-auth' %}"><i class="fa fa-user"></i>Request for FPO Hub</a></li>
                                                     {% endif %}
                                                 {% else %}
                                                     <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>My Profile</a></li>

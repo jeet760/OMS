@@ -119,7 +119,7 @@ class UserRegistrationForm(ModelForm):
                 'id':'gstin'
             }),
             'supply_place':Select(attrs={
-                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
+                'class': 'supply_place w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'id':'supply_place'
             }, choices=LIST_STATES),
             'gst_tmt':Select(attrs={
@@ -127,24 +127,24 @@ class UserRegistrationForm(ModelForm):
                 'id':'gst_tmt'
             }, choices=GST_TREATMENT),
             'userAddress':TextInput(attrs={
-                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
+                'class': 'userAddress w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Address',
                 'id':'userAddress'
             }),
             'userCity':Select(attrs={
-                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 registration-select',
+                'class': 'userCity w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 registration-select',
                 'id':'userCity'
             }, choices=LIST_SUBDISTRICT),
             'userState':Select(attrs={
-                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 registration-select',
+                'class': 'userState w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 registration-select',
                 'id':'userState'
             }, choices=LIST_STATES),
             'userDistrict':Select(attrs={
-                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 registration-select',
+                'class': 'userDistrict w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 registration-select',
                 'id':'userDistrict'
             }, choices=LIST_DISTRICTS),
             'pinCode':TextInput(attrs={
-                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
+                'class': 'pinCode w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Pincode',
                 'id':'pinCode'
             }),

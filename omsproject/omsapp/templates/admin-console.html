@@ -17,6 +17,10 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
+    <!--Farmer Harvest javascripts-->
+    <script defer src="{% static 'js/appscript.js' %}"></script>
+
+
     <style>
       .sidebar-transition {
         transition: transform 0.3s ease-in-out;
@@ -335,14 +339,14 @@
         <!-- Header -->
         <!-- <div class="p-4 bg-white shadow-md flex justify-between items-center sticky top-0 z-30">
           <button onclick="toggleSidebar()" class="md:hidden text-black-500 text-2xl font-bold">☰</button>
-          <h1 class="text-xl font-bold">Seller Hub</h1>
+          <h1 class="text-xl font-bold">FPO Hub</h1>
         </div> -->
         <!-- Header -->
       <header class="bg-white shadow-md p-4 flex justify-between items-center">
         <button onclick="toggleSidebar()" class="md:hidden text-black-500 text-2xl font-bold">☰</button>
         <h1 class="text-xl font-bold">
           {% if user.userType == '1' %}
-          Seller Hub
+          FPO Hub
           {% else %}
           My Profile
           {% endif %}

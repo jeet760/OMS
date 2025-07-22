@@ -32,8 +32,10 @@
           </div>
           <!-- UDISE Code for school -->
           <div>
+            {% if user.userType == '3' %}
             <label for="udise_code" class="block text-gray-600 mb-2">UDISE Code</label>
             {{user.udise_code}}
+            {% endif %}
           </div>
           <!-- Usertype -->
           <div>
@@ -102,7 +104,7 @@
           </div>
         </div>
       </section>
-      <!-- Billing Details -->
+      <!-- Billing Details Table -->
       <section id="addressDetails">
         <h2 class="text-xl font-semibold mb-4 text-gray-700">2. Addresses</h2>
         <div class="flex justify-between items-center mb-4">
@@ -116,9 +118,8 @@
           <tr>
               <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'billingAddressTable')">#</th>
               <th class="py-2 px-3 cursor-pointer" onclick="sortTable(1, 'billingAddressTable')">Address</th>
-              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(2, 'billingAddressTable')">Town</th>
-              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(3, 'billingAddressTable')">State</th>
-              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(4, 'billingAddressTable')">Post Code</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(2, 'billingAddressTable')">State</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(3, 'billingAddressTable')">PIN</th>
               <th class="py-2 px-3">Status</th>
               <th class="py-2 px-3">Action</th>
           </tr>
@@ -128,7 +129,6 @@
             <tr class="border-b border-gray-300 hover:bg-gray-100">
               <td class="py-2 px-3">{{forloop.counter}}</td>
               <td class="py-2 px-3">{{address.userAddress}}</td>
-              <td class="py-2 px-3">{{address.userCity}}</td>
               <td class="py-2 px-3">
                 {% for state in states %}
                 {% if state.0 == address.userState%}
@@ -158,7 +158,7 @@
           </tbody>
         </table>
       </section>
-      <!-- Shipping Details -->
+      <!-- Shipping Details Table -->
       <section id="shippingdetails">
         <h2 class="text-xl font-semibold mb-4 text-gray-700">2.2. Shipping Addresses</h2>
         <table id="shippingAddressTable" class="w-full text-left text-sm border border-gray-300 bg-white">
@@ -166,9 +166,8 @@
           <tr>
               <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'shippingAddressTable')">#</th>
               <th class="py-2 px-3 cursor-pointer" onclick="sortTable(1, 'shippingAddressTable')">Address</th>
-              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(2, 'shippingAddressTable')">Town</th>
-              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(3, 'shippingAddressTable')">State</th>
-              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(4, 'shippingAddressTable')">Post Code</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(2, 'shippingAddressTable')">State</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(3, 'shippingAddressTable')">PIN</th>
               <th class="py-2 px-3">Status</th>
               <th class="py-2 px-3">Action</th>
           </tr>
@@ -178,7 +177,6 @@
             <tr class="border-b border-gray-300 hover:bg-gray-100">
               <td class="py-2 px-3">{{forloop.counter}}</td>
               <td class="py-2 px-3">{{address.userAddress1}}</td>
-              <td class="py-2 px-3">{{address.userCity1}}</td>
               <td class="py-2 px-3">
                 {% for state in states %}
                 {% if state.0 == address.userState1%}
@@ -208,7 +206,7 @@
           </tbody>
         </table>
       </section>
-      <!-- Serving Deetails-->
+      <!-- Serving Deetails Table-->
       {% if user_type == '1' %}
       <section id="servingdetails">
         <h2 class="text-xl font-semibold mb-4 text-gray-700">2.3. Serving Addresses</h2>
@@ -217,9 +215,8 @@
           <tr>
               <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'shippingAddressTable')">#</th>
               <th class="py-2 px-3 cursor-pointer" onclick="sortTable(1, 'shippingAddressTable')">Address</th>
-              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(2, 'shippingAddressTable')">Town</th>
-              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(3, 'shippingAddressTable')">State</th>
-              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(4, 'shippingAddressTable')">Post Code</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(2, 'shippingAddressTable')">State</th>
+              <th class="py-2 px-3 cursor-pointer" onclick="sortTable(3, 'shippingAddressTable')">PIN</th>
               <th class="py-2 px-3">Status</th>
               <th class="py-2 px-3">Action</th>
           </tr>
@@ -229,7 +226,6 @@
             <tr class="border-b border-gray-300 hover:bg-gray-100">
               <td class="py-2 px-3">{{forloop.counter}}</td>
               <td class="py-2 px-3">{{address.userAddress1}}</td>
-              <td class="py-2 px-3">{{address.userCity1}}</td>
               <td class="py-2 px-3">
                 {% for state in states %}
                 {% if state.0 == address.userState1%}
@@ -246,7 +242,7 @@
                 {% endif %}
               </td>
               <td class="py-2 px-3">
-                <button type="button" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white" onclick="openShippingAddressModal('{{address.id}}')">Edit</button>
+                <button type="button" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white" onclick="openServingAddressModal('{{address.id}}')">Edit</button>
               </td>
             </tr>
           {% empty %}
@@ -381,8 +377,15 @@
                 <label for="registrationID" class="block text-gray-600 mb-2">Registration ID</label>
                 {{user.username}}
               </div>
-              <!-- Usertype -->
+              <!-- UDISE Code-->
+               {% if user.userType == '3' %}
               <div>
+                <label for="udise_code" class="block text-gray-600 mb-2">UDISE Code</label>
+                {{user.udise_code}}
+              </div>
+              {% endif %}
+              <!-- Usertype -->
+              <div class="disabled-inputs">
                 <label for="userType" class="block text-gray-600 mb-2">Usertype</label>
                 {{userform.userType}}
               </div>
@@ -449,91 +452,104 @@
     </div>
   </div>
   <!-- Billing Addresses -->
-  <div class="modal-overlay" id="modalBillingAddressDetails">
-    <div class="modal-box">
-      <div id="modal-content">
-        <section id="billingdetailsedit">
-          <h2 class="text-xl font-semibold mb-4 text-gray-700">2.1. Billing Details</h2>
-          <form method="post" action="{% url 'update-billing' 0 %}">
+  <!-- Modal Overlay -->
+<!-- Modal Overlay -->
+<div class="modal-overlay fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4 sm:p-6" id="modalBillingAddressDetails">
+  <!-- Modal Box -->
+  <div class="modal-box bg-white rounded-lg shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+    <!-- Modal Content -->
+    <div id="modal-content" class="p-4 sm:p-6">
+      <section id="billingdetailsedit">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">2.1. Billing Details</h2>
+        
+        <form method="post" id="formBillingAddress" action="{% url 'update-billing' 0 %}" class="space-y-4">
+          {% csrf_token %}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="pinCode" class="block text-gray-600 mb-2">PIN Code/ZIP</label>
+              {{ userform.pinCode }}
+            </div>
+            <div>
+              <label for="userState" class="block text-gray-600 mb-2">State</label>
+              {{ userform.userState }}
+            </div>
+            <div>
+              <label for="userDistrict" class="block text-gray-600 mb-2">District</label>
+              {{ userform.userDistrict }}
+            </div>
+            <div>
+              <label for="userCity" class="block text-gray-600 mb-2">Block/Sub District</label>
+              {{ userform.userCity }}
+            </div>
+            <div class="md:col-span-2">
+              <label for="userAddress" class="block text-gray-600 mb-2">Address</label>
+              {{ userform.userAddress }}
+            </div>
+            <div>
+              <label for="contactPerson" class="block text-gray-600 mb-2">Contact Person</label>
+              <input type="text" id="contactPerson" name="contactPerson" class="contactPerson w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <div>
+              <label for="contactNo" class="block text-gray-600 mb-2">Contact Number</label>
+              <input type="number" id="contactNo" name="contactNo" class="contactNo w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-4 pt-4">
+            <button type="button" onclick="closeModal('modalBillingAddressDetails')" class="px-6 py-2 bg-red-600 text-white border border-gray-300 rounded hover:bg-red-700">Cancel</button>
+            <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">Submit</button>
+            <input type="hidden" name="addressID" id="addressID" class="addressID">
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+</div>
+
+  <!-- Shipping Addresses -->
+  <div class="modal-overlay fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4 sm:p-6" id="modalShippingAddressDetails">
+    <!-- Modal Box -->
+    <div class="modal-box bg-white rounded-lg shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+      <!-- Modal Content -->
+      <div id="modal-content" class="p-4 sm:p-6">
+        <section id="shippingdetailsedit">
+          <h2 class="text-xl font-semibold mb-4 text-gray-700">2.2. Shipping Details</h2>
+          <form method="post" id="formShippingAddress" action="{% url 'update-shipping' 0 %}">
             {% csrf_token %}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="md:col-span-2">
-                <label for="userAddress" class="block text-gray-600 mb-2">Address</label>
-                {{userform.userAddress}}
-              </div>
               <div>
-                <label for="userCity" class="block text-gray-600 mb-2">Town</label>
-                {{userform.userCity}}
+                <label for="pinCode" class="block text-gray-600 mb-2">PIN Code/ZIP</label>
+                {{ userform.pinCode }}
               </div>
               <div>
                 <label for="userState" class="block text-gray-600 mb-2">State</label>
-                {{userform.userState}}
+                {{ userform.userState }}
               </div>
               <div>
-                <label for="pinCode" class="block text-gray-600 mb-2">Postcode</label>
-                {{userform.pinCode}}
+                <label for="userDistrict" class="block text-gray-600 mb-2">District</label>
+                {{ userform.userDistrict }}
+              </div>
+              <div>
+                <label for="userCity" class="block text-gray-600 mb-2">Block/Sub District</label>
+                {{ userform.userCity }}
               </div>
               <div class="md:col-span-2">
                 <label for="userAddress" class="block text-gray-600 mb-2">Address</label>
-                {{userform.userAddress}}
+                {{ userform.userAddress }}
               </div>
               <div>
                 <label for="contactPerson" class="block text-gray-600 mb-2">Contact Person</label>
-                <input type="text" id="contactPerson" name="contactPerson" value="{{contact_person.0}}" placeholder="Address" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                <input type="text" id="contactPerson1" name="contactPerson1" class="contactPerson1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
               <div>
                 <label for="contactNo" class="block text-gray-600 mb-2">Contact Number</label>
-                <input type="text" id="contactNo" name="contactNo" value="{{contact_person.2}}" placeholder="Address" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
-              </div>
-            </div>
-            <div class="flex justify-end space-x-4 pt-4">
-              <button type="button" class="px-6 py-2 bg-red-600 text-white border border-gray-300 rounded hover:bg-red-700" onclick="closeModal('modalBillingAddressDetails')">Cancel</button>
-              <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">Submit</button>
-              <input type="hidden" name="addressID" id="addressID">
-            </div>
-          </form>
-        </section>
-      </div>
-    </div>
-  </div>
-  <!-- Shipping Addresses -->
-  <div class="modal-overlay" id="modalShippingAddressDetails">
-    <div class="modal-box">
-      <div id="modal-content">
-        <section id="shippingdetailsedit">
-          <h2 class="text-xl font-semibold mb-4 text-gray-700">2.2. Shipping Details</h2>
-          <form method="post" action="{% url 'update-shipping' 0 %}">
-            {% csrf_token %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="md:col-span-2">
-                <label for="userAddress1" class="block text-gray-600 mb-2">Address</label>
-                {{userform.userAddress1}}
-              </div>
-              <div>
-                <label for="userCity1" class="block text-gray-600 mb-2">Town</label>
-                {{userform.userCity1}}
-              </div>
-              <div>
-                <label for="userState1" class="block text-gray-600 mb-2">State</label>
-                {{userform.userState1}}
-              </div>
-              <div>
-                <label for="pinCode1" class="block text-gray-600 mb-2">Postcode</label>
-                {{userform.pinCode1}}
-              </div>
-              <div>
-                <label for="contactPerson1" class="block text-gray-600 mb-2">Contact Person</label>
-                <input type="text" id="contactPerson1" name="contactPerson1" value="{{contact_person.1}}" placeholder="Address" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
-              </div>
-              <div>
-                <label for="contactNo1" class="block text-gray-600 mb-2">Contact Number</label>
-                <input type="text" id="contactNo1" name="contactNo1" value="{{contact_person.3}}" placeholder="Address" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                <input type="number" id="contactNo1" name="contactNo1" class="contactNo1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
             </div>
             <div class="flex justify-end space-x-4 pt-4">
               <button type="button" class="px-6 py-2 bg-red-600 text-white border border-gray-300 rounded hover:bg-red-700" onclick="closeModal('modalShippingAddressDetails')">Cancel</button>
               <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">Submit</button>
-              <input type="hidden" name="addressID1" id="addressID1">
+              <input type="hidden" name="addressID1" id="addressID1" class="addressID1">
             </div>
           </form>
         </section>
@@ -541,6 +557,56 @@
     </div>
   </div>
 
+  <!-- Serving Addresses -->
+  <div class="modal-overlay fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4 sm:p-6" id="modalServingAddressDetails">
+    <!-- Modal Box -->
+    <div class="modal-box bg-white rounded-lg shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+      <!-- Modal Content -->
+      <div id="modal-content" class="p-4 sm:p-6">
+        <section id="servingdetailsedit">
+          <h2 class="text-xl font-semibold mb-4 text-gray-700">2.3. Serving Address Details</h2>
+          <form method="post" id="formServingAddress" action="{% url 'update-serving' 0 %}">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label for="pinCode" class="block text-gray-600 mb-2">PIN Code/ZIP</label>
+                {{ userform.pinCode }}
+              </div>
+              <div>
+                <label for="userState" class="block text-gray-600 mb-2">State</label>
+                {{ userform.userState }}
+              </div>
+              <div>
+                <label for="userDistrict" class="block text-gray-600 mb-2">District</label>
+                {{ userform.userDistrict }}
+              </div>
+              <div>
+                <label for="userCity" class="block text-gray-600 mb-2">Block/Sub District</label>
+                {{ userform.userCity }}
+              </div>
+              <div class="md:col-span-2">
+                <label for="userAddress" class="block text-gray-600 mb-2">Address</label>
+                {{ userform.userAddress }}
+              </div>
+              <div>
+                <label for="contactPerson" class="block text-gray-600 mb-2">Contact Person</label>
+                <input type="text" id="contactPerson2" name="contactPerson2" class="contactPerson2 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label for="contactNo" class="block text-gray-600 mb-2">Contact Number</label>
+                <input type="number" id="contactNo2" name="contactNo2" class="contactNo2 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+            </div>
+            <div class="flex justify-end space-x-4 pt-4">
+              <button type="button" class="px-6 py-2 bg-red-600 text-white border border-gray-300 rounded hover:bg-red-700" onclick="closeModal('modalServingAddressDetails')">Cancel</button>
+              <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">Submit</button>
+              <input type="hidden" name="addressID2" id="addressID2" class="addressID2">
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+  </div>
 
   <!-- Add New Address-->
   <div class="modal-overlay" id="modalAddAddress">
@@ -616,14 +682,20 @@
     .then(response => response.json())
         .then(data => {
             if (data.address_context) {
+                let form = document.getElementById('formBillingAddress');
                 const addr = data.address_context;
-                document.getElementById('userAddress').value = addr.userAddress;
-                document.getElementById('userCity').value = addr.userCity;
-                document.getElementById('userState').value = addr.userState;
-                document.getElementById('pinCode').value = addr.pinCode;
-                document.getElementById('contactPerson').value = addr.contactPerson;
-                document.getElementById('contactNo').value = addr.contactNo;
-                document.getElementById('addressID').value = addr.addressID;
+                form.querySelector('.pinCode').value = addr.pinCode;
+                form.querySelector('.userState').value = addr.userState;
+                form.querySelector('.userDistrict').value = addr.userDistrict;
+                form.querySelector('.userCity').value = addr.userCity;
+                form.querySelector('.userAddress').value = addr.userAddress;
+                form.querySelector('.contactPerson').value = addr.contactPerson;
+                form.querySelector('.contactNo').value = addr.contactNo;
+                form.querySelector('.addressID').value = addr.addressID;
+                console.log(addr.contactPerson);
+                console.log(addr.contactNo);
+                console.log(addr.addressID);
+                fetch_districts(addr.userState, addr.userDistrict, addr.userCity, form);
             } else {
                 alert('Failed to load address!');
             }
@@ -640,14 +712,46 @@
     .then(response => response.json())
         .then(data => {
             if (data.address_context) {
+              let form = document.getElementById('formShippingAddress');
                 const addr = data.address_context;
-                document.getElementById('userAddress1').value = addr.userAddress;
-                document.getElementById('userCity1').value = addr.userCity;
-                document.getElementById('userState1').value = addr.userState;
-                document.getElementById('pinCode1').value = addr.pinCode;
-                document.getElementById('contactPerson1').value = addr.contactPerson;
-                document.getElementById('contactNo1').value = addr.contactNo;
-                document.getElementById('addressID1').value = addr.addressID;
+                form.querySelector('.pinCode').value = addr.pinCode;
+                form.querySelector('.userState').value = addr.userState;
+                form.querySelector('.userDistrict').value = addr.userDistrict;
+                form.querySelector('.userCity').value = addr.userCity;
+                form.querySelector('.userAddress').value = addr.userAddress;
+                form.querySelector('.contactPerson1').value = addr.contactPerson;
+                form.querySelector('.contactNo1').value = addr.contactNo;
+                form.querySelector('.addressID1').value = addr.addressID;
+                
+                fetch_districts(addr.userState, addr.userDistrict, addr.userCity, form);
+            } else {
+                alert('Failed to load address!');
+            }
+        })
+    .catch(error => {
+      alert(error);
+    });
+  }
+
+  function openServingAddressModal(addressID2){
+    document.getElementById('modalServingAddressDetails').style.display = 'flex';
+    url = "{% url 'fetch-address' 0 %}?q=serv".replace('0',addressID2);
+    fetch(url)
+    .then(response => response.json())
+        .then(data => {
+            if (data.address_context) {
+                let form = document.getElementById('formServingAddress');
+                const addr = data.address_context;
+                form.querySelector('.pinCode').value = addr.pinCode;
+                form.querySelector('.userState').value = addr.userState;
+                form.querySelector('.userDistrict').value = addr.userDistrict;
+                form.querySelector('.userCity').value = addr.userCity;
+                form.querySelector('.userAddress').value = addr.userAddress;
+                form.querySelector('.contactPerson2').value = addr.contactPerson;
+                form.querySelector('.contactNo2').value = addr.contactNo;
+                form.querySelector('.addressID2').value = addr.addressID;
+
+                fetch_districts(addr.userState, addr.userDistrict, addr.userCity, form);
             } else {
                 alert('Failed to load address!');
             }

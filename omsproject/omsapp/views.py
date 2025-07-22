@@ -472,6 +472,7 @@ LIST_USERTYPES = [
 ]
 
 def fetch_school(request, udise):
+    """To fetch the details of the school in the registration form"""
     school = get_object_or_404(SchoolUDISE, udise_code=udise)
     school_name = school.school_name
     list_state_reverse_dict = {k: v for v, k in LIST_STATES}
@@ -606,7 +607,7 @@ def profile_view(request):
     shipping_addresses = UserShippingAddresses.objects.filter(userID = request.user.pk)
     billing_addresses = UserBillingAddresses.objects.filter(userID = request.user.pk)
     serving_addresses = FPOServingAddresses.objects.filter(userID=request.user.pk)
-    contact_person = [CustomUser.objects.get(pk=request.user.pk).contactPerson, CustomUser.objects.get(pk=request.user.pk).contactPerson, CustomUser.objects.get(pk=request.user.pk).contactNo, CustomUser.objects.get(pk=request.user.pk).contactNo]
+    contact_person = [CustomUser.objects.get(pk=request.user.pk).contactPerson, CustomUser.objects.get(pk=request.user.pk).contactNo]
     cart = Cart(request)
     total_qty = cart.__len__()#display total number quantities added in the basket
     total_price = cart.get_total_price()
@@ -811,6 +812,7 @@ def fetch_shipping_address(request, id):
             userID = address.userID.pk
             userAddress = address.userAddress
             userCity=address.userCity
+            userDistrict = address.userDistrict
             userState = address.userState
             pinCode = address.pinCode
             contactPerson = address.contactPerson
@@ -820,6 +822,17 @@ def fetch_shipping_address(request, id):
             userID = address.userID.pk
             userAddress = address.userAddress1
             userCity=address.userCity1
+            userDistrict = address.userDistrict1
+            userState = address.userState1
+            pinCode = address.pinCode1
+            contactPerson = address.contactPerson1
+            contactNo = address.contactNo1
+        elif q == 'serv':
+            address = get_object_or_404(FPOServingAddresses, pk=id)
+            userID = address.userID.pk
+            userAddress = address.userAddress1
+            userCity=address.userCity1
+            userDistrict = address.userDistrict1
             userState = address.userState1
             pinCode = address.pinCode1
             contactPerson = address.contactPerson1
@@ -828,6 +841,7 @@ def fetch_shipping_address(request, id):
         address_context = {
             'userID':userID,
             'userAddress':userAddress,
+            'userDistrict':userDistrict,
             'userCity':userCity,
             'userState':userState,
             'pinCode':pinCode,
@@ -847,7 +861,6 @@ def update_billiing_address(request, id):
         pinCode = request.POST.get('pinCode')
         contactPerson= request.POST.get('contactPerson')
         contactNo = request.POST.get('contactNo')
-        CustomUser.objects.filter(pk=userID).update(userAddress=userAddress, userCity=userCity, userState=userState, pinCode=pinCode, contactPerson=contactPerson, contactNo=contactNo)
         UserBillingAddresses.objects.filter(pk=id, userID_id=userID).update(userAddress=userAddress, userCity=userCity, userState=userState, pinCode=pinCode, contactPerson=contactPerson, contactNo=contactNo)
     return redirect('user-form')
 
@@ -855,14 +868,26 @@ def update_shipping_address(request, id):
     if request.user.is_authenticated and request.method == 'POST':
         userID = request.user.pk
         id=request.POST.get('addressID1')
-        userAddress = request.POST.get('userAddress1')
-        userCity=request.POST.get('userCity1')
-        userState = request.POST.get('userState1')
-        pinCode = request.POST.get('pinCode1')
+        userAddress = request.POST.get('userAddress')
+        userCity=request.POST.get('userCity')
+        userState = request.POST.get('userState')
+        pinCode = request.POST.get('pinCode')
         contactPerson= request.POST.get('contactPerson1')
         contactNo = request.POST.get('contactNo1')
-        CustomUser.objects.filter(pk=userID).update(userAddress1=userAddress, userCity1=userCity, userState1=userState, pinCode1=pinCode, contactPerson1=contactPerson, contactNo1=contactNo)
         UserShippingAddresses.objects.filter(pk=id, userID_id=userID).update(userAddress1=userAddress, userCity1=userCity, userState1=userState, pinCode1=pinCode, contactPerson1=contactPerson, contactNo1=contactNo)
+    return redirect('user-form')
+
+def update_serving_address(request,id):
+    if request.user.is_authenticated and request.method == 'POST':
+        userID = request.user.pk
+        id=request.POST.get('addressID2')
+        userAddress = request.POST.get('userAddress')
+        userCity=request.POST.get('userCity')
+        userState = request.POST.get('userState')
+        pinCode = request.POST.get('pinCode')
+        contactPerson= request.POST.get('contactPerson2')
+        contactNo = request.POST.get('contactNo2')
+        FPOServingAddresses.objects.filter(pk=id, userID_id=userID).update(userAddress1=userAddress, userCity1=userCity, userState1=userState, pinCode1=pinCode, contactPerson1=contactPerson, contactNo1=contactNo)
     return redirect('user-form')
 
 def set_default_address(request, id):
@@ -999,7 +1024,17 @@ def show_fpo_customers_in_map(request):
 
     #to contain all data to plot on map
     map_data = []
-    map_data.append({'name':fpo_name, 'address_lat':fpo_lat, 'address_long':fpo_long, 'order_count':0, 'icon':fpo_icon})
+    map_data.append(
+        {
+            'name':fpo_name, 
+            'address_lat':fpo_lat, 
+            'address_long':fpo_long, 
+            'order_count':0, 
+            'icon':fpo_icon,
+            'village':'',
+            'students':0
+        }
+    )
     
     school_counts = 0
     ordering_school_counts = 0
@@ -1037,12 +1072,24 @@ def plot_schools_on_map(map_data, all_registered_schools_ids, customer_user_ids)
     all_schools = SchoolUDISE.objects.all().filter(district_name='Kendujhar', sub_dist_name='Harichadanpur')#all schools
     school_counts = all_schools.count()
     for school in all_schools:
-        map_data.append({'name':school.school_name, 'address_lat':school.loc_lat, 'address_long':school.loc_long, 'order_count':0, 'icon':'yellow'})
-    
+        map_data.append(
+            {
+                'name':school.school_name, 
+                'address_lat':school.loc_lat, 
+                'address_long':school.loc_long, 
+                'order_count':0, 
+                'icon':'yellow',
+                'village':school.village_name,
+                'students':school.total_students
+            }
+        )
+
     ordering_school_counts = 0
     for school in all_registered_schools_ids:
         school_id = school.id
         school_name = school.last_name
+        school_village = school.userAddress
+        total_students = get_object_or_404(SchoolUDISE, udise_code=school.udise_code).total_students
         address_lat = get_object_or_404(UserBillingAddresses,userID_id=school_id).address_lat
         address_long = get_object_or_404(UserBillingAddresses,userID_id=school_id).address_long
         order_count = 0
@@ -1053,7 +1100,18 @@ def plot_schools_on_map(map_data, all_registered_schools_ids, customer_user_ids)
                 ordering_school_counts+=1
                 order_count = SubOrder.objects.values('suborderID').filter(customerID_id=customer_id).count()
                 icon = 'green'
-        map_data.append({'name':school_name, 'address_lat':address_lat, 'address_long':address_long, 'order_count':order_count, 'icon':icon})
+        map_data.append(
+            {
+                'name':school_name, 
+                'address_lat':address_lat, 
+                'address_long':address_long, 
+                'order_count':order_count, 
+                'icon':icon,
+                'village':school_village,
+                'students':total_students
+            }
+        )
+
         return_context = {
             'map_data':map_data,
             'school_counts':school_counts,
@@ -1076,7 +1134,15 @@ def plot_individuals_on_map(map_data, all_registered_indv_ids, customer_user_ids
                 ordering_indv_counts+=1
                 order_count = SubOrder.objects.values('suborderID').filter(customerID_id=customer_id).count()
                 icon = 'green'
-        map_data.append({'name':indv_name, 'address_lat':address_lat, 'address_long':address_long, 'order_count':order_count, 'icon':icon})
+        map_data.append(
+            {
+                'name':indv_name, 
+                'address_lat':address_lat, 
+                'address_long':address_long, 
+                'order_count':order_count, 
+                'icon':icon
+            }
+        )
         return_context = {
             'map_data':map_data,
             'indv_counts':all_registered_indv_ids.count(),

@@ -62,7 +62,7 @@
             </a>
             <a href="#" onclick="showing_users_in_map('5')">
                 <div class="bg-purple-500 text-white p-4 rounded shadow">
-                    <h3 class="text-sm">Individual</h3>
+                    <h3 class="text-sm">Others</h3>
                     <p class="text-2xl font-semibold mt-1" id="individuals"></p>
                 </div>
             </a>
@@ -177,8 +177,9 @@
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
-
+            let markers =  L.layerGroup().addTo(map);
             function showing_users_in_map(userType){
+                markers.clearLayers();
                 switch(userType){
                     case '3':
                         document.getElementById('div_total').style.backgroundColor = "rgb(245, 158, 11)";
@@ -254,13 +255,15 @@
                     //console.log(document.getElementById('total_schools'));
                     const addresses = data.coordinates;
                     addresses.forEach(addr => {
-                    locations.push({
-                        name:addr.name,
-                        order_count:addr.order_count,
-                        lat:addr.address_lat,
-                        lon:addr.address_long,
-                        icon:addr.icon
-                    });
+                        locations.push({
+                            name:addr.name,
+                            order_count:addr.order_count,
+                            lat:addr.address_lat,
+                            lon:addr.address_long,
+                            icon:addr.icon,
+                            village:addr.village,
+                            students:addr.students
+                        });
                     });
                     locations.forEach(function(loc) {
                         //console.log("lat"+loc.lat+", long"+loc.lon);
@@ -278,7 +281,8 @@
                         else{
                             icon = redIcon;
                         }
-                        L.marker([loc.lat, loc.lon], {icon:icon}).addTo(map).bindPopup("<b>" + loc.name + "<br>No. of Orders:"+ loc.order_count + "</b>");
+                        const marker = L.marker([loc.lat, loc.lon], {icon:icon}).addTo(map).bindPopup("<b>" + loc.name + "<br>No. of Orders: "+ loc.order_count + "<br>Village: "+loc.village + "<br>No. of Students: "+loc.students);
+                        markers.addLayer(marker);
                     });
                 })
                 .catch(error => {
