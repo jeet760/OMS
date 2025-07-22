@@ -53,6 +53,16 @@
     </section> -->
     <section id="analytics_map">
         <h2 class="text-xl font-semibold mb-4">Analytics</h2>
+        <div class="flex flex-col md:flex-row items-center gap-4 mb-4">
+            <!-- Select Dropdown -->
+            <label for="servingArea">Select Operating Area:</label>
+            <select id="servingArea" name="servingArea" class="servingArea w-full md:w-auto border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Select Area</option>
+                {% for area in dashboard.serving_area %}
+                <option value="{{area.userCity1}}">{{area.userCity1_name}}</option>
+                {% endfor %}
+            </select>
+        </div>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-5">
             <a href="#" onclick="showing_users_in_map('3')">
                 <div class="bg-yellow-500 text-white p-4 rounded shadow">
@@ -102,74 +112,6 @@
         </div>
         <div class="bg-white p-4 shadow rounded">
         <div id="map"></div>
-        <!-- Hidden inputs to store lat/lon -->
-        <!-- Latitude:  <input type="text" id="lat" name="latitude" style="color: black;" readonly><br>
-        Longitude: <input type="text" id="lon" name="longitude" style="color: black;" readonly> -->
-        <!-- <script>
-            // Initial map center (Odisha)
-            const defaultLatLng = [20.9517, 85.0985];
-        
-            const map = L.map('map').setView(defaultLatLng, 13);
-
-            let serviceAreaCircle = L.circle(defaultLatLng, {
-            radius: 5000,  // 5 km in meters
-            color: '#007bff',         // Circle border
-            fillColor: '#007bff',     // Fill color
-            fillOpacity: 0.15         // Transparency
-            }).addTo(map);
-        
-            // Add OpenStreetMap tile layer
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
-        
-            // Add a draggable marker
-            const marker = L.marker(defaultLatLng, { draggable: true }).addTo(map);
-        
-            // Update hidden inputs on marker move
-            function updateLatLng(latlng) {
-            document.getElementById('lat').value = latlng.lat.toFixed(6);
-            document.getElementById('lon').value = latlng.lng.toFixed(6);
-
-            // 🟢 Update circle position
-            serviceAreaCircle.setLatLng(latlng);
-            }
-        
-            marker.on('dragend', function (e) {
-            updateLatLng(marker.getLatLng());
-            });
-
-            // 📍 Click to place/move marker
-            map.on('click', function (e) {
-            const clickedLatLng = e.latlng;
-            marker.setLatLng(clickedLatLng);
-            updateLatLng(clickedLatLng);
-            });
-
-        
-            // Add search control
-            L.Control.geocoder({
-            defaultMarkGeocode: false
-            })
-            .on('markgeocode', function(e) {
-            const center = e.geocode.center;
-            map.setView(center, 16);
-            marker.setLatLng(center);
-            updateLatLng(center);
-            })
-            .addTo(map);
-            
-            // Wait until the control is added, then update placeholder
-            setTimeout(() => {
-            const input = document.querySelector('.leaflet-control-geocoder-form input');
-            if (input) {
-                input.placeholder = "Search for your office, area, or building...";
-            }
-            }, 100);  // Delay to ensure DOM is ready
-
-            // Initialize lat/lon fields
-            updateLatLng(defaultLatLng);
-        </script>             -->
         <script>
             // Center the map on Odisha
             var map = L.map('map').setView([20.9517, 85.0985], 7);
@@ -180,6 +122,13 @@
             let markers =  L.layerGroup().addTo(map);
             function showing_users_in_map(userType){
                 markers.clearLayers();
+                const servingArea = document.getElementById('servingArea');
+                const selectedArea = servingArea.options[servingArea.selectedIndex].text;
+                if(servingArea.value === ''){
+                    alert('Please select a serving area!');
+                    return;
+                }
+
                 switch(userType){
                     case '3':
                         document.getElementById('div_total').style.backgroundColor = "rgb(245, 158, 11)";
@@ -237,7 +186,7 @@
 
                 var locations = [];
                 // Example markers — in Django, these are generated from the context
-                let url = "{% url 'track-coordinate' %}?type="+userType;
+                let url = "{% url 'track-coordinate' %}?type="+userType+"&area="+selectedArea+"&code="+servingArea.value;
                 fetch(url)  // Replace with your actual Django view URL
                 .then(response => {
                     if (!response.ok) {

@@ -550,8 +550,8 @@ def register(request):
                     school = get_object_or_404(SchoolUDISE, udise_code=user.udise_code)
                     loc_lat=school.loc_lat
                     loc_long=school.loc_long
-                UserBillingAddresses.objects.create(userID_id=user.pk,userAddress=user.userAddress, userCity=user.userCity, userState=user.userState, pinCode=user.pinCode, contactPerson=contact_person, contactNo=contact_no, address_lat=loc_lat, address_long=loc_long, setDefault=True)
-                UserShippingAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress, userCity1=user.userCity, userState1=user.userState, pinCode1=user.pinCode, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=loc_lat, address_long1=loc_long, setDefault=True)
+                UserBillingAddresses.objects.create(userID_id=user.pk,userAddress=user.userAddress, userCity=user.userCity, userDistrict=user.userDistrict, userState=user.userState, pinCode=user.pinCode, contactPerson=contact_person, contactNo=contact_no, address_lat=loc_lat, address_long=loc_long, setDefault=True)
+                UserShippingAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress, userCity1=user.userCity, userDistrict1=user.userDistrict, userState1=user.userState, pinCode1=user.pinCode, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=loc_lat, address_long1=loc_long, setDefault=True)
                 if user.userType != '1':
                     CustomUser.objects.filter(pk=user.id).update(userApproved=True,approvedOn=datetime.today(),isActive=True,activatedOn=datetime.today())
                 return redirect('login')  # Redirect to a home page
@@ -804,7 +804,24 @@ def update_profile(request):
         CustomUser.objects.filter(pk=userID).update(last_name=last_name,email=email,phone1=phone1)
     return redirect('user-form')
 
-def fetch_shipping_address(request, id):
+def fetch_lgd_data_from_api(state_code,district_code,sub_dist_code):
+    api = f'https://api.data.gov.in/resource/6be51a29-876a-403a-a6da-42fde795e751?api-key=579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b&format=json&limit=1000&filters%5Bstate_code%5D={state_code}&filters%5Bdistrict_code%5D={district_code}&filters%5Bsubdistrict_code%5D={sub_dist_code}'
+    api_response = requests.get(api) 
+    lgd_data = api_response.json()
+    state_name = lgd_data['records'][0]['state_name_english']
+    district_name = lgd_data['records'][0]['district_name_english']
+    sub_dist_name = lgd_data['records'][0]['subdistrict_name_english']
+    return_context = {
+        'state_name':state_name,
+        'district_name':district_name,
+        'sub_dist_name':sub_dist_name,
+        'state_code':state_code,
+        'district_code':district_code,
+        'sub_dist_code':sub_dist_code
+    }
+    return return_context
+
+def fetch_address(request, id):
     if request.user.is_authenticated:
         q = request.GET.get('q')
         if q == 'bill':
@@ -812,8 +829,11 @@ def fetch_shipping_address(request, id):
             userID = address.userID.pk
             userAddress = address.userAddress
             userCity=address.userCity
+            userCity_name=address.userCity_name
             userDistrict = address.userDistrict
+            userDistrict_name = address.userDistrict_name
             userState = address.userState
+            userState_name = address.userState_name
             pinCode = address.pinCode
             contactPerson = address.contactPerson
             contactNo = address.contactNo
@@ -822,8 +842,11 @@ def fetch_shipping_address(request, id):
             userID = address.userID.pk
             userAddress = address.userAddress1
             userCity=address.userCity1
+            userCity_name=address.userCity1_name
             userDistrict = address.userDistrict1
+            userDistrict_name = address.userDistrict1_name
             userState = address.userState1
+            userState_name = address.userState1_name
             pinCode = address.pinCode1
             contactPerson = address.contactPerson1
             contactNo = address.contactNo1
@@ -832,8 +855,11 @@ def fetch_shipping_address(request, id):
             userID = address.userID.pk
             userAddress = address.userAddress1
             userCity=address.userCity1
+            userCity_name=address.userCity1_name
             userDistrict = address.userDistrict1
+            userDistrict_name = address.userDistrict1_name
             userState = address.userState1
+            userState_name = address.userState1_name
             pinCode = address.pinCode1
             contactPerson = address.contactPerson1
             contactNo = address.contactNo1
@@ -841,9 +867,12 @@ def fetch_shipping_address(request, id):
         address_context = {
             'userID':userID,
             'userAddress':userAddress,
-            'userDistrict':userDistrict,
             'userCity':userCity,
+            'userCity_name':userCity_name,
+            'userDistrict':userDistrict,
+            'userDistrict_name':userDistrict_name,
             'userState':userState,
+            'userState_name':userState_name,
             'pinCode':pinCode,
             'contactPerson':contactPerson,
             'contactNo':contactNo,
@@ -856,12 +885,17 @@ def update_billiing_address(request, id):
         userID = request.user.pk
         id=request.POST.get('addressID')
         userAddress = request.POST.get('userAddress')
-        userCity=request.POST.get('userCity')
-        userState = request.POST.get('userState')
+        userCity_code=request.POST.get('userCity')
+        userDistrict_code = request.POST.get('userDistrict')
+        userState_code = request.POST.get('userState')
+        lgd_data = fetch_lgd_data_from_api(userState_code, userDistrict_code, userCity_code)
+        userCity_name = lgd_data['sub_dist_name']
+        userDistrict_name = lgd_data['district_name']
+        userState_name = lgd_data['state_name']
         pinCode = request.POST.get('pinCode')
         contactPerson= request.POST.get('contactPerson')
         contactNo = request.POST.get('contactNo')
-        UserBillingAddresses.objects.filter(pk=id, userID_id=userID).update(userAddress=userAddress, userCity=userCity, userState=userState, pinCode=pinCode, contactPerson=contactPerson, contactNo=contactNo)
+        UserBillingAddresses.objects.filter(pk=id, userID_id=userID).update(userAddress=userAddress, userCity=userCity_code,userCity_name=userCity_name, userDistrict=userDistrict_code, userDistrict_name=userDistrict_name, userState=userState_code, userState_name=userState_name, pinCode=pinCode, contactPerson=contactPerson, contactNo=contactNo)
     return redirect('user-form')
 
 def update_shipping_address(request, id):
@@ -869,12 +903,17 @@ def update_shipping_address(request, id):
         userID = request.user.pk
         id=request.POST.get('addressID1')
         userAddress = request.POST.get('userAddress')
-        userCity=request.POST.get('userCity')
-        userState = request.POST.get('userState')
+        userCity_code=request.POST.get('userCity')
+        userDistrict_code = request.POST.get('userDistrict')
+        userState_code = request.POST.get('userState')
+        lgd_data = fetch_lgd_data_from_api(userState_code, userDistrict_code, userCity_code)
+        userCity_name = lgd_data['sub_dist_name']
+        userDistrict_name = lgd_data['district_name']
+        userState_name = lgd_data['state_name']
         pinCode = request.POST.get('pinCode')
         contactPerson= request.POST.get('contactPerson1')
         contactNo = request.POST.get('contactNo1')
-        UserShippingAddresses.objects.filter(pk=id, userID_id=userID).update(userAddress1=userAddress, userCity1=userCity, userState1=userState, pinCode1=pinCode, contactPerson1=contactPerson, contactNo1=contactNo)
+        UserShippingAddresses.objects.filter(pk=id, userID_id=userID).update(userAddress1=userAddress, userCity1=userCity_code, userCity1_name=userCity_name, userDistrict1=userDistrict_code, userDistrict1_name=userDistrict_name, userState1=userState_code, userState1_name=userState_name, pinCode1=pinCode, contactPerson1=contactPerson, contactNo1=contactNo)
     return redirect('user-form')
 
 def update_serving_address(request,id):
@@ -882,12 +921,17 @@ def update_serving_address(request,id):
         userID = request.user.pk
         id=request.POST.get('addressID2')
         userAddress = request.POST.get('userAddress')
-        userCity=request.POST.get('userCity')
-        userState = request.POST.get('userState')
+        userCity_code=request.POST.get('userCity')
+        userDistrict_code = request.POST.get('userDistrict')
+        userState_code = request.POST.get('userState')
+        lgd_data = fetch_lgd_data_from_api(userState_code, userDistrict_code, userCity_code)
+        userCity_name = lgd_data['sub_dist_name']
+        userDistrict_name = lgd_data['district_name']
+        userState_name = lgd_data['state_name']
         pinCode = request.POST.get('pinCode')
         contactPerson= request.POST.get('contactPerson2')
         contactNo = request.POST.get('contactNo2')
-        FPOServingAddresses.objects.filter(pk=id, userID_id=userID).update(userAddress1=userAddress, userCity1=userCity, userState1=userState, pinCode1=pinCode, contactPerson1=contactPerson, contactNo1=contactNo)
+        FPOServingAddresses.objects.filter(pk=id, userID_id=userID).update(userAddress1=userAddress, userCity1=userCity_code, userCity1_name=userCity_name, userDistrict1=userDistrict_code, userDistrict1_name=userDistrict_name, userState1=userState_code, userState1_name=userState_name, pinCode1=pinCode, contactPerson1=contactPerson, contactNo1=contactNo)
     return redirect('user-form')
 
 def set_default_address(request, id):
@@ -1006,7 +1050,11 @@ def track_coordinate(request):
     return JsonResponse({'coordinates':coordinates})
 
 def show_fpo_customers_in_map(request):
+    #parameters from the form
     user_type = request.GET.get('type')
+    serving_area = request.GET.get('area')
+    serving_area_code = request.GET.get('code')
+
     all_customers = CustomUser.objects.all()
 
     #logged in FPO data
@@ -1015,8 +1063,8 @@ def show_fpo_customers_in_map(request):
     fpo_lat= 21.2634154
     fpo_long = 85.8801451
     fpo_icon = 'black'
-    fpo_dist = get_object_or_404(CustomUser, id=fpo_user_id).userDistrict
-    fpo_subdist = get_object_or_404(CustomUser, id=fpo_user_id).userCity
+    fpo_dist = get_object_or_404(FPOServingAddresses, userID_id=fpo_user_id, userCity1=serving_area_code).userDistrict1_name
+    fpo_subdist = serving_area
 
     #all customers who have ordered and their orders have been invoiced or delivered
     customer_user_ids = SubOrder.objects.values('customerID_id',name=F('customerID_id__last_name'),user_type=F('customerID_id__userType')).filter(vendorID_id = fpo_user_id, customerID_id__userType=user_type).filter(Q(orderStatus='Invoiced')|Q(orderStatus='Delivered'))
@@ -1048,7 +1096,7 @@ def show_fpo_customers_in_map(request):
         all_registered_schools_ids = all_customers.filter(userType=user_type)#registered schools
         registered_schools_counts = all_registered_schools_ids.count()
         if registered_schools_counts > 0:
-            school_context = plot_schools_on_map(map_data, all_registered_schools_ids, customer_user_ids)
+            school_context = plot_schools_on_map(map_data, all_registered_schools_ids, customer_user_ids, fpo_dist, fpo_subdist)
             map_data = school_context['map_data']
             school_counts = school_context['school_counts']
             ordering_school_counts = school_context['ordering_school_counts']
@@ -1067,9 +1115,17 @@ def show_fpo_customers_in_map(request):
 
     return JsonResponse({'coordinates':map_data, 'total_schools':school_counts, 'registered_schools':registered_schools_counts, 'ordering_schools':ordering_school_counts})
 
-def plot_schools_on_map(map_data, all_registered_schools_ids, customer_user_ids):
+def plot_schools_on_map(map_data, all_registered_schools_ids, customer_user_ids, district_name, sub_dist_name):
+    #fetch all the subdistrict names from SchooUDISE and get the relevant name for given parameter of sub_dist_name and dist_name
+    udise_data = SchoolUDISE.objects.all()
+    udise_districts = list(udise_data.filter(state_code=21).values_list('district_name', flat=True).distinct())
+    udise_subdists = list(udise_data.filter(state_code=21).filter(district_name=district_name).exclude(sub_dist_name='').values_list('sub_dist_name', flat=True).distinct())
+
+    relevant_district = fuzzy_search(district_name, udise_districts)[0]
+    relevant_subdist = fuzzy_search(sub_dist_name, udise_subdists)[0]
+
     #fetch all schools in the area, then fetch the registered schools, then the ordering schools
-    all_schools = SchoolUDISE.objects.all().filter(district_name='Kendujhar', sub_dist_name='Harichadanpur')#all schools
+    all_schools = SchoolUDISE.objects.all().filter(district_name=relevant_district, sub_dist_name=relevant_subdist)#all schools
     school_counts = all_schools.count()
     for school in all_schools:
         map_data.append(
@@ -1158,6 +1214,44 @@ def plot_business_on_map():
 
 def plot_overseas_on_map():
     return ''
+
+
+def fuzzy_search(query, items, threshold=70):
+    query = query.lower()
+    results = []
+    for item in items:
+        item_lower = item.lower()
+        distance = levenshtein_distance(query, item_lower)
+        max_len = max(len(query), len(item_lower))
+        similarity = ((max_len - distance) / max_len) * 100
+        if similarity >= threshold:
+            results.append(item)
+    if len(results) == 0 and threshold > 50:
+        return fuzzy_search(query, items, 50)  # ✅ return recursive result
+    return results
+
+def levenshtein_distance(a, b):
+    # Create a matrix with size (len(b)+1) x (len(a)+1)
+    matrix = [[0] * (len(a) + 1) for _ in range(len(b) + 1)]
+
+    # Initialize first column and first row
+    for i in range(len(b) + 1):
+        matrix[i][0] = i
+    for j in range(len(a) + 1):
+        matrix[0][j] = j
+
+    # Fill the matrix
+    for i in range(1, len(b) + 1):
+        for j in range(1, len(a) + 1):
+            cost = 0 if b[i - 1] == a[j - 1] else 1
+            matrix[i][j] = min(
+                matrix[i - 1][j] + 1,      # Deletion
+                matrix[i][j - 1] + 1,      # Insertion
+                matrix[i - 1][j - 1] + cost  # Substitution
+            )
+
+    return matrix[len(b)][len(a)]
+
 
 def admin_master(request):
     if request.user.is_authenticated:
@@ -2251,7 +2345,7 @@ def seller_profile(request):
 #region Dashboard
 @login_required
 def dashboard(request):
-    user_name = request.user.last_name
+    login_user = request.user.last_name
     user_id = request.user.pk
     item_total_revenue = OrderDetails.objects.filter(suborderID__vendorID__id=request.user.pk, orderStatus='Accepted').values('suborderID').aggregate(total_price_with_gst=Sum('itemPricewithGST'))['total_price_with_gst']
     total_items = Item.objects.filter(userID_id=request.user.pk).__len__()#total items placed by the vendor/FPO
@@ -2265,6 +2359,7 @@ def dashboard(request):
     rejected_orders = SubOrder.objects.filter(orderStatus = 'Rejected').__len__()
     bulk_buy_orders = BulkBuy.objects.all().__len__()
     bulk_buy_orders_responded = BulkBuyResponse.objects.filter(response_userID_id=user_id).__len__()
+    serving_area = FPOServingAddresses.objects.values('userCity1','userCity1_name').filter(userID_id=user_id)
     dashboard_context = {
         'total_revenue': 0 if item_total_revenue == None else item_total_revenue,
         'total_items':total_items,
@@ -2277,9 +2372,11 @@ def dashboard(request):
         'rejected_orders':rejected_orders,
         'delivered_orders':delivered_orders,
         'bulk_buy':bulk_buy_orders,
-        'bulk_buy_response':bulk_buy_orders_responded
+        'bulk_buy_response':bulk_buy_orders_responded,
+        'serving_area':serving_area
     }
-    return render(request, 'dashboard.html', {'dashboard':dashboard_context, 'login_user':user_name})
+    login_user = request.user.last_name
+    return render(request, 'dashboard.html', {'dashboard':dashboard_context, 'login_user':login_user})
 #endregion
 
 #region Revenue page

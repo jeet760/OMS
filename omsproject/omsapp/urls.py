@@ -53,7 +53,7 @@ urlpatterns = [
 
     path('user-form/', views.profile_view, name='user-form'),
     path('add-address/', views.add_address, name='add-address'),
-    path('fetch-address/<int:id>', views.fetch_shipping_address, name='fetch-address'),
+    path('fetch-address/<int:id>', views.fetch_address, name='fetch-address'),
     path('update-profile/', views.update_profile, name='update-profile'),
     path('update-address/billing/<int:id>', views.update_billiing_address, name='update-billing'),
     path('update-address/shipping/<int:id>', views.update_shipping_address, name='update-shipping'),
