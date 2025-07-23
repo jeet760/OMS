@@ -761,8 +761,13 @@ def add_address(request):
     if request.user.is_authenticated:
         userID=request.user.pk
         userAddress = request.POST.get('userAddress')
-        userCity = request.POST.get('userCity')
-        userState = request.POST.get('userState')
+        userCity_code = request.POST.get('userCity')
+        userDistrict_code = request.POST.get('userDistrict')
+        userState_code = request.POST.get('userState')
+        lgd_data = fetch_lgd_data_from_api(userState_code, userDistrict_code, userCity_code)
+        userCity_name = lgd_data['sub_dist_name']
+        userDistrict_name = lgd_data['district_name']
+        userState_name = lgd_data['state_name']
         pinCode = request.POST.get('pinCode')
         contactPerson = request.POST.get('contactPerson')
         contactNo = request.POST.get('contactNo')
@@ -770,20 +775,17 @@ def add_address(request):
         type_of_address = request.POST.get('selectAddress')
         if type_of_address == 'bill':
             UserBillingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
-            UserBillingAddresses.objects.get_or_create(userID_id=userID, userAddress=userAddress, userCity=userCity,userState=userState,pinCode=pinCode, contactNo=contactNo, contactPerson=contactPerson, address_lat=0.00, address_long=0.00, setDefault=setDefault)
-            CustomUser.objects.filter(pk=userID).update(userAddress=userAddress, userCity=userCity,userState=userState,pinCode=pinCode,contactNo=contactNo, contactPerson=contactPerson)
+            UserBillingAddresses.objects.get_or_create(userID_id=userID, userAddress=userAddress, userCity=userCity_code, userCity_name=userCity_name, userDistrict=userDistrict_code, userDistrict_name=userDistrict_name, userState=userState_code, userState_name=userState_name, pinCode=pinCode, contactNo=contactNo, contactPerson=contactPerson, address_lat=0.00, address_long=0.00, setDefault=setDefault)
         elif type_of_address == 'ship':
             UserShippingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
-            UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=0.00, address_long1=0.00, setDefault=setDefault)
-            CustomUser.objects.filter(pk=userID).update(userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson)
+            UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity_code, userCity1_name=userCity_name, userDistrict1=userDistrict_code, userDistrict1_name=userDistrict_name, userState1=userState_code, userState1_name=userState_name, pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=0.00, address_long1=0.00, setDefault=setDefault)
         elif type_of_address == 'serv':
-            FPOServingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=0.00, address_long1=0.00)
+            FPOServingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity_code, userCity1_name=userCity_name, userDistrict1=userDistrict_code, userDistrict1_name=userDistrict_name, userState1=userState_code, userState1_name=userState_name, pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=0.00, address_long1=0.00)
         elif type_of_address == 'both':
             UserBillingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
-            UserBillingAddresses.objects.get_or_create(userID_id=userID, userAddress=userAddress, userCity=userCity,userState=userState,pinCode=pinCode,contactNo=contactNo, contactPerson=contactPerson, address_lat=0.00, address_long=0.00, setDefault=setDefault)
+            UserBillingAddresses.objects.get_or_create(userID_id=userID, userAddress=userAddress, userCity=userCity_code, userDistrict=userDistrict_code,userState=userState_code,pinCode=pinCode,contactNo=contactNo, contactPerson=contactPerson, address_lat=0.00, address_long=0.00, setDefault=setDefault)
             UserShippingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
-            UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=0.00, address_long1=0.00, setDefault=setDefault)
-            CustomUser.objects.filter(pk=userID).update(userAddress=userAddress, userCity=userCity,userState=userState,pinCode=pinCode, userAddress1=userAddress, userCity1=userCity,userState1=userState,pinCode1=pinCode)
+            UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity_code, userDistrict=userDistrict_code,userState1=userState_code,pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=0.00, address_long1=0.00, setDefault=setDefault)
     
         referer = request.META.get('HTTP_REFERER')
         parsed_url = urlparse(referer)
