@@ -1,3 +1,4 @@
+//#region pincode based lgd details and respective selections
 function fetch_districts(statecode, district, sub_district, form) {
     if (statecode != null && statecode !== '') {
         const userDistrict = form.querySelector('.userDistrict');
@@ -61,7 +62,6 @@ function fetch_districts(statecode, district, sub_district, form) {
             });
     }
 }
-
 
 function levenshteinDistance(a, b) {
   const matrix = Array.from({ length: b.length + 1 }, (_, i) => [i]);
@@ -154,3 +154,56 @@ function fetch_subdistricts(statecode, districtcode, sub_district, form) {
     }
 }
 
+//#endregion
+//#region filter table 
+
+/**
+   * Generic table filter function
+   * @param {string} keyword - value to filter by (e.g., "Pending", "1", "All")
+   * @param {string} tableId - id of the table to filter
+   * @param {string} dataAttr - attribute used for filtering (e.g., 'source', 'status')
+   */
+function filterTable(keyword, tableId, dataAttr = 'source') {
+    const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+
+    rows.forEach(row => {
+      const value = row.dataset[dataAttr];
+      if (keyword === 'All') {
+        row.style.display = '';
+      } else {
+        if (value === keyword) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      }
+    });
+}
+
+function paginate(tableId) {
+    const  rowsPerPage = 10;
+    const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+    const visibleRows = Array.from(rows).filter(row => row.dataset.visible !== "false");
+    const totalPages = Math.ceil(visibleRows.length / rowsPerPage);
+
+    rows.forEach(row => row.style.display = 'none');
+
+    visibleRows.forEach((row, index) => {
+        row.style.display = (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) ? '' : 'none';
+    });
+
+    const pagination = document.getElementById('pagination');
+    pagination.innerHTML = '';
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = 'px-3 py-1 rounded bg-gray-700 text-white mx-1';
+        if (i === currentPage) btn.classList.add('bg-blue-600');
+        btn.onclick = () => {
+            currentPage = i;
+            paginate();
+        };
+        pagination.appendChild(btn);
+    }
+}
+//#endregion

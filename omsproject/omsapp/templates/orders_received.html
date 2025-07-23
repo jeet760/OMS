@@ -1,24 +1,33 @@
 {% extends 'admin-console.html' %}
+{% load static %}
 {% block orders_received %}
 <h2 class="text-xl font-semibold mb-4">Orders</h2>
 <div class="bg-white p-4 shadow rounded border border-gray-300">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-blue-500 text-white p-4 rounded shadow">
-            <h3 class="text-sm">Total Orders</h3>
-            <p class="text-2xl font-semibold mt-1">{{received_sub_orders}}</p>
-        </div>
-        <div class="bg-green-500 text-white p-4 rounded shadow">
-            <h3 class="text-sm">Pending Orders</h3>
-            <p class="text-2xl font-semibold mt-1">{{pending_orders}}</p>
-        </div>
-        <div class="bg-yellow-500 text-white p-4 rounded shadow">
-            <h3 class="text-sm">Delivered Orders</h3>
-            <p class="text-2xl font-semibold mt-1">{{delivered_orders}}</p>
-        </div>
-        <div class="bg-red-500 text-white p-4 rounded shadow">
-            <h3 class="text-sm">Rejected Orders</h3>
-            <p class="text-2xl font-semibold mt-1">{{rejected_orders}}</p>
-        </div>
+        <a href="#" onclick="filterTable('All','orderTable','status')">
+            <div class="bg-blue-500 text-white p-4 rounded shadow">
+                <h3 class="text-sm">All Orders</h3>
+                <p class="text-2xl font-semibold mt-1">{{received_sub_orders}}</p>
+            </div>
+        </a>
+        <a href="#" onclick="filterTable('Pending Order','orderTable','status')">
+            <div class="bg-yellow-500 text-white p-4 rounded shadow">
+                <h3 class="text-sm">Pending Orders</h3>
+                <p class="text-2xl font-semibold mt-1">{{pending_orders}}</p>
+            </div>
+        </a>
+        <a href="#" onclick="filterTable('Delivered','orderTable','status')">
+            <div class="bg-green-500 text-white p-4 rounded shadow">
+                <h3 class="text-sm">Delivered Orders</h3>
+                <p class="text-2xl font-semibold mt-1">{{delivered_orders}}</p>
+            </div>
+        </a>
+        <a href="#" onclick="filterTable('Rejected','orderTable','status')">
+            <div class="bg-red-500 text-white p-4 rounded shadow">
+                <h3 class="text-sm">Rejected Orders</h3>
+                <p class="text-2xl font-semibold mt-1">{{rejected_orders}}</p>
+            </div>
+        </a>
     </div>
     <br>
     <div class="mb-4">
@@ -40,7 +49,7 @@
         </thead>
         <tbody>
             {% for order in orders %}
-            <tr class="border-b border-gray-300 hover:bg-gray-100">
+            <tr class="border-b border-gray-300 hover:bg-gray-100" data-status="{{order.orderStatus}}">
                 <td class="py-2 px-3">{{forloop.counter}}</td>
                 <td class="py-2 px-3">{{order.orderID.orderNo}}</td>
                 <td class="py-2 px-3">{{order.orderID.orderDate}}</td>
@@ -81,6 +90,6 @@
             {% endfor %}
         </tbody>
     </table>
-    <div id="paginationOrder" class="mt-4 flex justify-center"></div>
+    <div id="pagination" class="mt-4 flex justify-center"></div>
 </div>
 {% endblock %}

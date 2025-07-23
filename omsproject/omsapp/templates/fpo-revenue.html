@@ -2,32 +2,99 @@
 {% load static %}
 {% block fpo_revenue %}
 <h2 class="text-xl font-semibold mb-4">Revenue</h2>
-<div class="bg-white p-4 shadow rounded border border-gray-300">
+<div class="bg-white p-4 shadow rounded border border-gray-300 mb-4">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <a href="#">
+        <a href="#" onclick="filterTable('All','revenueTable','source')">
             <div class="bg-green-500 text-white p-4 rounded shadow">
                 <h3 class="text-sm">Total</h3>
                 <p class="text-2xl font-semibold mt-1">{{item_total_revenue}}</p>
             </div>
         </a>
-        <a href="#">
+        <a href="#" onclick="filterTable('1','revenueTable','source')">
             <div class="bg-blue-500 text-white p-4 rounded shadow">
                 <h3 class="text-sm">Cash</h3>
                 <p class="text-2xl font-semibold mt-1">{{item_total_revenue_cod}}</p>
             </div>
         </a>
-        <a href="#">
+        <a href="#" onclick="filterTable('2','revenueTable','source')">
             <div class="bg-yellow-500 text-white p-4 rounded shadow">
                 <h3 class="text-sm">Institutional Credit</h3>
                 <p class="text-2xl font-semibold mt-1">{{item_total_revenue_inc}}</p>
             </div>
         </a>
-        <a href="#">
+        <a href="#" onclick="filterTable('3','revenueTable','source')">
             <div class="bg-purple-500 text-white p-4 rounded shadow">
                 <h3 class="text-sm">Online</h3>
                 <p class="text-2xl font-semibold mt-1">{{item_total_revenue_onl}}</p>
             </div>
         </a>
     </div>
+    <br>
+    <h2 class="text-xl font-semibold mb-4">Revenue from Orders</h2>
+    <div class="bg-white p-4 shadow rounded border border-gray-300">
+        <table id="revenueTable" class="w-full text-left text-sm border border-gray-300 bg-white">
+            <thead class="text-gray-700 border-b border-gray-300">
+                <tr>
+                    <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'revenueTable')">#</th>
+                    <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'revenueTable')">Order #</th>
+                    <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'revenueTable')">Order Date</th>
+                    <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'revenueTable')">Amount</th>
+                    <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'revenueTable')">Transportation</th>
+                    <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'revenueTable')">Grand Total</th>
+                    <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'revenueTable')">Payment Mode</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in qs_order_revenue %}
+                <tr class="border-b border-gray-300 hover:bg-gray-100" data-source="{{order.orderID.paymentMode}}">
+                    <td class="py-2 px-3">{{forloop.counter}}</td>
+                    <td class="py-2 px-3">{{order.orderID.orderNo}}</td>
+                    <td class="py-2 px-3">{{order.orderID.orderDate}}</td>
+                    <td class="py-2 px-3">{{order.orderID.orderAmount}}</td>
+                    <td class="py-2 px-3">{{order.orderID.orderTransportation}}</td>
+                    <td class="py-2 px-3">{{order.orderID.orderGrandTotal}}</td>
+                    <td class="py-2 px-3">
+                        {{order.orderID.paymentMode}}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="border-b border-gray-300 hover:bg-gray-100">
+                    <td colspan="6">Order not found!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
+<!-- <h2 class="text-xl font-semibold mb-4">Revenue from Bulk Orders</h2>
+<div class="bg-white p-4 shadow rounded border border-gray-300">
+    <table class="w-full text-left text-sm border border-gray-300 bg-white">
+        <thead class="text-gray-700 border-b border-gray-300">
+            <tr>
+                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'orderTable')">#</th>
+                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'orderTable')">Request #</th>
+                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'orderTable')">Request Date</th>
+                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'orderTable')">Amount</th>
+                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'orderTable')">Transportation</th>
+                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'orderTable')">Grand Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bulk in qs_bulk_revenue %}
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+                <td class="py-2 px-3">{{forloop.counter}}</td>
+                <td class="py-2 px-3">{{bulk.bulkBuyID.bulkBuyNo}}</td>
+                <td class="py-2 px-3">{{bulk.bulkBuyID.bulkBuyDate}}</td>
+                <td class="py-2 px-3"></td>
+                <td class="py-2 px-3"></td>
+                <td class="py-2 px-3"></td>
+            </tr>
+            {% empty %}
+            <tr class="border-b border-gray-300 hover:bg-gray-100">
+                <td colspan="5">Bulk request not found!</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div> -->
 {% endblock %}

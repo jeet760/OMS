@@ -89,17 +89,18 @@
   }
 </style>
 <div class="form-container">
-  <form id="formBulkBuy" action="{% url 'order_successful' %}?success=Bulk" method="post">
+  <!-- <form id="formBulkBuy" action="{% url 'order_successful' %}?success=Bulk" method="post"> -->
+  <form id="formBulkBuy" onsubmit="return false;" class="space-y-4"></form>
     {% csrf_token %}
     <div class="form-grid">
       <div class="form-group">
         <div class="form-row">
           <label for="name">Name</label>
-          <input type="text" id="name" placeholder="Name" value="{{login_user}}" disabled>
+          <input type="text" id="name" name="name" placeholder="Name" value="{{login_user}}" disabled>
         </div>
         <div class="form-row">
           <label for="address1">Address1</label>
-          <input type="text" id="address1" placeholder="Address1" value="{{user_address}}">
+          <input type="text" id="address1" name="address1" placeholder="Address1" value="{{user_address}}">
         </div>
         <div class="form-row">
           <label for="delivery-date">Select Delivery Date</label>
@@ -111,15 +112,15 @@
       <div class="form-group">
         <div class="form-row">
           <label for="type">Type</label>
-          <input type="text" id="type" placeholder="Type" value="{{userType}}" disabled>
+          <input type="text" id="type" name="type" placeholder="Type" value="{{userType}}" disabled>
         </div>
         <div class="form-row">
           <label for="address2">Address2</label>
-          <input type="text" id="address2" placeholder="Address2" value="{{user_address1}}">
+          <input type="text" id="address2" name="address2" placeholder="Address2" value="{{user_address1}}">
         </div>
         <div class="form-row">
           <label for="phone">Phone</label>
-          <input type="text" id="phone" placeholder="Phone" value="{{user_phone}}">
+          <input type="text" id="phone" name="phone" placeholder="Phone" value="{{user_phone}}">
         </div>
       </div>
     </div>
@@ -146,10 +147,10 @@
             </select>
           </th>
           <th>
-            <input type="text" placeholder="Specification" id="txtSpec">
+            <input type="text" placeholder="Specification" id="txtSpec" name="txtSpec">
           </th>
           <th>
-            <input type="text" placeholder="Quantity" id="txtQty">
+            <input type="text" placeholder="Quantity" id="txtQty" name="txtQty">
           </th>
           <th>
             <select id="selectUnit" name="selectUnit">
@@ -162,7 +163,7 @@
             </select>
           </th>
           <th>
-            <input type="text" placeholder="Indicative Price" id="txtPrice">
+            <input type="text" placeholder="Indicative Price" id="txtPrice" name="txtPrice">
           </th>
           <th>
             <button type="button" onclick="addRow()">
@@ -232,7 +233,13 @@
       body: JSON.stringify({ rows, delivery_date })
     })
     .then(response => response.json())
-    .then(data => alert(data.message))
+    .then(data => {
+      alert(data.message);
+      if (data.redirect_url) {
+        console.log(data.redirect_url);
+        window.location.href = data.redirect_url;
+      }
+    })
     .catch(error => console.error('Error:', error));
 
     }

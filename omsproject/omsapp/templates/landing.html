@@ -70,10 +70,7 @@ Categories Section End -->
         </div>
         <div class="row featured__filter">
             {% for item in featureItems_page_obj %}
-                <!-- <div class="{% if item.itemInStock%}col-lg-3 col-md-4 col-sm-6 mix {{item.itemCat}}{% else %} col-lg-3 col-md-4 col-sm-6 mix {{item.itemCat}} out-of-stock{% endif %}"> -->
                 <div class="col-lg-3 col-md-4 col-sm-6 mix {{item.itemCat|cut:' '}}">
-                    <!--<form action="{% url 'add_to_cart' item.itemID %}" method="post">-->
-                    <!-- {% csrf_token %} -->
                     {% if item.itemInStock%}
                     <div class="featured__item">
                     {% else %}
@@ -83,7 +80,7 @@ Categories Section End -->
                         <div class="featured__item__pic set-bg" data-setbg="{{item.itemImg.url}}" onclick="itemRedirect('{{item.itemID}}')" style="cursor: pointer;">
                             <ul class="featured__item__pic__hover">
                                 <li><a href="{% url 'shopdetails' item.itemID %}"><i class="fa fa-list"></i></a></li>
-                                <li><a href="{% url 'add_to_cart' item.itemID %}?source=landing"><i class="fa fa-shopping-cart"></i></a></li>
+                                <li><a href="{% url 'add_to_cart' item.itemID %}?source=landing&qty=1"><i class="fa fa-shopping-cart"></i></a></li>
                             </ul>
                         </div>
                         <div class="featured__item__text">
@@ -91,7 +88,6 @@ Categories Section End -->
                             <h5>₹ {{item.itemPrice}}/{{item.itemUnit}}</h5>
                         </div>
                     </div>
-                    <!--</form>-->
                 </div>
                 {% empty %}
                 <p>Sorry, no item found!</p>

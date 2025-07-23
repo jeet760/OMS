@@ -216,7 +216,7 @@
                                 <div class="product__item__pic set-bg" data-setbg="{{item.itemImg.url}}" onclick="itemRedirect('{{item.itemID}}')" style="cursor: pointer;">
                                     <ul class="product__item__pic__hover">
                                         <li><a href="{% url 'shopdetails' item.itemID %}"><i class="fa fa-list"></i></a></li>
-                                    <li><a href="{% url 'add_to_cart' item.itemID %}?source=shop"><i class="fa fa-shopping-cart"></i></a></li>
+                                    <li><a href="{% url 'add_to_cart' item.itemID %}?source=shop&qty=1"><i class="fa fa-shopping-cart"></i></a></li>
                                     </ul>
                                 </div>
                                 <div class="product__item__text">

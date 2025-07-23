@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.contrib import messages
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models import Q, Max, Min, Sum, Count, OuterRef, Subquery, F, Value
 from django.db.models.functions import Concat
 from django.contrib.auth import login, authenticate, logout
@@ -1507,13 +1507,12 @@ def add_to_cart(request, product_id):
     if userID == product_owner:
         return redirect('shop')
     source = request.GET.get('source')
+    qty = request.GET.get('qty')
+    selectedQty = qty
     cart = Cart(request)
     product = get_object_or_404(Item, itemID=product_id)
-    try:
+    if selectedQty is None or selectedQty == '':
         selectedQty = request.POST['selectQuantity']
-    except Exception as ex:
-        selectedQty = 1
-        #print(ex)
     qty = int(selectedQty)
     cart.add(product=product, quantity=qty, update_quantity=False)
     if source == 'landing':
@@ -1809,8 +1808,7 @@ def received_orders_details(request, orderID):
                 'pinCode1'
             )
         ).get(userID_id=userID, setDefault=True)
-        sa_state_name = STATE_CHOICES(shipping_address.userState1)
-        shipping_address.address = f"{shipping_address.userAddress1},{shipping_address.userCity1},{sa_state_name},{shipping_address.pinCode1}"
+        shipping_address.address = f"{shipping_address.userAddress1},{shipping_address.userCity1_name},{shipping_address.userState1_name},{shipping_address.pinCode1}"
         orderNote = Order.objects.get(pk=orderID).orderNote
         payment_mode = Order.objects.get(pk=orderID).paymentMode
         list_reverse_dict = {v: k for k, v in LIST_PAYMENT_MODES}
@@ -1993,7 +1991,7 @@ def bulk_buy(request):
         userType = USERTYPE_CHOICES(request.user.userType)
         user_type = request.user.userType
         user_approved = request.user.userApproved
-        user_address = f"{request.user.userAddress} {request.user.userCity} {STATE_CHOICES(request.user.userState)} {request.user.pinCode}"
+        user_address = f"{request.user.userAddress}, {request.user.userCity_name}, {request.user.userState_name}, {request.user.pinCode}"
         user_address1 = user_address#f"{request.user.userAddress1} {request.user.userCity1} {STATE_CHOICES(request.user.userState1)} {request.user.pinCode1}"
         user_phone = request.user.phone
         items = Item.objects.filter(itemActive=True).order_by('-itemInStock').exclude(userID_id=request.user.pk).values('itemName').distinct().order_by('itemName')
@@ -2023,31 +2021,44 @@ def bulk_buy(request):
 
 @login_required
 def bulk_buy_order_place(request):
-    if request.user.is_authenticated:
-        #for saving the bulk buy order
-        if request.method == "POST":
-            user_id = request.user.pk
+    if request.user.is_authenticated and request.method == "POST":
+        try:
             data = json.loads(request.body)
             delivery_date = data.get('delivery_date')
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT seq FROM sqlite_sequence WHERE name = %s", ['omsapp_bulkbuy'])
-                row = cursor.fetchone()
-                if row:
-                    fetched_bulkbuy_id = row[0]
-                else:
-                    fetched_bulkbuy_id = 1
-            dict_order_invoice = create_order_invoice(fetched_bulkbuy_id, 0, user_id)
-            bulk_buy_order_no = dict_order_invoice['orderNo']+'B'
-            bulkBuyID = BulkBuy.objects.create(userID_id=request.user.pk, bulkBuyExpDate=delivery_date, bulkBuyNo=bulk_buy_order_no)
-            for row in data.get("rows", []):
-                itemName = row.get("itemName")
-                itemSpec = row.get("itemSpec")
-                itemQty = row.get("itemQty")
-                itemUnit = row.get("itemUnit")
-                itemPrice = row.get("itemPrice")
-                BulkBuyDetails.objects.create(bulkBuyID=bulkBuyID, itemName=itemName, itemSpec=itemSpec,itemQty=itemQty, itemUnit=itemUnit, itemPrice=itemPrice)
-    return redirect(f"{reverse('order_successful')}?success={'Order'}")
-    #return redirect('bulk-buy')
+            user_id = request.user.pk
+
+            with transaction.atomic():
+                # Create a temporary BulkBuy object
+                bulkBuy = BulkBuy.objects.create(
+                    userID_id=user_id,
+                    bulkBuyExpDate=delivery_date,
+                    bulkBuyNo="TEMP"  # Will be updated after getting ID
+                )
+
+                # Generate order number based on the ID
+                dict_order_invoice = create_order_invoice(bulkBuy.pk, 0, user_id)
+                bulkBuy.bulkBuyNo = dict_order_invoice['orderNo'] + 'B'
+                bulkBuy.save()
+
+                for row in data.get("rows", []):
+                    BulkBuyDetails.objects.create(
+                        bulkBuyID=bulkBuy,
+                        itemName=row.get("itemName"),
+                        itemSpec=row.get("itemSpec"),
+                        itemQty=row.get("itemQty"),
+                        itemUnit=row.get("itemUnit"),
+                        itemPrice=row.get("itemPrice")
+                    )
+
+            return JsonResponse({
+                "message": "Bulk buy order placed successfully.",
+                "redirect_url": f"{reverse('order_successful')}?success=Bulk"
+            })
+
+        except Exception as e:
+            return JsonResponse({"message": f"Error: {str(e)}"}, status=500)
+
+    return JsonResponse({"message": "Unauthorized or invalid request"}, status=403)
 
 def bulk_buy_order_response(request, bulkBuyID):
     if request.user.is_authenticated:
@@ -2386,7 +2397,7 @@ def fpo_revenue(request):
     if request.user.is_authenticated:
         user_name = request.user.last_name
         user_approved=request.user.userApproved
-        """if the user is not an FPO then the page should not be displayed"""
+        #"""if the user is not an FPO then the page should not be displayed"""
         if request.user.userType != '1':
             return redirect('index')
     else:
@@ -2397,13 +2408,17 @@ def fpo_revenue(request):
     item_total_revenue_cod = OrderDetails.objects.filter(suborderID__vendorID__id=request.user.pk, orderStatus='Accepted',suborderID__paymentMode=1).values('suborderID').aggregate(total_price_with_gst=Sum('itemPricewithGST'))['total_price_with_gst']
     item_total_revenue_inc = OrderDetails.objects.filter(suborderID__vendorID__id=request.user.pk, orderStatus='Accepted',suborderID__paymentMode=2).values('suborderID').aggregate(total_price_with_gst=Sum('itemPricewithGST'))['total_price_with_gst']
     item_total_revenue_onl = OrderDetails.objects.filter(suborderID__vendorID__id=request.user.pk, orderStatus='Accepted',suborderID__paymentMode=3).values('suborderID').aggregate(total_price_with_gst=Sum('itemPricewithGST'))['total_price_with_gst']
+    qs_order_revenue = SubOrder.objects.filter(vendorID_id=request.user.pk)
+    qs_bulk_revenue = BulkBuyResponse.objects.filter(response_userID_id = request.user.pk)
     rev_context = {
         'item_total_revenue':item_total_revenue,
         'item_total_revenue_cod':item_total_revenue_cod,
         'item_total_revenue_inc':item_total_revenue_inc,
         'item_total_revenue_onl':item_total_revenue_onl,
         'login_user':user_name,
-        'user_approved':user_approved
+        'user_approved':user_approved,
+        'qs_order_revenue':qs_order_revenue,
+        'qs_bulk_revenue':qs_bulk_revenue
     }
     return render(request, 'fpo-revenue.html', context=rev_context)
 #endregion
