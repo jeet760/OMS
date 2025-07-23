@@ -107,6 +107,31 @@
       <!-- Billing Details Table -->
       <section id="addressDetails">
         <h2 class="text-xl font-semibold mb-4 text-gray-700">2. Addresses</h2>
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">Registered Address</h2>
+        <div class="flex justify-between items-center mb-4">
+          <table id="shippingAddressTable" class="w-full text-left text-sm border border-gray-300 bg-white">
+            <thead class="text-gray-700 border-b border-gray-300">
+            <tr>
+                <th class="py-2 px-3 cursor-pointer">#</th>
+                <th class="py-2 px-3 cursor-pointer">Address</th>
+                <th class="py-2 px-3 cursor-pointer">Block/Sub District</th>
+                <th class="py-2 px-3 cursor-pointer">District</th>
+                <th class="py-2 px-3">State</th>
+                <th class="py-2 px-3">PIN</th>
+            </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-gray-300 hover:bg-gray-100">
+                <td class="py-2 px-3">1</td>
+                <td class="py-2 px-3">{{user.userAddress}}</td>
+                <td class="py-2 px-3">{{user.userCity_name}}</td>
+                <td class="py-2 px-3">{{user.userDistrict_name}}</td>
+                <td class="py-2 px-3">{{user.userState_name}}</td>
+                <td class="py-2 px-3">{{user.pinCode}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <div class="flex justify-between items-center mb-4">
           <button type="button" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" onclick="openModal('modalAddAddress')">Add Address</button>
         </div>
