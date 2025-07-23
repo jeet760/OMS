@@ -2265,7 +2265,7 @@ def STATE_CHOICES(state):
 @login_required
 def PlacedOrders(request):
     if request.user.is_authenticated:
-        pincode = request.user.pinCode1
+        pincode = request.user.pinCode
         orders = Order.objects.filter(userID=request.user.id).order_by('-orderID')
         user_name = request.user.last_name
         user_type = request.user.userType
