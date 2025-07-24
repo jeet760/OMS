@@ -1056,6 +1056,7 @@ def show_fpo_customers_in_map(request):
     user_type = request.GET.get('type')
     serving_area = request.GET.get('area')
     serving_area_code = request.GET.get('code')
+    searched_customer = request.GET.get('cust')
 
     all_customers = CustomUser.objects.all()
 
@@ -1098,7 +1099,7 @@ def show_fpo_customers_in_map(request):
         all_registered_schools_ids = all_customers.filter(userType=user_type)#registered schools
         registered_schools_counts = all_registered_schools_ids.count()
         if registered_schools_counts > 0:
-            school_context = plot_schools_on_map(map_data, all_registered_schools_ids, customer_user_ids, fpo_dist, fpo_subdist)
+            school_context = plot_schools_on_map(map_data, all_registered_schools_ids, customer_user_ids, fpo_dist, fpo_subdist, school_name=searched_customer)
             map_data = school_context['map_data']
             school_counts = school_context['school_counts']
             ordering_school_counts = school_context['ordering_school_counts']
@@ -1117,7 +1118,7 @@ def show_fpo_customers_in_map(request):
 
     return JsonResponse({'coordinates':map_data, 'total_schools':school_counts, 'registered_schools':registered_schools_counts, 'ordering_schools':ordering_school_counts})
 
-def plot_schools_on_map(map_data, all_registered_schools_ids, customer_user_ids, district_name, sub_dist_name):
+def plot_schools_on_map(map_data, all_registered_schools_ids, customer_user_ids, district_name, sub_dist_name, school_name=None):
     #fetch all the subdistrict names from SchooUDISE and get the relevant name for given parameter of sub_dist_name and dist_name
     udise_data = SchoolUDISE.objects.all()
     udise_districts = list(udise_data.filter(state_code=21).values_list('district_name', flat=True).distinct())
@@ -1128,6 +1129,8 @@ def plot_schools_on_map(map_data, all_registered_schools_ids, customer_user_ids,
 
     #fetch all schools in the area, then fetch the registered schools, then the ordering schools
     all_schools = SchoolUDISE.objects.all().filter(district_name=relevant_district, sub_dist_name=relevant_subdist)#all schools
+    if school_name is not None:
+        all_schools = all_schools.filter(school_name__icontains = school_name)
     school_counts = all_schools.count()
     for school in all_schools:
         map_data.append(
@@ -2404,12 +2407,12 @@ def fpo_revenue(request):
         user_name = 'Guest!'
         user_approved=''
 
-    item_total_revenue = OrderDetails.objects.filter(suborderID__vendorID__id=request.user.pk, orderStatus='Accepted').values('suborderID').aggregate(total_price_with_gst=Sum('itemPricewithGST'))['total_price_with_gst']
-    item_total_revenue_cod = OrderDetails.objects.filter(suborderID__vendorID__id=request.user.pk, orderStatus='Accepted',suborderID__paymentMode=1).values('suborderID').aggregate(total_price_with_gst=Sum('itemPricewithGST'))['total_price_with_gst']
-    item_total_revenue_inc = OrderDetails.objects.filter(suborderID__vendorID__id=request.user.pk, orderStatus='Accepted',suborderID__paymentMode=2).values('suborderID').aggregate(total_price_with_gst=Sum('itemPricewithGST'))['total_price_with_gst']
-    item_total_revenue_onl = OrderDetails.objects.filter(suborderID__vendorID__id=request.user.pk, orderStatus='Accepted',suborderID__paymentMode=3).values('suborderID').aggregate(total_price_with_gst=Sum('itemPricewithGST'))['total_price_with_gst']
-    qs_order_revenue = SubOrder.objects.filter(vendorID_id=request.user.pk)
-    qs_bulk_revenue = BulkBuyResponse.objects.filter(response_userID_id = request.user.pk)
+    item_total_revenue = OrderDetails.objects.filter(suborderID__vendorID__id=request.user.pk, orderStatus='Accepted').values('suborderID').aggregate(total_price_with_gst=Sum('itemPricewithGST'))['total_price_with_gst'] or 0
+    item_total_revenue_cod = OrderDetails.objects.filter(suborderID__vendorID__id=request.user.pk, orderStatus='Accepted',suborderID__paymentMode=1).values('suborderID').aggregate(total_price_with_gst=Sum('itemPricewithGST'))['total_price_with_gst'] or 0
+    item_total_revenue_inc = OrderDetails.objects.filter(suborderID__vendorID__id=request.user.pk, orderStatus='Accepted',suborderID__paymentMode=2).values('suborderID').aggregate(total_price_with_gst=Sum('itemPricewithGST'))['total_price_with_gst'] or 0
+    item_total_revenue_onl = OrderDetails.objects.filter(suborderID__vendorID__id=request.user.pk, orderStatus='Accepted',suborderID__paymentMode=3).values('suborderID').aggregate(total_price_with_gst=Sum('itemPricewithGST'))['total_price_with_gst'] or 0
+    qs_order_revenue = SubOrder.objects.filter(vendorID_id=request.user.pk).filter(Q(orderStatus='Delivered')|Q(orderStatus='Invoiced'))
+    #qs_bulk_revenue = BulkBuyResponse.objects.filter(response_userID_id = request.user.pk)
     rev_context = {
         'item_total_revenue':item_total_revenue,
         'item_total_revenue_cod':item_total_revenue_cod,
@@ -2418,9 +2421,27 @@ def fpo_revenue(request):
         'login_user':user_name,
         'user_approved':user_approved,
         'qs_order_revenue':qs_order_revenue,
-        'qs_bulk_revenue':qs_bulk_revenue
+        #'qs_bulk_revenue':qs_bulk_revenue
     }
     return render(request, 'fpo-revenue.html', context=rev_context)
+#endregion
+
+#region FPO Customers
+def fpo_customers(request):
+    fpo_id = request.user.pk
+    qs_so_customers = SubOrder.objects.filter(vendorID_id=fpo_id)
+    total_customers = qs_so_customers.values('customerID_id').distinct().count()
+    total_schools = qs_so_customers.filter(customerID_id__userType='3').distinct().count()
+    total_others = total_customers - total_schools
+    tab_so_customers = qs_so_customers.filter(orderStatus='Delivered').values('customerID','customerID_id__last_name','customerID_id__userType','customerID_id__phone').annotate(total_orders=Count('suborderID', distinct=True),order_amount=Sum('orderdetails__itemPricewithGST'))
+    cust_contxt = {
+        'qs_so_customers':qs_so_customers,
+        'total_customers':total_customers,
+        'total_schools':total_schools,
+        'total_others':total_others,
+        'tab_so_customers':tab_so_customers
+    }
+    return render(request, 'fpo-customers.html', context=cust_contxt)
 #endregion
 
 #region Payment module (Razorpay integration)

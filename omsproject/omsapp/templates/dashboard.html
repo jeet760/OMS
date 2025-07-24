@@ -6,9 +6,6 @@
         height: 500px;
         margin-bottom: 20px;
     }
-    input[type=text] {
-        width: 200px;
-    }
 
     .leaflet-control-geocoder-form input {
         color: black; /* Change this to any color you want */
@@ -21,7 +18,6 @@
         font-style: italic;
     }
 </style>
-<h2 class="text-xl font-semibold mb-4">Dashboard</h2>
 <div class="bg-white p-4 shadow rounded border border-gray-300">
     <!-- <section id="values">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -53,50 +49,34 @@
     </section> -->
     <section id="analytics_map">
         <h2 class="text-xl font-semibold mb-4">Analytics</h2>
-        <div class="flex flex-col md:flex-row items-center gap-4 mb-4">
+        <div class="flex flex-col md:flex-row items-center md:items-stretch gap-4 mb-4">
             <!-- Select Dropdown -->
-            <label for="servingArea">Select Operating Area:</label>
-            <select id="servingArea" name="servingArea" class="servingArea w-full md:w-auto border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Select Area</option>
-                {% for area in dashboard.serving_area %}
-                <option value="{{area.userCity1}}">{{area.userCity1_name}}</option>
-                {% endfor %}
-            </select>
+            <div class="flex flex-col">
+                <label for="servingArea" class="mb-1">Select Operating Area:</label>
+                <select id="servingArea" name="servingArea"
+                    class="servingArea w-full md:w-60 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select Area</option>
+                    {% for area in dashboard.serving_area %}
+                    <option value="{{ area.userCity1 }}">{{ area.userCity1_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- School Card -->
+            <a href="#" onclick="showing_users_in_map('3')" class="w-full md:w-48">
+                <div class="bg-yellow-500 text-white p-4 rounded shadow h-full">
+                <h3 class="text-sm">School</h3>
+                <p class="text-2xl font-semibold mt-1" id="schools"></p>
+                </div>
+            </a>
+            <!-- Others Card -->
+            <a href="#" onclick="showing_users_in_map('5')" class="w-full md:w-48">
+                <div class="bg-purple-500 text-white p-4 rounded shadow h-full">
+                <h3 class="text-sm">Others</h3>
+                <p class="text-2xl font-semibold mt-1" id="individuals"></p>
+                </div>
+            </a>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-5">
-            <a href="#" onclick="showing_users_in_map('3')">
-                <div class="bg-yellow-500 text-white p-4 rounded shadow">
-                    <h3 class="text-sm">School</h3>
-                    <p class="text-2xl font-semibold mt-1" id="schools"></p>
-                </div>
-            </a>
-            <a href="#" onclick="showing_users_in_map('5')">
-                <div class="bg-purple-500 text-white p-4 rounded shadow">
-                    <h3 class="text-sm">Others</h3>
-                    <p class="text-2xl font-semibold mt-1" id="individuals"></p>
-                </div>
-            </a>
-            <!-- <a href="#" onclick="showing_users_in_map('1')">
-                <div class="bg-blue-500 text-white p-4 rounded shadow">
-                    <h3 class="text-sm">FPO</h3>
-                    <p class="text-2xl font-semibold mt-1" id="fpos"></p>
-                </div>
-            </a>
-            <a href="#" onclick="showing_users_in_map('2')">
-                <div class="bg-pink-500 text-white p-4 rounded shadow">
-                    <h3 class="text-sm">Business</h3>
-                    <p class="text-2xl font-semibold mt-1" id="businesses"></p>
-                </div>
-            </a>
-            <a href="#" onclick="showing_users_in_map('4')">
-                <div class="bg-green-500 text-white p-4 rounded shadow">
-                    <h3 class="text-sm">Overseas</h3>
-                    <p class="text-2xl font-semibold mt-1" id="overseas"></p>
-                </div>
-            </a> -->
-        </div>
-        <br>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             <div id="div_total" class="bg-white-500 text-black p-4 rounded shadow">
                 <h3 class="text-sm" id="h3_total">Total</h3>
                 <p class="text-2xl font-semibold mt-1" id="total_schools"></p>
@@ -110,6 +90,22 @@
                 <p class="text-2xl font-semibold mt-1" id="ordering_schools"></p>
             </div>
         </div>
+        <div class="relative w-full mb-4">
+            <input type="text" id="customerSearch" placeholder="Search School..."
+                class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
+
+            <button onclick="showing_users_in_map('3')" type="button"
+                class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 focus:outline-none">
+                <!-- Search Icon (Heroicon) -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
+                </svg>
+            </button>
+        </div>
+
+
         <div class="bg-white p-4 shadow rounded">
         <div id="map"></div>
         <script>
@@ -120,10 +116,12 @@
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
             let markers =  L.layerGroup().addTo(map);
+
             function showing_users_in_map(userType){
                 markers.clearLayers();
                 const servingArea = document.getElementById('servingArea');
                 const selectedArea = servingArea.options[servingArea.selectedIndex].text;
+                const school = document.getElementById('customerSearch').value;
                 if(servingArea.value === ''){
                     alert('Please select a serving area!');
                     return;
@@ -186,7 +184,7 @@
 
                 var locations = [];
                 // Example markers — in Django, these are generated from the context
-                let url = "{% url 'track-coordinate' %}?type="+userType+"&area="+selectedArea+"&code="+servingArea.value;
+                let url = "{% url 'track-coordinate' %}?type="+userType+"&area="+selectedArea+"&code="+servingArea.value+"&cust="+school;
                 fetch(url)  // Replace with your actual Django view URL
                 .then(response => {
                     if (!response.ok) {

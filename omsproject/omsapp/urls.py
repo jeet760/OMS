@@ -91,7 +91,8 @@ urlpatterns = [
     path('profile/auth/save', views.upload_fpo_docs, name='profile-auth-save'),
     path('profile/verify/<int:userID>', views.verify_fpo, name='profile-verify'),
     
-    path('revenue/', views.fpo_revenue, name='revenue'),
+    path('revenue/', views.fpo_revenue, name='fpo-revenue'),
+    path('customers/', views.fpo_customers, name='fpo-customers'),
 
     path('receivedorders/', views.ReceivedOrders, name='receivedorders'),
     path('invoicedorders/', views.invoiced_orders, name='invoicedorders'),

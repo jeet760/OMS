@@ -1,7 +1,6 @@
 {% extends 'admin-console.html' %}
 {% load static %}
 {% block fpo_revenue %}
-<h2 class="text-xl font-semibold mb-4">Revenue</h2>
 <div class="bg-white p-4 shadow rounded border border-gray-300 mb-4">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <a href="#" onclick="filterTable('All','revenueTable','source')">
@@ -38,9 +37,8 @@
                     <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'revenueTable')">#</th>
                     <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'revenueTable')">Order #</th>
                     <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'revenueTable')">Order Date</th>
-                    <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'revenueTable')">Amount</th>
+                    <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'revenueTable')">Total Amount</th>
                     <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'revenueTable')">Transportation</th>
-                    <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'revenueTable')">Grand Total</th>
                     <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'revenueTable')">Payment Mode</th>
                 </tr>
             </thead>
@@ -52,9 +50,14 @@
                     <td class="py-2 px-3">{{order.orderID.orderDate}}</td>
                     <td class="py-2 px-3">{{order.orderID.orderAmount}}</td>
                     <td class="py-2 px-3">{{order.orderID.orderTransportation}}</td>
-                    <td class="py-2 px-3">{{order.orderID.orderGrandTotal}}</td>
                     <td class="py-2 px-3">
-                        {{order.orderID.paymentMode}}
+                        {% if order.orderID.paymentMode == 1 %}
+                        Cash
+                        {% elif order.orderID.paymentMode == 2 %}
+                        Credit
+                        {% elif order.orderID.paymentMode == 3 %}
+                        Online
+                        {% endif %}
                     </td>
                 </tr>
                 {% empty %}

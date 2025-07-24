@@ -1,0 +1,62 @@
+{% extends 'admin-console.html' %}
+{% load static %}
+{% block fpo_customers %}
+<div class="bg-white p-4 shadow rounded border border-gray-300 mb-4">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <a href="#" onclick="filterTable('All','customerTable','source')">
+            <div class="bg-green-500 text-white p-4 rounded shadow">
+                <h3 class="text-sm">Total Customers</h3>
+                <p class="text-2xl font-semibold mt-1">{{total_customers}}</p>
+            </div>
+        </a>
+        <a href="#" onclick="filterTable('1','customerTable','source')">
+            <div class="bg-blue-500 text-white p-4 rounded shadow">
+                <h3 class="text-sm">Schools</h3>
+                <p class="text-2xl font-semibold mt-1">{{total_schools}}</p>
+            </div>
+        </a>
+        <a href="#" onclick="filterTable('2','customerTable','source')">
+            <div class="bg-yellow-500 text-white p-4 rounded shadow">
+                <h3 class="text-sm">Others</h3>
+                <p class="text-2xl font-semibold mt-1">{{total_others}}</p>
+            </div>
+        </a>
+    </div>
+    <div class="bg-white p-4 shadow rounded border border-gray-300">
+        <table id="customerTable" class="w-full text-left text-sm border border-gray-300 bg-white">
+            <thead class="text-gray-700 border-b border-gray-300">
+                <tr>
+                    <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'customerTable')">#</th>
+                    <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'customerTable')">Name</th>
+                    <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'customerTable')">User Type</th>
+                    <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'customerTable')">Phone</th>
+                    <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'customerTable')">No. of Orders</th>
+                    <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'customerTable')">Receivables(in ₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in tab_so_customers %}
+                <tr class="border-b border-gray-300 hover:bg-gray-100" data-source="{{customer.customerID.userType}}">
+                    <td class="py-2 px-3">{{forloop.counter}}</td>
+                    <td class="py-2 px-3">{{customer.customerID_id__last_name}}</td>
+                    <td class="py-2 px-3">
+                        {% if customer.customerID_id__userType == 3 %}
+                        School
+                        {% else %}
+                        Others
+                        {% endif %}
+                    </td>
+                    <td class="py-2 px-3">{{customer.customerID_id__phone}}</td>
+                    <td class="py-2 px-3">{{customer.total_orders}}</td>
+                    <td class="py-2 px-3">{{customer.order_amount}}</td>
+                </tr>
+                {% empty %}
+                <tr class="border-b border-gray-300 hover:bg-gray-100">
+                    <td colspan="6">Order not found!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

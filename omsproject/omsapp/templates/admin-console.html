@@ -313,15 +313,36 @@
         </div>
         {% if user.userType == '1' %}
         <nav class="p-4 space-y-2">
-          <a href="{% url 'dashboard' %}" class="block p-2 hover:bg-green-100 rounded">Dashboard</a>
-          <a href="{% url 'item_list' %}" class="block p-2 hover:bg-green-100 rounded">Items</a>
-          <a href="{% url 'receivedorders' %}" class="block p-2 hover:bg-green-100 rounded">Orders</a>
-          <a href="{% url 'bulk-buy-supply' %}" class="block p-2 hover:bg-green-100 rounded">Bulk Buy</a>
-          <a href="{% url 'revenue' %}" class="block p-2 hover:bg-green-100 rounded">Revenue</a>
-          <a href="{% url 'user-form' %}" class="block p-2 hover:bg-green-100 rounded">Settings</a>
-          <!-- <a href="#customers" class="block p-2 hover:bg-green-100 rounded">Customers</a> -->
-          <!-- <a href="#notifications" class="block p-2 hover:bg-green-100 rounded">Notifications</a> -->
+          <a href="{% url 'dashboard' %}"
+            class="block p-2 rounded {% if request.path == request.build_absolute_uri|cut:request.get_full_path %}{% elif request.path == '/' or request.resolver_match.url_name == 'dashboard' %}bg-green-100 text-2xl font-bold{% endif %} hover:bg-green-100">
+            Dashboard
+          </a>
+          <a href="{% url 'item_list' %}"
+            class="block p-2 rounded {% if request.resolver_match.url_name == 'item_list' %}bg-green-100 text-2xl font-bold{% endif %} hover:bg-green-100">
+            Items
+          </a>
+          <a href="{% url 'receivedorders' %}"
+            class="block p-2 rounded {% if request.resolver_match.url_name == 'receivedorders' %}bg-green-100 text-2xl font-bold{% endif %} hover:bg-green-100">
+            Orders
+          </a>
+          <a href="{% url 'bulk-buy-supply' %}"
+            class="block p-2 rounded {% if request.resolver_match.url_name == 'bulk-buy-supply' %}bg-green-100 text-2xl font-bold{% endif %} hover:bg-green-100">
+            Bulk Buy
+          </a>
+          <a href="{% url 'fpo-customers' %}"
+            class="block p-2 rounded {% if request.resolver_match.url_name == 'fpo-customers' %}bg-green-100 text-2xl font-bold{% endif %} hover:bg-green-100">
+            Customers
+          </a>
+          <a href="{% url 'fpo-revenue' %}"
+            class="block p-2 rounded {% if request.resolver_match.url_name == 'fpo-revenue' %}bg-green-100 text-2xl font-bold{% endif %} hover:bg-green-100">
+            Revenue
+          </a>
+          <a href="{% url 'user-form' %}"
+            class="block p-2 rounded {% if request.resolver_match.url_name == 'user-form' %}bg-green-100 text-2xl font-bold{% endif %} hover:bg-green-100">
+            Settings
+          </a>
         </nav>
+
         {% elif user.userType == '0'%}
         <nav class="p-4 space-y-2">
           <a href="{% url 'user-form' %}" class="block p-2 hover:bg-green-100 rounded">Settings</a>
@@ -397,16 +418,13 @@
           </section>
 
           <!-- Customers -->
-          <!-- <section id="customers" class="mt-10">
-            <h2 class="text-xl font-semibold mb-4">Customers</h2>
-            <div class="bg-white p-4 shadow rounded">
-              <p>Customer list and actions here.</p>
-            </div>
-          </section> -->
+          <section id="customers">
+            {% block fpo_customers %}{% endblock %}
+          </section>
 
 
           <!-- FPO Revenue -->
-          <section id="settings">
+          <section id="revenue">
             {% block fpo_revenue %}{% endblock %}
           </section>
 

@@ -16,7 +16,6 @@
     color: red;
   }
 </style>
-<h2 class="text-xl font-semibold mb-4">Settings</h2>
 <div class="bg-white p-4 shadow rounded border border-gray-300">
     <h1 class="text-2xl font-bold mb-6 text-gray-800">Registration Form</h1>
     <form class="space-y-8" method="post" action="{% if userform.is_authenticated %}{% url 'register' %}{% else %}{% url 'register' %}{% endif %}">
