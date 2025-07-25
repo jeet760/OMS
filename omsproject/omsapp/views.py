@@ -1117,11 +1117,11 @@ def show_fpo_customers_in_map(request):
     elif user_type == '3':#school
         all_registered_schools_ids = all_customers.filter(userType=user_type)#registered schools
         registered_schools_counts = all_registered_schools_ids.count()
-        if registered_schools_counts > 0:
-            school_context = plot_schools_on_map(map_data, all_registered_schools_ids, customer_user_ids, fpo_dist, fpo_subdist, school_name=searched_customer)
-            map_data = school_context['map_data']
-            school_counts = school_context['school_counts']
-            ordering_school_counts = school_context['ordering_school_counts']
+        #if registered_schools_counts > 0:
+        school_context = plot_schools_on_map(map_data, all_registered_schools_ids, customer_user_ids, fpo_dist, fpo_subdist, school_name=searched_customer)
+        map_data = school_context['map_data']
+        school_counts = school_context['school_counts']
+        ordering_school_counts = school_context['ordering_school_counts']
     elif user_type == '4':#overseas
         all_registered_overseas_ids = all_customers.filter(userType=user_type)
     elif user_type == '5':#individual
@@ -1192,11 +1192,11 @@ def plot_schools_on_map(map_data, all_registered_schools_ids, customer_user_ids,
             }
         )
 
-        return_context = {
-            'map_data':map_data,
-            'school_counts':school_counts,
-            'ordering_school_counts':ordering_school_counts
-        }
+    return_context = {
+        'map_data':map_data,
+        'school_counts':school_counts,
+        'ordering_school_counts':ordering_school_counts
+    }
     return return_context
 
 def plot_individuals_on_map(map_data, all_registered_indv_ids, customer_user_ids):
