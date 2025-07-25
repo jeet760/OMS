@@ -560,10 +560,14 @@ def register(request):
                     school = get_object_or_404(SchoolUDISE, udise_code=user.udise_code)
                     loc_lat=school.loc_lat
                     loc_long=school.loc_long
-                UserBillingAddresses.objects.create(userID_id=user.pk,userAddress=user.userAddress, userCity=user.userCity, userDistrict=user.userDistrict, userState=user.userState, pinCode=user.pinCode, contactPerson=contact_person, contactNo=contact_no, address_lat=loc_lat, address_long=loc_long, setDefault=True)
-                UserShippingAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress, userCity1=user.userCity, userDistrict1=user.userDistrict, userState1=user.userState, pinCode1=user.pinCode, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=loc_lat, address_long1=loc_long, setDefault=True)
+                lgd_data = fetch_lgd_data_from_api(user.userState, user.userDistrict, user.userCity)
+                userCity_name = lgd_data['sub_dist_name']
+                userDistrict_name = lgd_data['district_name']
+                userState_name = lgd_data['state_name']
+                UserBillingAddresses.objects.create(userID_id=user.pk,userAddress=user.userAddress, userCity=user.userCity, userCity_name=userCity_name, userDistrict=user.userDistrict, userDistrict_name=userDistrict_name, userState=user.userState, userState_name=userState_name, pinCode=user.pinCode, contactPerson=contact_person, contactNo=contact_no, address_lat=loc_lat, address_long=loc_long, setDefault=True)
+                UserShippingAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress, userCity1=user.userCity, userCity1_name=userCity_name, userDistrict1=user.userDistrict, userDistrict1_name=userDistrict_name, userState1=user.userState, userState1_name=userState_name, pinCode1=user.pinCode, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=loc_lat, address_long1=loc_long, setDefault=True)
                 if user.userType == '1':
-                    FPOServingAddresses.objects.create(userID_id=user.pk, userAddress1=user.userAddress, userCity1=user.userCity, userDistrict1=user.userDistrict, userState1=user.userState, pinCode1=user.pinCode, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=loc_lat, address_long1=loc_long, isActive=True)
+                    FPOServingAddresses.objects.create(userID_id=user.pk, userAddress1=user.userAddress, userCity1=user.userCity, userCity1_name=userCity_name, userDistrict1=user.userDistrict, userDistrict1_name=userDistrict_name, userState1=user.userState, userState1_name=userState_name, pinCode1=user.pinCode, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=loc_lat, address_long1=loc_long, isActive=True)
                 if user.userType != '1':
                     CustomUser.objects.filter(pk=user.id).update(userApproved=True,approvedOn=datetime.today(),isActive=True,activatedOn=datetime.today())
                 return redirect('login')  # Redirect to a home page
