@@ -678,7 +678,7 @@ def upload_fpo_docs(request):
     return redirect('index')
 
 def approve_user(request, userID):
-    CustomUser.objects.filter(pk=userID).update(userApproved=True,approvedOn=datetime.now())
+    CustomUser.objects.filter(pk=userID).update(userApproved=True, isActive=True, approvedOn=datetime.now())
     return redirect('admin-master')
 
 def verify_fpo(request, userID):
