@@ -55,7 +55,11 @@
                     {% endif %}
                 </td>
                 <td class="py-2 px-3">
+                    {% if userApproved == True %}
                     <a href="{% url 'bulk-buy-details' order.bulkBuyID %}" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white">View</a>
+                    {% else %}
+                    <a href="{% url 'bulk-buy-details' order.bulkBuyID %}" class="px-2 py-1 text-xs rounded bg-yellow-600 text-white disabled-inputs">View</a>
+                    {%endif%}
                 </td>
             </tr>
             {% empty %}

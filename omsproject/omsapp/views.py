@@ -166,10 +166,20 @@ def is_online(host='api.postalpincode.in', port=443, timeout=3):
 
 def PinCodeAPI(request, pincode):
     if is_online() == True:
-        api_response = requests.get(f'https://api.postalpincode.in/pincode/{pincode}') 
-        postalData = api_response.json()
-        postoffice_data = postalData[0]['PostOffice']
-        return postoffice_data[0]['Name']+", "+postoffice_data[0]['Block']
+        post_api = f'https://api.postalpincode.in/pincode/{pincode}'
+        try:
+            api_response = requests.get(post_api) 
+            postalData = api_response.json()
+            postalData_response = ''
+            if postalData[0]['Status'] == 'Success':
+                postoffice_data = postalData[0]['PostOffice']
+                postalData_response = postoffice_data[0]['Name']+", "+postoffice_data[0]['Block']
+            else:
+                postoffice_data[0]['Message']
+        except Exception as ex:
+            print(ex)
+            postalData_response = pincode
+        return postalData_response
     else:
         messages.error(request, 'Failed to connect to internet!')
 
@@ -552,6 +562,8 @@ def register(request):
                     loc_long=school.loc_long
                 UserBillingAddresses.objects.create(userID_id=user.pk,userAddress=user.userAddress, userCity=user.userCity, userDistrict=user.userDistrict, userState=user.userState, pinCode=user.pinCode, contactPerson=contact_person, contactNo=contact_no, address_lat=loc_lat, address_long=loc_long, setDefault=True)
                 UserShippingAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress, userCity1=user.userCity, userDistrict1=user.userDistrict, userState1=user.userState, pinCode1=user.pinCode, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=loc_lat, address_long1=loc_long, setDefault=True)
+                if user.userType == '1':
+                    FPOServingAddresses.objects.create(userID_id=user.pk, userAddress1=user.userAddress, userCity1=user.userCity, userDistrict1=user.userDistrict, userState1=user.userState, pinCode1=user.pinCode, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=loc_lat, address_long1=loc_long, isActive=True)
                 if user.userType != '1':
                     CustomUser.objects.filter(pk=user.id).update(userApproved=True,approvedOn=datetime.today(),isActive=True,activatedOn=datetime.today())
                 return redirect('login')  # Redirect to a home page
@@ -980,7 +992,10 @@ def login_view(request):
                         if user_login.userType == '0' and user_login.is_superuser:
                             return redirect('admin-master')
                         elif user_login.userType == '1':
-                            return redirect('dashboard')
+                            if user_login.userApproved:
+                                return redirect('dashboard')
+                            else:
+                                return redirect('profile-auth')
                         else:
                             return redirect('index')
                 else:
@@ -2157,13 +2172,15 @@ def bulk_buy_order_details(request, bulk_order_id):
 
 def bulk_buy_supply(request):
     if request.user.is_authenticated:
-        user_name = request.user.last_name
+        userApproved = False if request.user.userApproved == None or False else True
+        login_user = request.user.last_name
         bulkorder = BulkBuy.objects.annotate(count_items=Count('bulkbuyid_bbd', distinct=True, ), count_response = Count('bulkbuyid_bbr',distinct=True))
         no_of_bulk_buy_orders = bulkorder.__len__()
         no_bulk_buy_orders_responded = BulkBuyResponse.objects.filter(response_userID_id=request.user.pk).__len__()
     bulk_context = {
         'bulkorders':bulkorder,
-        'login_user':user_name,
+        'login_user':login_user,
+        'userApproved':userApproved,
         'no_of_bulk_buy_orders':no_of_bulk_buy_orders,
         'no_bulk_buy_orders_responded':no_bulk_buy_orders_responded,
     }

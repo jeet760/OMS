@@ -56,6 +56,7 @@
                                     <th style="font-size:large;" class="shoping__product">Name</th>
                                     <th style="font-size:large;">Price (in ₹)</th>
                                     <th style="font-size:large;">Qty.</th>
+                                    <th style="font-size:large;">Unit</th>
                                     <th style="font-size:large;">Total (in ₹)</th>
                                     <th style="font-size:large;">Remove</th>
                                 </tr>
@@ -82,16 +83,22 @@
                                         <span class="form-text">
                                             Sold By: {{ item.product.userID.first_name }}
                                         </span>
+                                        <span class="form-text">
+                                            Item Unit: 
+                                        </span>
                                     </td>
                                     <td class="shoping__cart__price">
                                         {{ item.price }}
                                     </td>
-                                    <td>
+                                    <td class="shoping__cart__price">
                                         <div class="item_qty_div">
                                             <button type="button" class="btn_qty" onclick="changeQuantity(this, -1)">−</button>
                                             <input type="text" class="input_qty" data-item-id="{{item.product.itemID}}" name="selectQuantity" value="{{ item.quantity }}" min="1" style="width: 60px; text-align: center;">
                                             <button type="button" class="btn_qty" onclick="changeQuantity(this, 1)">+</button>
                                         </div>
+                                    </td>
+                                    <td class="shoping__cart__total">
+                                        {{ item.product.itemUnit }}
                                     </td>
                                     <td class="shoping__cart__total">
                                         {{ item.total_price }}
