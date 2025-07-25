@@ -785,7 +785,7 @@ def add_address(request):
             UserBillingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
             UserBillingAddresses.objects.get_or_create(userID_id=userID, userAddress=userAddress, userCity=userCity_code, userDistrict=userDistrict_code,userState=userState_code,pinCode=pinCode,contactNo=contactNo, contactPerson=contactPerson, address_lat=0.00, address_long=0.00, setDefault=setDefault)
             UserShippingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
-            UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity_code, userDistrict=userDistrict_code,userState1=userState_code,pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=0.00, address_long1=0.00, setDefault=setDefault)
+            UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity_code, userDistrict1=userDistrict_code,userState1=userState_code,pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=0.00, address_long1=0.00, setDefault=setDefault)
     
         referer = request.META.get('HTTP_REFERER')
         parsed_url = urlparse(referer)
