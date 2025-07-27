@@ -151,9 +151,9 @@
                                         {% for state_code in states %}
                                         {% if state_code.0 == bill_address.userState %}
                                         {% if bill_address.setDefault %}
-                                            <input type="radio" name="bill_address" value="{{bill_address.id}}" checked>{{bill_address.userAddress}}, {{bill_address.userCity}}, {{state_code.1}}, {{bill_address.pinCode}}
+                                            <input type="radio" name="bill_address" value="{{bill_address.id}}" checked>{{bill_address.userAddress}}, {{bill_address.userCity_name}}, {{state_code.1}}, {{bill_address.pinCode}}
                                         {% else %}
-                                        <input type="radio" name="bill_address" value="{{bill_address.id}}">{{bill_address.userAddress}}, {{bill_address.userCity}}, {{state_code.1}}, {{bill_address.pinCode}}
+                                        <input type="radio" name="bill_address" value="{{bill_address.id}}">{{bill_address.userAddress}}, {{bill_address.userCity_name}}, {{state_code.1}}, {{bill_address.pinCode}}
                                         {% endif %}
                                         {% endif %}
                                         {% endfor %}
@@ -170,15 +170,15 @@
                                         {% if state_code.0 == ship_address.userState1 %}
                                         {% if ship_address.setDefault %}
                                             {% if ship_address.pinCode1 == pincode %}
-                                            <input type="radio" name="ship_address" value="{{ship_address.id}}" checked>{{ship_address.userAddress1}}, {{ship_address.userCity1}}, {{state_code.1}}, {{ship_address.pinCode1}}
+                                            <input type="radio" name="ship_address" value="{{ship_address.id}}" checked>{{ship_address.userAddress1}}, {{ship_address.userCity1_name}}, {{state_code.1}}, {{ship_address.pinCode1}}
                                             {% else %}
-                                            <input type="radio" name="ship_address" value="{{ship_address.id}}" disabled><span style="opacity: 0.5;">{{ship_address.userAddress1}}, {{ship_address.userCity1}}, {{state_code.1}}, {{ship_address.pinCode1}}</span> <span style="color: red;">(Can't be delivered Here!)</span>
+                                            <input type="radio" name="ship_address" value="{{ship_address.id}}" disabled><span style="opacity: 0.5;">{{ship_address.userAddress1}}, {{ship_address.userCity1_name}}, {{state_code.1}}, {{ship_address.pinCode1}}</span> <span style="color: red;">(Can't be delivered Here!)</span>
                                             {% endif %}
                                         {% else %}
                                             {% if ship_address.pinCode1 == pincode %}
-                                            <input type="radio" name="ship_address" value="{{ship_address.id}}">{{ship_address.userAddress1}}, {{ship_address.userCity1}}, {{state_code.1}}, {{ship_address.pinCode1}}
+                                            <input type="radio" name="ship_address" value="{{ship_address.id}}">{{ship_address.userAddress1}}, {{ship_address.userCity1_name}}, {{state_code.1}}, {{ship_address.pinCode1}}
                                             {% else %}
-                                            <input type="radio" name="ship_address" value="{{ship_address.id}}" disabled><span style="opacity: 0.5;">{{ship_address.userAddress1}}, {{ship_address.userCity1}}, {{state_code.1}}, {{ship_address.pinCode1}}</span> <span style="color: red;">(Can't be delivered Here!)</span>
+                                            <input type="radio" name="ship_address" value="{{ship_address.id}}" disabled><span style="opacity: 0.5;">{{ship_address.userAddress1}}, {{ship_address.userCity1_name}}, {{state_code.1}}, {{ship_address.pinCode1}}</span> <span style="color: red;">(Can't be delivered Here!)</span>
                                             {% endif %}
                                         {% endif %}
                                         {% endif %}

@@ -542,7 +542,7 @@ def register(request):
                         return redirect('register')
                     else:
                         user = form.save(param_password=request.POST['udise_code'])
-                        messages.success(request,f'You can use your phone number {request.POST['phone']} or UDISE Code {request.POST['udise_code']} as Username.\nPassword is your phone number.')
+                        messages.success(request,f'You can use your phone number {request.POST['phone']} or UDISE Code {request.POST['udise_code']} as Username.\nPassword is the UDISE Code.')
                 elif request.POST['userType'] == '1':
                     regn_no = create_fpo_regn_id(request.POST['userState'],request.POST['userDistrict'],request.POST['userCity'])
                     user = form.save(param_password=request.POST['phone'], commit=False)
@@ -554,16 +554,23 @@ def register(request):
                     messages.success(request,f'You can use phone number {request.POST['phone']} as Username.\nPassword is your phone number.')
                 contact_person = user.last_name
                 contact_no = user.phone
-                loc_lat = 20.9517
-                loc_long = 85.0985
+
+                pincode_lat_lon_data = fetch_lat_lon_from_pincode_api(user.pinCode)
+                loc_lat = pincode_lat_lon_data['lat']
+                loc_long = pincode_lat_lon_data['lon']
+                # loc_lat = 20.9517
+                # loc_long = 85.0985
                 if user.userType == '3':
                     school = get_object_or_404(SchoolUDISE, udise_code=user.udise_code)
                     loc_lat=school.loc_lat
                     loc_long=school.loc_long
+                    
                 lgd_data = fetch_lgd_data_from_api(user.userState, user.userDistrict, user.userCity)
                 userCity_name = lgd_data['sub_dist_name']
                 userDistrict_name = lgd_data['district_name']
                 userState_name = lgd_data['state_name']
+
+                CustomUser.objects.filter(pk=user.id).update(userCity_name=userCity_name, userDistrict_name=userDistrict_name, userState_name=userState_name, bill_address_lat = loc_lat, bill_address_long = loc_long, ship_address_lat = loc_lat, ship_address_long = loc_long)
                 UserBillingAddresses.objects.create(userID_id=user.pk,userAddress=user.userAddress, userCity=user.userCity, userCity_name=userCity_name, userDistrict=user.userDistrict, userDistrict_name=userDistrict_name, userState=user.userState, userState_name=userState_name, pinCode=user.pinCode, contactPerson=contact_person, contactNo=contact_no, address_lat=loc_lat, address_long=loc_long, setDefault=True)
                 UserShippingAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress, userCity1=user.userCity, userCity1_name=userCity_name, userDistrict1=user.userDistrict, userDistrict1_name=userDistrict_name, userState1=user.userState, userState1_name=userState_name, pinCode1=user.pinCode, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=loc_lat, address_long1=loc_long, setDefault=True)
                 if user.userType == '1':
@@ -789,19 +796,22 @@ def add_address(request):
         contactNo = request.POST.get('contactNo')
         setDefault = True
         type_of_address = request.POST.get('selectAddress')
+        lat_lon = fetch_lat_lon_from_pincode_api(pinCode)
+        pincode_lat = lat_lon['lat']
+        pincode_lon = lat_lon['lon']
         if type_of_address == 'bill':
             UserBillingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
-            UserBillingAddresses.objects.get_or_create(userID_id=userID, userAddress=userAddress, userCity=userCity_code, userCity_name=userCity_name, userDistrict=userDistrict_code, userDistrict_name=userDistrict_name, userState=userState_code, userState_name=userState_name, pinCode=pinCode, contactNo=contactNo, contactPerson=contactPerson, address_lat=0.00, address_long=0.00, setDefault=setDefault)
+            UserBillingAddresses.objects.get_or_create(userID_id=userID, userAddress=userAddress, userCity=userCity_code, userCity_name=userCity_name, userDistrict=userDistrict_code, userDistrict_name=userDistrict_name, userState=userState_code, userState_name=userState_name, pinCode=pinCode, contactNo=contactNo, contactPerson=contactPerson, address_lat=pincode_lat, address_long=pincode_lon, setDefault=setDefault)
         elif type_of_address == 'ship':
             UserShippingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
-            UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity_code, userCity1_name=userCity_name, userDistrict1=userDistrict_code, userDistrict1_name=userDistrict_name, userState1=userState_code, userState1_name=userState_name, pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=0.00, address_long1=0.00, setDefault=setDefault)
+            UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity_code, userCity1_name=userCity_name, userDistrict1=userDistrict_code, userDistrict1_name=userDistrict_name, userState1=userState_code, userState1_name=userState_name, pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=pincode_lat, address_long1=pincode_lon, setDefault=setDefault)
         elif type_of_address == 'serv':
-            FPOServingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity_code, userCity1_name=userCity_name, userDistrict1=userDistrict_code, userDistrict1_name=userDistrict_name, userState1=userState_code, userState1_name=userState_name, pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=0.00, address_long1=0.00)
+            FPOServingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity_code, userCity1_name=userCity_name, userDistrict1=userDistrict_code, userDistrict1_name=userDistrict_name, userState1=userState_code, userState1_name=userState_name, pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=pincode_lat, address_long1=pincode_lon)
         elif type_of_address == 'both':
             UserBillingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
-            UserBillingAddresses.objects.get_or_create(userID_id=userID, userAddress=userAddress, userCity=userCity_code, userDistrict=userDistrict_code,userState=userState_code,pinCode=pinCode,contactNo=contactNo, contactPerson=contactPerson, address_lat=0.00, address_long=0.00, setDefault=setDefault)
+            UserBillingAddresses.objects.get_or_create(userID_id=userID, userAddress=userAddress, userCity=userCity_code, userDistrict=userDistrict_code,userState=userState_code,pinCode=pinCode,contactNo=contactNo, contactPerson=contactPerson, address_lat=pincode_lat, address_long=pincode_lon, setDefault=setDefault)
             UserShippingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
-            UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity_code, userDistrict1=userDistrict_code,userState1=userState_code,pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=0.00, address_long1=0.00, setDefault=setDefault)
+            UserShippingAddresses.objects.get_or_create(userID_id=userID, userAddress1=userAddress, userCity1=userCity_code, userDistrict1=userDistrict_code,userState1=userState_code,pinCode1=pinCode, contactNo1=contactNo, contactPerson1=contactPerson, address_lat1=pincode_lat, address_long1=pincode_lon, setDefault=setDefault)
     
         referer = request.META.get('HTTP_REFERER')
         parsed_url = urlparse(referer)
@@ -838,6 +848,18 @@ def fetch_lgd_data_from_api(state_code,district_code,sub_dist_code):
         'sub_dist_code':sub_dist_code
     }
     return return_context
+
+def fetch_lat_lon_from_pincode_api(pincode):
+    api = f'https://api.data.gov.in/resource/5c2f62fe-5afa-4119-a499-fec9d604d5bd?api-key=579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b&format=json&filters%5Bpincode%5D={pincode}'
+    api_response = requests.get(api)
+    pincode_data = api_response.json()
+    lat = pincode_data['records'][0]['latitude']
+    lon = pincode_data['records'][0]['longitude']
+    lat_lon_context = {
+        'lat':lat,
+        'lon':lon
+    }
+    return lat_lon_context
 
 def fetch_address(request, id):
     if request.user.is_authenticated:
@@ -960,12 +982,12 @@ def set_default_address(request, id):
             UserBillingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
             UserBillingAddresses.objects.filter(pk=id, userID_id=userID).update(setDefault=True)
             bill_address = get_object_or_404(UserBillingAddresses, pk=id)
-            CustomUser.objects.filter(id=userID).update(userAddress=bill_address.userAddress,userCity=bill_address.userCity,userState=bill_address.userState,pinCode=bill_address.pinCode, bill_address_lat=0.00, bill_address_long=0.00)
+            CustomUser.objects.filter(id=userID).update(userAddress=bill_address.userAddress,userCity=bill_address.userCity,userState=bill_address.userState,pinCode=bill_address.pinCode)
         else:
             UserShippingAddresses.objects.filter(userID_id=userID).update(setDefault=False)
             UserShippingAddresses.objects.filter(pk=id, userID_id=userID).update(setDefault=True)
             ship_address = get_object_or_404(UserShippingAddresses, pk=id)
-            CustomUser.objects.filter(id=userID).update(userAddress1=ship_address.userAddress1,userCity1=ship_address.userCity1,userState1=ship_address.userState1,pinCode1=ship_address.pinCode1, ship_address_lat=0.00, ship_address_long=0.00)
+            CustomUser.objects.filter(id=userID).update(userAddress1=ship_address.userAddress1,userCity1=ship_address.userCity1,userState1=ship_address.userState1,pinCode1=ship_address.pinCode1)
     return redirect('user-form')    
 
 def change_status_serving_address(request,id):
@@ -1082,8 +1104,8 @@ def show_fpo_customers_in_map(request):
     #logged in FPO data
     fpo_user_id = request.user.pk
     fpo_name = get_object_or_404(CustomUser, id=fpo_user_id).last_name
-    fpo_lat= 21.2634154
-    fpo_long = 85.8801451
+    fpo_lat= get_object_or_404(CustomUser, id=fpo_user_id).bill_address_lat #21.2634154
+    fpo_long = get_object_or_404(CustomUser, id=fpo_user_id).bill_address_long #85.8801451
     fpo_icon = 'black'
     fpo_dist = get_object_or_404(FPOServingAddresses, userID_id=fpo_user_id, userCity1=serving_area_code).userDistrict1_name
     fpo_subdist = serving_area
@@ -1170,8 +1192,8 @@ def plot_schools_on_map(map_data, all_registered_schools_ids, customer_user_ids,
         school_name = school.last_name
         school_village = school.userAddress
         total_students = get_object_or_404(SchoolUDISE, udise_code=school.udise_code).total_students
-        address_lat = get_object_or_404(UserBillingAddresses,userID_id=school_id).address_lat
-        address_long = get_object_or_404(UserBillingAddresses,userID_id=school_id).address_long
+        address_lat = get_object_or_404(UserBillingAddresses,userID_id=school_id, setDefault=True).address_lat
+        address_long = get_object_or_404(UserBillingAddresses,userID_id=school_id, setDefault=True).address_long
         order_count = 0
         icon = 'red'
         for customer in customer_user_ids:

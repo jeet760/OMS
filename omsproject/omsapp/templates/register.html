@@ -1,33 +1,14 @@
 {% extends 'index.html' %}
 {% load static %}
 {% block checkout%}
-<!-- <script>
-    function addressClick(){      
-       var cb_sameAddress = document.getElementById('cb_sameAddress');
-       if(cb_sameAddress.checked)
-          {
-             document.getElementById('userAddress1').value = document.getElementById('userAddress').value;
-             document.getElementById('userCity1').value = document.getElementById('userCity').value;
-             document.getElementById('userState1').value = document.getElementById('userState').value;
-             document.getElementById('pinCode1').value = document.getElementById('pinCode').value;
-             document.getElementById('userAddress1').readOnly = true;
-             document.getElementById('userCity1').readOnly = true;
-             document.getElementById('userState1').readOnly = true;
-             document.getElementById('pinCode1').readOnly = true;
-          }
-       else
-          {
-             document.getElementById('userAddress1').value = "";
-             document.getElementById('userCity1').value = "";
-             document.getElementById('userState1').value = "";
-             document.getElementById('pinCode1').value = "";
-             document.getElementById('userAddress1').readOnly = false;
-             document.getElementById('userCity1').readOnly = false;
-             document.getElementById('userState1').readOnly = false;
-             document.getElementById('pinCode1').readOnly = false;
-          }
+
+ <style>
+    button:focus{
+        background-color: #0856dc;  /* Change border on hover */
+        border-radius: 10px;
+        transition: 0.3s ease;
     }
- </script> -->
+ </style>
     <!-- Checkout Section Begin -->
     <section class="checkout spad">
         <div class="container">
@@ -159,51 +140,6 @@
                                     </div>
                                 </div>
                             </div>
-                            
-                            <!-- <div class="checkout__input__checkbox">
-                                <label for="cb_sameAddress">
-                                    Same Shipping Address?
-                                    <input type="checkbox" id="cb_sameAddress" onclick="addressClick()">
-                                    <span class="checkmark"></span>
-                                </label>
-                            </div>
-                            <h4>Shipping Address</h4>
-                            <div class="row">
-                                <div class="col-lg-6">
-                                    <div class="checkout__input">
-                                        <p>Address<span>*</span></p>
-                                        {{userform.userAddress1}}
-                                    </div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="checkout__input">
-                                        <p>Town/City<span>*</span></p>
-                                        {{userform.userCity1}}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-lg-6">
-                                    <div class="checkout__input">
-                                        <p>State<span>*</span></p>
-                                        {{userform.userState1}}
-                                    </div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="checkout__input">
-                                        <p>Postcode / ZIP<span>*</span></p>
-                                        {{userform.pinCode1}}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-lg-12">
-                                    <div class="checkout__input">
-                                        <p>User notes (if any)</p>
-                                        {{userform.userNote}}
-                                    </div>
-                                </div>
-                            </div> -->
                             <div class="row">
                                 <div class="col-lg-12">
                                     <button type="button" class="site-btn" style="background-color: red;">CANCEL</button>
@@ -230,12 +166,27 @@ document.getElementById('userType').addEventListener("change", function(){
     }
 });
 
+document.getElementById("userType").addEventListener("blur", function(event){
+    if(this.value == 1){
+        document.getElementById("gst_tmt").value = 1;
+    }
+    else if(this.value == 3){
+        document.getElementById("gst_tmt").value = 3;
+    }
+    else if(this.value == 5){
+        document.getElementById("gst_tmt").value = 4;
+    }
+});
+
 document.getElementById("udise_code").addEventListener("blur", function(event) {
     const form = event.target.closest(".formRegister");
     checkUserType(form);
 });
 function checkUserType(form){
     const userType=document.getElementById('userType').value;
+    if(userType == 1){
+        document.getElementById('gst_tmt').value = 1;
+    }
     if(userType == 3){
         const udise_code=document.getElementById('udise_code').value;
         var udise_len = document.getElementById('udise_code').value.length;

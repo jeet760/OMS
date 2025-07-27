@@ -2118,14 +2118,22 @@ ol {
 	color: #dd2222;
 }
 
-.checkout__input input {
+.checkout__input input,select {
 	width: 100%;
 	height: 46px;
-	border: 1px solid #ebebeb;
+	border: 2px solid #078f0c;
+	border-radius: 5px;
 	padding-left: 20px;
 	font-size: 16px;
-	color: #b2b2b2;
-	border-radius: 4px;
+	color: #000000;
+	transition: 0.3s ease;
+}
+
+/* Add glowing effect on focus */
+.checkout__input input:focus, select:focus {
+	outline: none;
+	box-shadow: 0 0 3px #078f0c;
+	border-color: #078f0c;
 }
 
 .checkout__input input.checkout__input__add {

@@ -84,15 +84,37 @@ function levenshteinDistance(a, b) {
   return matrix[b.length][a.length];
 }
 
-function fuzzySearch(query, list, threshold = 70) {
+// function fuzzySearch(query, list, threshold = 70) {
+//   query = query.toLowerCase();
+//   return list.filter(item => {
+//     const itemLower = item.toLowerCase();
+//     const distance = levenshteinDistance(query, itemLower);
+//     const maxLen = Math.max(query.length, itemLower.length);
+//     const similarity = ((maxLen - distance) / maxLen) * 100;
+//     return similarity >= threshold;
+//   });
+// }
+
+function fuzzySearch(query, items, threshold = 70) {
   query = query.toLowerCase();
-  return list.filter(item => {
+  const results = [];
+
+  for (const item of items) {
     const itemLower = item.toLowerCase();
     const distance = levenshteinDistance(query, itemLower);
     const maxLen = Math.max(query.length, itemLower.length);
     const similarity = ((maxLen - distance) / maxLen) * 100;
-    return similarity >= threshold;
-  });
+
+    if (similarity >= threshold) {
+      results.push(item);
+    }
+  }
+
+  if (results.length === 0 && threshold > 50) {
+    return fuzzySearch(query, items, 50); // recursive fallback
+  }
+
+  return results;
 }
 
 function fetch_subdistricts(statecode, districtcode, sub_district, form) {
