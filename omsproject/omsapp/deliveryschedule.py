@@ -13,7 +13,7 @@ class DeliverySchedule:
             today = today+timedelta(days=1)
 
         #print(f'Today is {today}')
-        dateSeriesRange = 8
+        dateSeriesRange = 15
         self.dateSeries = []
         self.timeSeries = ['06:00 - 08:00', '08:00 - 10:00', '10:00 - 12:00', '12:00 - 14:00', '14:00 - 16:00']
         for i in range(1, dateSeriesRange):

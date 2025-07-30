@@ -215,17 +215,19 @@ function paginate(tableId) {
     });
 
     const pagination = document.getElementById('pagination');
-    pagination.innerHTML = '';
-    for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement('button');
-        btn.textContent = i;
-        btn.className = 'px-3 py-1 rounded bg-gray-700 text-white mx-1';
-        if (i === currentPage) btn.classList.add('bg-blue-600');
-        btn.onclick = () => {
-            currentPage = i;
-            paginate();
-        };
-        pagination.appendChild(btn);
+    if (pagination){
+        pagination.innerHTML = '';
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.textContent = i;
+            btn.className = 'px-3 py-1 rounded bg-gray-700 text-white mx-1';
+            if (i === currentPage) btn.classList.add('bg-blue-600');
+            btn.onclick = () => {
+                currentPage = i;
+                paginate();
+            };
+            pagination.appendChild(btn);
+        }
     }
 }
 //#endregion

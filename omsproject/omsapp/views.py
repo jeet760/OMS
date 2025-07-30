@@ -8,6 +8,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.urls import reverse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
@@ -27,6 +28,8 @@ import socket
 import hmac
 import hashlib
 import random
+from django.core.files.base import ContentFile
+import base64
 
 #region StartPage_CommonPages
 def landing_page(request, category=None,fpo=None, region=None):
@@ -1865,6 +1868,7 @@ def received_orders_details(request, orderID):
         received_orders = OrderDetails.objects.filter(suborderID_id=suborderID).select_related('itemID')
         existing_invoices = OrderInvoice.objects.filter(orderID_id=orderID,suborderID_id=suborderID)
         user_name = request.user.last_name
+        delivery_order = OrderDelivery.objects.filter(orderID_id=orderID, suborderID_id=suborderID) if OrderDelivery.objects.filter(orderID_id=orderID, suborderID_id=suborderID).count() > 0 else 0
         invoiceForm = InvoiceForm()
         context = {
             'received_orders': received_orders,
@@ -1882,7 +1886,8 @@ def received_orders_details(request, orderID):
             'payment_mode':payment_mode,
             'payment_status':payment_status,
             'payment_date':payment_date,
-            'payment_ref':payment_ref
+            'payment_ref':payment_ref,
+            'delivery_order':delivery_order
         }
         return render(request, 'rcv_orderdetails.html', context=context)
     else:
@@ -1981,12 +1986,12 @@ def invoiced_orders(request):
         return render(request, 'orders_invoiced.html', {})
     
 def confirm_delivery_order(request, suborder_id):
-    if request.user.is_authenticated:
+    if request.user.is_authenticated and request.method == "POST":
         user_name = request.user.last_name
         suborder_delivery = SubOrder.objects.filter(pk=suborder_id).update(orderStatus='Delivered',remark='Delivered')
         main_order_id = get_object_or_404(SubOrder, pk=suborder_id).orderID.pk
         order_deilvery = Order.objects.filter(pk=main_order_id).update(orderStatus='Delivered')    
-        delivery = OrderDelivery.objects.get_or_create(orderID_id=main_order_id, suborderID_id=suborder_id)
+        #delivery = OrderDelivery.objects.get_or_create(orderID_id=main_order_id, suborderID_id=suborder_id)
         payment_mode = SubOrder.objects.get(pk=suborder_id).paymentMode
         if payment_mode == 1:
             SubOrder.objects.filter(pk=suborder_id).update(paymentStatus=True, paymentDate=timezone.now(),paymentRefNo='COD'+str(int(timezone.now().timestamp() * 1000)))
@@ -1994,6 +1999,55 @@ def confirm_delivery_order(request, suborder_id):
         elif payment_mode == 2:
             SubOrder.objects.filter(pk=suborder_id).update(paymentStatus=True, paymentDate=timezone.now(),paymentRefNo='IC'+str(int(timezone.now().timestamp() * 1000)))
             Order.objects.filter(pk=main_order_id).update(paymentStatus=True, paymentDate=timezone.now(),paymentRefNo='IC'+str(int(timezone.now().timestamp() * 1000)))
+        
+        img_upload_type = request.GET['mode']
+        if img_upload_type == 'browse':
+            image = request.FILES.get("browsedPhoto")
+            if image:
+                suborder = get_object_or_404(SubOrder, pk=suborder_id)
+
+                delivery = OrderDelivery.objects.create(
+                    orderID=suborder.orderID,
+                    suborderID=suborder,
+                    deliveryImg=image,
+                    timestamp=timezone.now()
+                )
+                order_no = get_object_or_404(Order, pk=main_order_id).orderNo
+                messages.success(request, "Order is successfully delivered and Image is uploaded! Order #: " + order_no)
+                return redirect('receivedorderdetails', orderID=main_order_id)
+            else:
+                messages.error(request, "No image was uploaded.")
+                return redirect('confirmdelivery', suborderID=suborder_id)
+        elif img_upload_type == 'click':
+            # #image storing procedure
+            try:
+                # Get uploaded image from FormData
+                image_file = request.FILES.get('image')
+                if not image_file:
+                    return JsonResponse({'status': 'error', 'message': 'No image uploaded'})
+
+                # Get other fields
+                latitude = float(request.POST.get('latitude'))
+                longitude = float(request.POST.get('longitude'))
+                timestamp_str = request.POST.get('timestamp')
+
+                timestamp = parse_datetime(timestamp_str) if timestamp_str else timezone.now()
+
+                suborder = SubOrder.objects.get(pk=suborder_id)
+
+                delivery = OrderDelivery.objects.create(
+                    orderID=suborder.orderID,
+                    suborderID=suborder,
+                    deliveryImg=image_file,
+                    latitude=latitude,
+                    longitude=longitude,
+                    timestamp=timestamp
+                )
+
+                return JsonResponse({'status': 'success', 'photo_id': delivery.pk})
+            except Exception as e:
+                return JsonResponse({'status': 'error', 'message': str(e)})
+        
     return redirect('receivedorders')#redirect to delivered orders
 
 def delivered_orders(request):

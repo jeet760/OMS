@@ -390,7 +390,10 @@ class OrderDelivery(Model):
     orderID = ForeignKey(Order, on_delete=CASCADE)
     suborderID = ForeignKey(SubOrder, on_delete=CASCADE, null=True)
     deliveryDate = DateTimeField(default=now)
-    deliveryImg = ImageField(upload_to='static/', null=True, blank=True)
+    deliveryImg = ImageField(upload_to='deliveryimg/', null=True, blank=True)
+    latitude = FloatField(null=True)
+    longitude = FloatField(null=True)
+    timestamp = DateTimeField(null=True, blank=True)
     def __str__(self):
         return self.deliveryID
 #endregion
