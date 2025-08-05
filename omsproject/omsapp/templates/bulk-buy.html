@@ -1,190 +1,148 @@
 {% extends 'index.html' %}
 {% load static %}
 {% block bulk_buy %}
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f3f4f6;
-    padding: 20px;
-  }
-  .form-container {
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 80%;
-    margin: auto;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-bottom: 20px;
-  }
-  .form-grid input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-  }
-  .form-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .form-row label {
-    font-weight: bold;
-    min-width: 120px;
-  }
-  .form-row input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  .date-field {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .date-field label {
-    min-width: 150px;
-  }
-  table input {
-    width: 100%;
-    border-collapse: collapse;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 6px;
-  }
-  th, td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
-  }
-  th {
-    background-color: #f9fafb;
-  }
-  select, input[type=\"text\"] {
-    width: 90%;
-    padding: 6px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  button {
-    padding: 6px 12px;
-    background-color: #4f46e5;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  button:hover {
-    background-color: #4338ca;
-  }
-</style>
-<div class="form-container">
-  <!-- <form id="formBulkBuy" action="{% url 'order_successful' %}?success=Bulk" method="post"> -->
-  <form id="formBulkBuy" onsubmit="return false;" class="space-y-4"></form>
-    {% csrf_token %}
-    <div class="form-grid">
-      <div class="form-group">
-        <div class="form-row">
-          <label for="name">Name</label>
-          <input type="text" id="name" name="name" placeholder="Name" value="{{login_user}}" disabled>
-        </div>
-        <div class="form-row">
-          <label for="address1">Address1</label>
-          <input type="text" id="address1" name="address1" placeholder="Address1" value="{{user_address}}">
-        </div>
-        <div class="form-row">
-          <label for="delivery-date">Select Delivery Date</label>
-          <input type="date" id="delivery-date" name="delivery_date">
-        </div>
-      </div>
-      
-      <!-- Second Column -->
-      <div class="form-group">
-        <div class="form-row">
-          <label for="type">Type</label>
-          <input type="text" id="type" name="type" placeholder="Type" value="{{userType}}" disabled>
-        </div>
-        <div class="form-row">
-          <label for="address2">Address2</label>
-          <input type="text" id="address2" name="address2" placeholder="Address2" value="{{user_address1}}">
-        </div>
-        <div class="form-row">
-          <label for="phone">Phone</label>
-          <input type="text" id="phone" name="phone" placeholder="Phone" value="{{user_phone}}">
-        </div>
-      </div>
-    </div>
-    
-    <table id="itemsTable" class="table table-hover">
-      <thead>
-        <tr>
-          <th>Item Name</th>
-          <th>Item Specification</th>
-          <th>Quantity</th>
-          <th>Unit</th>
-          <th>Indicative Price/unit</th>
-          <th>Action</th>
-        </tr>
-        <tr>
-          <th>
-            <select id="selectItems" name="selectItems">
-              <option>Select Item</option>
-              {% for item in items %}
-              <option value="{{item.itemName}}">
-                  {{item.itemName}}
-              </option>
-              {% endfor %}
-            </select>
-          </th>
-          <th>
-            <input type="text" placeholder="Specification" id="txtSpec" name="txtSpec">
-          </th>
-          <th>
-            <input type="text" placeholder="Quantity" id="txtQty" name="txtQty">
-          </th>
-          <th>
-            <select id="selectUnit" name="selectUnit">
-              <option>Select Unit</option>
-              {% for item in distinct_units %}
-              <option value="{{item.itemUnit}}">
-                  {{item.itemUnit}}
-              </option>
-              {% endfor %}
-            </select>
-          </th>
-          <th>
-            <input type="text" placeholder="Indicative Price" id="txtPrice" name="txtPrice">
-          </th>
-          <th>
-            <button type="button" onclick="addRow()">
-              <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
-                <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/>
-              </svg>
-            </button>
-          </th>
-        </tr>
-      </thead>
-      <tbody id="tableBody">
-        
-      </tbody>
-    </table>
-    <div class="col-lg-12 text-center">
-      <button type="button" class="site-btn" onclick="sendTableToServer()">SUBMIT</button>
-    </div>
-  </form>
-</div>
+  <div class="max-w-7xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold text-green-700 mb-8">Bulk Buy Order Place</h1>
 
-<script>
+    <form id="formBulkBuy" onsubmit="return false;" class="bg-white p-6 rounded shadow space-y-6">
+      {% csrf_token %}
+
+      <!-- Form Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Left Column -->
+        <div class="space-y-4">
+          <div>
+            <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+            <input type="text" id="name" name="name" value="{{login_user}}" disabled
+                  class="mt-1 block w-full h-10 rounded border-gray-300 shadow-sm focus:ring-green-600 focus:border-green-600">
+          </div>
+
+          <div>
+            <label for="address1" class="block text-sm font-medium text-gray-700">Address1</label>
+            <input type="text" id="address1" name="address1" value="{{user_address}}" placeholder="Address1"
+                  class="mt-1 block w-full h-10 rounded border-gray-300 shadow-sm focus:ring-green-600 focus:border-green-600">
+          </div>
+
+          <div>
+            <label for="delivery-date" class="block text-sm font-medium text-gray-700">Select Delivery Date</label>
+            <input type="date" id="delivery-date" name="delivery_date"
+                  class="mt-1 block w-full h-10 rounded border-gray-300 shadow-sm focus:ring-green-600 focus:border-green-600">
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="space-y-4">
+          <div>
+            <label for="type" class="block text-sm font-medium text-gray-700">Type</label>
+            <input type="text" id="type" name="type" value="{{userType}}" disabled
+                  class="mt-1 block w-full h-10 rounded border-gray-300 shadow-sm focus:ring-green-600 focus:border-green-600">
+          </div>
+
+          <div>
+            <label for="address2" class="block text-sm font-medium text-gray-700">Address2</label>
+            <input type="text" id="address2" name="address2" value="{{user_address1}}" placeholder="Address2"
+                  class="mt-1 block w-full h-10 rounded border-gray-300 shadow-sm focus:ring-green-600 focus:border-green-600">
+          </div>
+
+          <div>
+            <label for="phone" class="block text-sm font-medium text-gray-700">Phone</label>
+            <input type="text" id="phone" name="phone" value="{{user_phone}}" placeholder="Phone"
+                  class="mt-1 block w-full h-10 rounded border-gray-300 shadow-sm focus:ring-green-600 focus:border-green-600">
+          </div>
+        </div>
+      </div>
+
+      <!-- Items Table -->
+      <div class="space-y-4">
+        <!-- Header Row: Only visible on md+ screens -->
+        <div class="hidden md:grid grid-cols-6 gap-2 bg-green-100 text-gray-700 text-sm font-semibold p-2 rounded">
+            <div>Item Name</div>
+            <div>Specification</div>
+            <div>Qty</div>
+            <div>Unit</div>
+            <div>Price</div>
+            <div>Action</div>
+        </div>
+
+        <!-- Input Row -->
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-2 bg-white p-3 border rounded shadow-sm">
+            <!-- Item Name -->
+            <div class="flex flex-col">
+            <label class="md:hidden text-sm font-medium text-gray-600 mb-1">Item Name</label>
+            <select id="selectItems" name="selectItems"
+                    class="w-full h-10 rounded border-gray-300 focus:ring-green-600 focus:border-green-600">
+                <option>Select Item</option>
+                {% for item in items %}
+                <option value="{{item.itemName}}">{{item.itemName}}</option>
+                {% endfor %}
+            </select>
+            </div>
+
+            <!-- Specification -->
+            <div class="flex flex-col">
+            <label class="md:hidden text-sm font-medium text-gray-600 mb-1">Specification</label>
+            <input type="text" id="txtSpec" name="txtSpec" placeholder="Specification"
+                    class="w-full h-10 rounded border-gray-300 focus:ring-green-600 focus:border-green-600" />
+            </div>
+
+            <!-- Quantity -->
+            <div class="flex flex-col">
+            <label class="md:hidden text-sm font-medium text-gray-600 mb-1">Quantity</label>
+            <input type="text" id="txtQty" name="txtQty" placeholder="Qty"
+                    class="w-full h-10 rounded border-gray-300 focus:ring-green-600 focus:border-green-600 text-center" />
+            </div>
+
+            <!-- Unit -->
+            <div class="flex flex-col">
+            <label class="md:hidden text-sm font-medium text-gray-600 mb-1">Unit</label>
+            <select id="selectUnit" name="selectUnit"
+                    class="w-full h-10 rounded border-gray-300 focus:ring-green-600 focus:border-green-600">
+                <option>Select Unit</option>
+                {% for item in distinct_units %}
+                <option value="{{item.itemUnit}}">{{item.itemUnit}}</option>
+                {% endfor %}
+            </select>
+            </div>
+
+            <!-- Price -->
+            <div class="flex flex-col">
+            <label class="md:hidden text-sm font-medium text-gray-600 mb-1">Indicative Price</label>
+            <input type="text" id="txtPrice" name="txtPrice" placeholder="Price"
+                    class="w-full h-10 rounded border-gray-300 focus:ring-green-600 focus:border-green-600 text-center" />
+            </div>
+
+            <!-- Action Button -->
+            <div class="flex items-end justify-center md:justify-start">
+            <button type="button" onclick="addRow()"
+                    class="p-2 bg-green-600 hover:bg-green-700 text-white rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+            </button>
+            </div>
+        </div>
+
+        <!-- Dynamic Items List -->
+        <div id="tableBody" class="space-y-4">
+            <!-- Dynamically added cards will appear here -->
+        </div>
+        </div>
+
+
+      <!-- Submit Button -->
+      <div class="text-center">
+        <button type="button" onclick="sendTableToServer()"
+                class="bg-green-700 hover:bg-green-800 text-white font-semibold py-2 px-6 rounded-md shadow transition">
+          Submit Request
+        </button>
+      </div>
+    </form>
+  </div>
+  
+  <!-- Optional Script -->
+  <script>
   // The date selection in the calendar
   document.addEventListener("DOMContentLoaded", function() {
     const today = new Date();
@@ -202,50 +160,48 @@
   function sendTableToServer() {
     let validate = true;
     const formBulkBuy = document.getElementById('formBulkBuy');
-    const table = document.getElementById("itemsTable").getElementsByTagName("tbody")[0];
-    const rows = [];
     const delivery_date = document.getElementById('delivery-date').value;
+    const cardRows = document.querySelectorAll('.card-row');
+    const rows = [];
 
-    if(delivery_date == ''){
-      alert('Please select date!');
-      validate = false;
-    }
-    else if(table.rows.length < 1){
-      alert('Please add items to for bulkbuy!\n After entering item details, click on Add (+) icon.');
-      validate = false;
-    }
-    else{
-      for (let row of table.rows) {
-      const itemName = row.cells[0].textContent;
-      const itemSpec = row.cells[1].textContent;
-      const itemQty = row.cells[2].textContent;
-      const itemUnit = row.cells[3].textContent;
-      const itemPrice = row.cells[4].textContent;
-      rows.push({ itemName, itemSpec, itemQty, itemUnit, itemPrice });
+    if (delivery_date === '') {
+        alert('Please select delivery date!');
+        validate = false;
+    } else if (cardRows.length < 1) {
+        alert('Please add items for bulk buy!\nAfter entering item details, click on the Add (+) icon.');
+        validate = false;
+    } else {
+        cardRows.forEach(card => {
+        const columns = card.querySelectorAll('p');
+        const itemName = columns[0]?.textContent.trim() || '';
+        const itemSpec = columns[1]?.textContent.trim() || '';
+        const itemQty = columns[2]?.textContent.trim() || '';
+        const itemUnit = columns[3]?.textContent.trim() || '';
+        const itemPrice = columns[4]?.textContent.replace('₹', '').trim() || '';
+
+        rows.push({ itemName, itemSpec, itemQty, itemUnit, itemPrice });
+        });
+
+        fetch('bulk-buy/order', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ rows, delivery_date })
+        })
+        .then(response => response.json())
+        .then(data => {
+        alert(data.message);
+        if (data.redirect_url) {
+            window.location.href = data.redirect_url;
+        }
+        })
+        .catch(error => console.error('Error:', error));
     }
 
-    fetch('bulk-buy/order', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken')  // use this in production
-      },
-      body: JSON.stringify({ rows, delivery_date })
-    })
-    .then(response => response.json())
-    .then(data => {
-      alert(data.message);
-      if (data.redirect_url) {
-        console.log(data.redirect_url);
-        window.location.href = data.redirect_url;
-      }
-    })
-    .catch(error => console.error('Error:', error));
-
-    }
-
-    if(validate == true){
-      formBulkBuy.submit();
+    if (validate) {
+        formBulkBuy.submit();
     }
   }
   
@@ -264,34 +220,71 @@
     return cookieValue;
   }
 
-  // Adding a new row in the item table
   function addRow() {
-    const item = document.getElementById('selectItems');
-    const spec = document.getElementById('txtSpec');
-    const qty = document.getElementById('txtQty');
-    const unit = document.getElementById('selectUnit');
-    const price = document.getElementById('txtPrice');
-    const tableBody = document.getElementById('tableBody');
-    const row = document.createElement('tr');
-    const table = document.getElementById('itemsTable');
-    //const rowNo = table.rows.length-1;
-    //var item = row.cells[0].value; <td><label>`+rowNo+`</label></td>
-    row.innerHTML = `
-      <td><label>`+item.value+`</label></td>
-      <td><label>`+spec.value+`</label></td>
-      <td><label>`+qty.value+`</label></td>
-      <td><label>`+unit.value+`</label></td>
-      <td><label>`+price.value+`</label></td>
-      <td>
-        <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">
-          <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF">
-            <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/>
-          </svg>
-        </button>
-      </td>
+    const tableBody = document.getElementById("tableBody");
+
+    const itemName = document.getElementById("selectItems").value;
+    const spec = document.getElementById("txtSpec").value;
+    const qty = document.getElementById("txtQty").value;
+    const unit = document.getElementById("selectUnit").value;
+    const price = document.getElementById("txtPrice").value;
+
+    if (!itemName || !spec || !qty || !unit || !price) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    // Create styled card
+    const card = document.createElement("div");
+    card.className = "bg-white rounded-lg shadow-md p-4 mb-3 border border-gray-200";
+
+    // Content wrapper (grid layout)
+    card.innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-4 text-sm">
+        <div>
+          <span class="block text-gray-500 font-medium mb-1">Item</span>
+          <p class="font-semibold text-gray-800">${itemName}</p>
+        </div>
+        <div>
+          <span class="block text-gray-500 font-medium mb-1">Specification</span>
+          <p class="text-gray-700">${spec}</p>
+        </div>
+        <div>
+          <span class="block text-gray-500 font-medium mb-1">Quantity</span>
+          <p>${qty}</p>
+        </div>
+        <div>
+          <span class="block text-gray-500 font-medium mb-1">Unit</span>
+          <p>${unit}</p>
+        </div>
+        <div>
+          <span class="block text-gray-500 font-medium mb-1">Price</span>
+          <p>₹${price}</p>
+        </div>
+        <div class="flex items-start justify-end md:justify-center pt-1">
+          <button type="button" class="text-red-600 hover:text-red-800" onclick="this.closest('div.card-row').remove()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      </div>
     `;
-    tableBody.appendChild(row);
+
+    card.classList.add("card-row"); // helper class to easily remove
+
+    tableBody.appendChild(card);
+
+    // Reset inputs
+    document.getElementById("selectItems").selectedIndex = 0;
+    document.getElementById("txtSpec").value = "";
+    document.getElementById("txtQty").value = "";
+    document.getElementById("selectUnit").selectedIndex = 0;
+    document.getElementById("txtPrice").value = "";
   }
+
 
   // remove a row
   function removeRow(button) {
@@ -311,6 +304,6 @@
           document.getElementById('txtBilling').value = "";
         }
   }
-</script>
+  </script>
 
 {% endblock %}

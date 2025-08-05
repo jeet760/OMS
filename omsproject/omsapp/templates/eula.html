@@ -1,140 +1,136 @@
-{% extends 'index.html' %}
 {% load static %}
-{% block returnpolicy %}
-<section class="blog spad">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>End User Agreement</h2>
-                </div>
-                <p>This End User Agreement ("Agreement") governs the use of the Farmer Harvest platform ("Platform") by individuals and entities ("Users"). By accessing or using the Platform, Users agree to comply with the terms and conditions outlined below.</p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>1. Acceptance of Terms</h2>
-                </div>
-                <p>By registering on or using the Platform, Users acknowledge and agree to be bound by this Agreement, our Privacy Policy, and any other applicable policies. If Users do not agree, they must refrain from using the Platform.</p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>2. Eligibility</h2>
-                </div>
-                <p>Users must be at least 18 years old or legally authorized to enter into agreements under Indian law. Organizations using the Platform must be legally registered entities in India.</p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>3. User Responsibilities</h2>
-                </div>
-                <ul>
-                    <li>Provide accurate and up-to-date registration details.</li>
-                    <li>Maintain the confidentiality of their account credentials.</li>
-                    <li>Use the Platform for lawful purposes only.</li>
-                    <li>Abide by all applicable laws and regulations while using the Platform.</li>
-                    <li>Refrain from engaging in fraudulent, abusive, or misleading transactions.</li>
-                </ul>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>4. Transactions & Payments</h2>
-                </div>
-                <ul>
-                    <li>The Platform facilitates transactions between buyers and sellers; however, Farmer Harvest is not liable for the quality, delivery, or fulfillment of products.</li>
-                    <li>Prepaid payments are securely held by Farmer Harvest until successful delivery of commodities.</li>
-                    <li>Payment transfers to sellers occur within three (3) business days of confirmed delivery, subject to statutory clearances.</li>
-                </ul>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>5. Prohibited Activities</h2>
-                </div>
-                <ul>
-                    <li>Users shall not use the Platform for illegal, deceptive, or unethical practices.</li>
-                    <li>Engage in unauthorized access, hacking, or data breaches.</li>
-                    <li>Distribute malware, spam, or any form of harmful content.</li>
-                    <li>Impersonate another person or entity.</li>
-                </ul>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>6. Data Protection & Privacy</h2>
-                </div>
-                <ul>
-                    <li>User data is processed in compliance with The Digital Personal Data Protection Act, 2023.</li>
-                    <li>Data is stored on India-based servers to ensure security and regulatory compliance.</li>
-                    <li>Users consent to data collection and processing as outlined in the Privacy Policy.</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>7. Termination & Suspension</h2>
-                </div>
-                <p>Farmer Harvest reserves the right to suspend or terminate a User’s access to the Platform for:</p>
-                <ul>
-                    <li>Violation of this Agreement or other policies.</li>
-                    <li>Engaging in fraudulent activities.</li>
-                    <li>Misuse of Platform services.</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>8. Limitation of Liability</h2>
-                </div>
-                <p>Farmer Harvest shall not be liable for:</p>
-                <ul>
-                    <li>Any losses arising from transactions between buyers and sellers.</li>
-                    <li>Any unauthorized access or security breaches beyond its reasonable control.</li>
-                    <li>Any indirect, incidental, or consequential damages arising from Platform use.</li>
-                </ul>
-            </div>
-        </div>
-                
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>9. Amendments</h2>
-                </div>
-                <p>Farmer Harvest reserves the right to modify this Agreement at any time. Users are advised to review the terms periodically.</p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>10. Governing Law & Dispute Resolution</h2>
-                </div>
-                <p>This Agreement is governed by the laws of India. Any disputes arising from this Agreement shall be subject to the exclusive jurisdiction of the courts in [Location].</p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>11. Contact Information</h2>
-                </div>
-                <p>For any queries related to this Agreement, Users may contact:</p>
-            </div>
-        </div>
-        <p><strong>Asutosh Routray</strong><br>
-        Chief Technology Officer<br>
-        Email: <a href="mailto:asutosh@billionnextbop.com">asutosh@billionnextbop.com</a><br>
-        Phone: +91-8594990911</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>End User Agreement | Farmer Harvest</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+<!-- Header -->
+  <header class="text-white p-4" style="background-color: #047857;">
+    {% include 'header.html' %}
+  </header>
+  <section class="max-w-5xl mx-auto px-4 py-12">
+    <!-- Header -->
+    <div class="mb-10 text-center">
+      <h1 class="text-3xl font-bold text-green-700 mb-2">End User Agreement</h1>
+      <p class="text-gray-600">
+        This End User Agreement ("Agreement") governs the use of the Farmer Harvest platform ("Platform") by individuals and entities ("Users"). By accessing or using the Platform, Users agree to comply with the terms and conditions outlined below.
+      </p>
     </div>
-</section>
-{% endblock %}
+
+    <!-- Section -->
+    <div class="space-y-10">
+
+      <!-- 1 -->
+      <div>
+        <h2 class="text-xl font-semibold text-green-800 mb-2">1. Acceptance of Terms</h2>
+        <p>By registering on or using the Platform, Users acknowledge and agree to be bound by this Agreement, our Privacy Policy, and any other applicable policies. If Users do not agree, they must refrain from using the Platform.</p>
+      </div>
+
+      <!-- 2 -->
+      <div>
+        <h2 class="text-xl font-semibold text-green-800 mb-2">2. Eligibility</h2>
+        <p>Users must be at least 18 years old or legally authorized to enter into agreements under Indian law. Organizations using the Platform must be legally registered entities in India.</p>
+      </div>
+
+      <!-- 3 -->
+      <div>
+        <h2 class="text-xl font-semibold text-green-800 mb-2">3. User Responsibilities</h2>
+        <ul class="list-disc list-inside space-y-1">
+          <li>Provide accurate and up-to-date registration details.</li>
+          <li>Maintain the confidentiality of their account credentials.</li>
+          <li>Use the Platform for lawful purposes only.</li>
+          <li>Abide by all applicable laws and regulations while using the Platform.</li>
+          <li>Refrain from engaging in fraudulent, abusive, or misleading transactions.</li>
+        </ul>
+      </div>
+
+      <!-- 4 -->
+      <div>
+        <h2 class="text-xl font-semibold text-green-800 mb-2">4. Transactions & Payments</h2>
+        <ul class="list-disc list-inside space-y-1">
+          <li>The Platform facilitates transactions between buyers and sellers; however, Farmer Harvest is not liable for the quality, delivery, or fulfillment of products.</li>
+          <li>Prepaid payments are securely held by Farmer Harvest until successful delivery of commodities.</li>
+          <li>Payment transfers to sellers occur within three (3) business days of confirmed delivery, subject to statutory clearances.</li>
+        </ul>
+      </div>
+
+      <!-- 5 -->
+      <div>
+        <h2 class="text-xl font-semibold text-green-800 mb-2">5. Prohibited Activities</h2>
+        <ul class="list-disc list-inside space-y-1">
+          <li>Users shall not use the Platform for illegal, deceptive, or unethical practices.</li>
+          <li>Engage in unauthorized access, hacking, or data breaches.</li>
+          <li>Distribute malware, spam, or any form of harmful content.</li>
+          <li>Impersonate another person or entity.</li>
+        </ul>
+      </div>
+
+      <!-- 6 -->
+      <div>
+        <h2 class="text-xl font-semibold text-green-800 mb-2">6. Data Protection & Privacy</h2>
+        <ul class="list-disc list-inside space-y-1">
+          <li>User data is processed in compliance with The Digital Personal Data Protection Act, 2023.</li>
+          <li>Data is stored on India-based servers to ensure security and regulatory compliance.</li>
+          <li>Users consent to data collection and processing as outlined in the Privacy Policy.</li>
+        </ul>
+      </div>
+
+      <!-- 7 -->
+      <div>
+        <h2 class="text-xl font-semibold text-green-800 mb-2">7. Termination & Suspension</h2>
+        <p>Farmer Harvest reserves the right to suspend or terminate a User’s access to the Platform for:</p>
+        <ul class="list-disc list-inside space-y-1">
+          <li>Violation of this Agreement or other policies.</li>
+          <li>Engaging in fraudulent activities.</li>
+          <li>Misuse of Platform services.</li>
+        </ul>
+      </div>
+
+      <!-- 8 -->
+      <div>
+        <h2 class="text-xl font-semibold text-green-800 mb-2">8. Limitation of Liability</h2>
+        <p>Farmer Harvest shall not be liable for:</p>
+        <ul class="list-disc list-inside space-y-1">
+          <li>Any losses arising from transactions between buyers and sellers.</li>
+          <li>Any unauthorized access or security breaches beyond its reasonable control.</li>
+          <li>Any indirect, incidental, or consequential damages arising from Platform use.</li>
+        </ul>
+      </div>
+
+      <!-- 9 -->
+      <div>
+        <h2 class="text-xl font-semibold text-green-800 mb-2">9. Amendments</h2>
+        <p>Farmer Harvest reserves the right to modify this Agreement at any time. Users are advised to review the terms periodically.</p>
+      </div>
+
+      <!-- 10 -->
+      <div>
+        <h2 class="text-xl font-semibold text-green-800 mb-2">10. Governing Law & Dispute Resolution</h2>
+        <p>This Agreement is governed by the laws of India. Any disputes arising from this Agreement shall be subject to the exclusive jurisdiction of the courts in Bhubaneswar, Odisha.</p>
+      </div>
+
+      <!-- 11 -->
+      <div>
+        <h2 class="text-xl font-semibold text-green-800 mb-2">11. Contact Information</h2>
+        <p>For any queries related to this Agreement, Users may contact:</p>
+        <p class="mt-2">
+          <strong>Asutosh Routray</strong><br />
+          Chief Technology Officer<br />
+          Email: <a href="mailto:connect@farmerharvest.in" class="text-blue-600 underline">connect@farmerharvest.in</a><br />
+          Phone: +91-85949-90911
+        </p>
+      </div>
+    </div>
+  </section>
+<!-- Footer -->
+  <footer class="bg-green-800 text-white py-6 mt-10">
+    {% include 'footer.html' %}
+  </footer>
+
+</body>
+</html>

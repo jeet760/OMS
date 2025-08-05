@@ -1,123 +1,126 @@
-{% extends 'index.html' %}
 {% load static %}
-{% block privacypolicy %}
-<section class="blog spad">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>Privacy Policy</h2>
-                </div>
-                <p><strong>Farmer Harvest</strong> is a unified aggregator marketplace designed to empower farmer collectives by providing them with a seamless platform to sell their produce directly to a wide range of buyers. Our platform connects Farmer Producer Companies (FPCs), Cooperatives, and Producer Groups—each legally registered in India—with consumers, businesses, and institutional buyers, ensuring a fair and transparent marketplace for agricultural trade.</p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>1. Information We Collect</h2>
-                </div>
-                <p>We collect the following types of information:</p>
-                <ul>
-                    <li><strong>Personal Information:</strong> Name, contact details, billing and shipping addresses, and payment information.</li>
-                    <li><strong>Account Information:</strong> Username, password, and transaction history.</li>
-                    <li><strong>Usage Data:</strong> IP addresses, device details, browsing patterns, and interactions with our platform.</li>
-                    <li><strong>Business Information:</strong> For seller accounts, we may collect legal registration details, business addresses, and tax-related information.</li>
-                </ul>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>2. How We Use Your Information</h2>
-                </div>
-                <p>We use collected information to:</p>
-            </div>
-            <ul>
-                <li>Facilitate transactions between buyers and sellers.</li>
-                <li>Improve and personalize user experience.</li>
-                <li>Process payments securely.</li>
-                <li>Provide customer support and resolve disputes.</li>
-                <li>Comply with legal and regulatory requirements.</li>
-            </ul>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>3. Information Sharing and Disclosure</h2>
-                </div>
-                <p>We do not sell or rent your personal information. However, we may share data with:</p>
-                <ul>
-                    <li><strong>Sellers:</strong> To facilitate order fulfillment and communication.</li>
-                    <li><strong>Service Providers:</strong> Payment gateways, logistics partners, and third-party integrations for operational purposes.</li>
-                    <li><strong>Legal Authorities:</strong> If required by law, regulation, or legal process.</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>4. Data Security</h2>
-                </div>
-                <p>We implement industry-standard security measures to protect user data from unauthorized access, loss, or misuse. However, no method of transmission over the internet is completely secure, and we encourage users to take necessary precautions.</p>
-            </div>
-        </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Privacy Policy | Farmer Harvest</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-white text-gray-800">
+    <header class="text-white p-4" style="background-color: #047857;">
+        {% include 'header.html' %}
+    </header>
+  <section class="py-12 bg-gray-50">
+    <div class="max-w-5xl mx-auto px-4 space-y-12">
 
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>5. User Rights and Choices</h2>
-                </div>
-                <p>Users have the right to:</p>
-                <ul>
-                    <li>Access, update, or delete their personal information.</li>
-                    <li>Opt out of marketing communications.</li>
-                    <li>Request information on data usage and processing.</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>6. Data Storage & Compliance</h2>
-                </div>
-                <p>All user data is stored and processed in compliance with The Digital Personal Data Protection Act, 2023 and other relevant Indian data privacy laws.</p>
-                <p>Data is securely stored on India-based servers to ensure compliance with national regulations.</p>
-            </div>
-        </div>
+      <!-- Header -->
+      <div class="text-center">
+        <h1 class="text-3xl font-bold text-green-700">Privacy Policy</h1>
+        <p class="mt-4 text-gray-700">
+          <strong>Farmer Harvest</strong> is a unified aggregator marketplace designed to empower farmer collectives by providing them with a seamless platform to sell their produce directly to a wide range of buyers. We connect Farmer Producer Companies (FPCs), Cooperatives, and Producer Groups with consumers and institutions across India in a fair, transparent, and technology-enabled ecosystem.
+        </p>
+      </div>
 
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>7. Cookies and Tracking Technologies</h2>
-                </div>
-                <p>We use cookies and similar tracking technologies to enhance user experience, analyze website traffic, and improve services. Users can manage cookie preferences through browser settings.</p>
-            </div>
-        </div>        
-        
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>8. Changes to This Policy</h2>
-                </div>
-                <p>Farmer Harvest reserves the right to update this Privacy Policy at any time. We encourage users to review this page periodically for any changes.</p>
-            </div>
+      <!-- Section 1 -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h2 class="text-2xl font-semibold text-green-800 mb-2">1. Information We Collect</h2>
+        <p class="text-gray-700 mb-2">We collect the following types of information:</p>
+        <ul class="list-disc list-inside space-y-2 text-gray-700">
+          <li><strong>Personal Information:</strong> Name, contact details, billing and shipping addresses, and payment info.</li>
+          <li><strong>Account Information:</strong> Username, password, and transaction history.</li>
+          <li><strong>Usage Data:</strong> IP addresses, device details, browsing behavior, and platform interactions.</li>
+          <li><strong>Business Information:</strong> For sellers, we collect legal registration details, addresses, and tax info.</li>
+        </ul>
+      </div>
+
+      <!-- Section 2 -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h2 class="text-2xl font-semibold text-green-800 mb-2">2. How We Use Your Information</h2>
+        <p class="text-gray-700 mb-2">We use collected data to:</p>
+        <ul class="list-disc list-inside space-y-2 text-gray-700">
+          <li>Facilitate transactions between buyers and sellers.</li>
+          <li>Improve and personalize user experience.</li>
+          <li>Securely process payments.</li>
+          <li>Offer customer support and resolve disputes.</li>
+          <li>Comply with legal and regulatory obligations.</li>
+        </ul>
+      </div>
+
+      <!-- Section 3 -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h2 class="text-2xl font-semibold text-green-800 mb-2">3. Information Sharing and Disclosure</h2>
+        <p class="text-gray-700 mb-2">We do not sell or rent your personal data. We may share it with:</p>
+        <ul class="list-disc list-inside space-y-2 text-gray-700">
+          <li><strong>Sellers:</strong> To enable order fulfillment and communication.</li>
+          <li><strong>Service Providers:</strong> For payments, delivery, and technical operations.</li>
+          <li><strong>Legal Authorities:</strong> As required by law or regulatory compliance.</li>
+        </ul>
+      </div>
+
+      <!-- Section 4 -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h2 class="text-2xl font-semibold text-green-800 mb-2">4. Data Security</h2>
+        <p class="text-gray-700">
+          We use industry-standard safeguards to protect your data. While we do our best to ensure security, no system is 100% secure. We encourage users to take precautions such as using strong passwords and logging out of shared devices.
+        </p>
+      </div>
+
+      <!-- Section 5 -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h2 class="text-2xl font-semibold text-green-800 mb-2">5. User Rights and Choices</h2>
+        <p class="text-gray-700 mb-2">Users have the right to:</p>
+        <ul class="list-disc list-inside space-y-2 text-gray-700">
+          <li>Access, update, or delete their personal information.</li>
+          <li>Opt-out of marketing communications.</li>
+          <li>Request details on how their data is used or processed.</li>
+        </ul>
+      </div>
+
+      <!-- Section 6 -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h2 class="text-2xl font-semibold text-green-800 mb-2">6. Data Storage & Compliance</h2>
+        <p class="text-gray-700">
+          All data is stored securely on India-based servers, in compliance with the Digital Personal Data Protection Act, 2023 and other relevant Indian regulations.
+        </p>
+      </div>
+
+      <!-- Section 7 -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h2 class="text-2xl font-semibold text-green-800 mb-2">7. Cookies and Tracking Technologies</h2>
+        <p class="text-gray-700">
+          We use cookies to analyze usage, enhance experience, and improve services. Users can control cookie settings via their browser preferences.
+        </p>
+      </div>
+
+      <!-- Section 8 -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h2 class="text-2xl font-semibold text-green-800 mb-2">8. Changes to This Policy</h2>
+        <p class="text-gray-700">
+          We may update this Privacy Policy from time to time. Users are encouraged to check this page regularly for updates.
+        </p>
+      </div>
+
+      <!-- Section 9 -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h2 class="text-2xl font-semibold text-green-800 mb-2">9. Contact Us</h2>
+        <p class="text-gray-700">
+          For any questions or concerns regarding our Privacy Policy, feel free to contact:
+        </p>
+        <div class="mt-4 text-gray-700">
+          <p><strong>Ashutosh Routray</strong><br>
+          Chief Technology Officer<br>
+          Email: <a href="mailto:connect@farmerharvest.in" class="text-blue-600 underline">connect@farmerharvest.in</a><br>
+          Phone: +91-96588-31285</p>
         </div>
-        
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>9. Contact Us</h2>
-                </div>
-                <p>For any questions or concerns regarding this Privacy Policy, please contact:</p>
-            </div>
-        </div>
-        
-        <p><strong>Asutosh Routray</strong><br>
-        Chief Technology Officer<br>
-        Email: <a href="mailto:asutosh@billionnextbop.com">asutosh@billionnextbop.com</a><br>
-        Phone: +91-8594990911</p>
+      </div>
+
     </div>
-</section>
-{% endblock %}
+  </section>
+<!-- Footer -->
+  <footer class="bg-green-800 text-white py-6 mt-10">
+    {% include 'footer.html' %}
+  </footer>
+</body>
+</html>

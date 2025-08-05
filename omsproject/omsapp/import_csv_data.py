@@ -15,10 +15,11 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'omsproject.settings')
 django.setup()
 
 # Now you can import your models
-from omsapp.models import SchoolUDISE
+from omsapp.models import SchoolUDISE, LGDData
 import csv
 
-def import_data():
+#UDISE Data Import
+def import_udise_data():
     print("🔄 Deleting old data...")
     SchoolUDISE.objects.all().delete()
 
@@ -67,5 +68,47 @@ def import_data():
 
     print("✅ Data import completed successfully.")
 
+#LGD Data Import
+def import_lgd_odisha_data():
+    print("🔄 Deleting old data...")
+    LGDData.objects.all().delete()
+
+    file_path = 'omsproject/lgd_odisha.csv'
+    BATCH_SIZE = 1000
+    lgd_list = []
+
+    # Get total lines for tqdm
+    with open(file_path, 'r', encoding='utf-8') as f:
+        total = sum(1 for _ in f) - 1  # minus header
+
+    with open(file_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+
+        for row in tqdm(reader, total=total, desc="📦 Importing LGD Odisha Data"):
+            try:
+                obj = LGDData(
+                    state_code = row['state_code'],
+                    state_name_english = row['state_name_english'],
+                    district_code = row['district_code'] if row['district_code'] else None,
+                    district_name_english = row['district_name_english'],
+                    subdistrict_code = row['subdistrict_code'] if row['subdistrict_code'] else None,
+                    subdistrict_name_english = row['subdistrict_name_english'],
+                )
+                lgd_list.append(obj)
+
+                if len(lgd_list) >= BATCH_SIZE:
+                    LGDData.objects.bulk_create(lgd_list)
+                    lgd_list = []
+
+            except Exception as e:
+                print(f"❌ Error processing row: {row}")
+                print(f"    Error: {e}")
+
+        # Insert remaining records
+        if lgd_list:
+            LGDData.objects.bulk_create(lgd_list)
+
+    print("✅ Data import completed successfully.")
+
 if __name__ == '__main__':
-    import_data()
+    import_lgd_odisha_data()

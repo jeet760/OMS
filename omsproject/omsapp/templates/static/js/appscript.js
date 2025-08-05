@@ -1,8 +1,59 @@
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".pinCode").forEach(function (input) {
+        input.addEventListener("blur", function (event) {
+            const form = event.target.closest(".formRegister");
+            if (!form) return;
+
+            const pincode = event.target.value.trim();
+            if (!pincode) return;
+
+            const postal_api = "https://api.postalpincode.in/pincode/" + pincode;
+
+            fetch(postal_api)
+                .then(response => response.json())
+                .then(data => {
+                    const select_userstate = form.querySelector("#userState");
+                    const postal_data = data;
+
+                    if (postal_data[0]['Status'] === "Error") {
+                        alert('Pin Code not found!');
+                        return;
+                    }
+
+                    const postOffice = postal_data[0]['PostOffice'][0];
+                    const state = postOffice['Circle'];
+                    const district = postOffice['District'];
+                    const sub_district = postOffice['Block'];
+
+                    // Select state
+                    for (let i = 0; i < select_userstate.options.length; i++) {
+                        if (select_userstate.options[i].text === state) {
+                            select_userstate.selectedIndex = i;
+                            break;
+                        }
+                    }
+
+                    const statecode = select_userstate.value;
+
+                    if (typeof fetch_districts === "function") {
+                        fetch_districts(statecode, district, sub_district, form);
+                    } else {
+                        console.error("fetch_districts is not defined");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching pincode data:", error);
+                });
+        });
+    });
+});
+
+
 //#region pincode based lgd details and respective selections
 function fetch_districts(statecode, district, sub_district, form) {
     if (statecode != null && statecode !== '') {
         const userDistrict = form.querySelector('.userDistrict');
-
+        
         if (!userDistrict) {
             console.error('No .userDistrict element found in form.');
             return;
@@ -21,6 +72,10 @@ function fetch_districts(statecode, district, sub_district, form) {
         fetch(api)
             .then(response => response.json())
             .then(data => {
+                if(data.status === "error"){
+                    alert('Error in fetching data from API! Code:001');
+                }
+                
                 if (Array.isArray(data.records)) {
                     data.records.sort((a, b) => a.district_name_english.localeCompare(b.district_name_english));
 
@@ -30,7 +85,7 @@ function fetch_districts(statecode, district, sub_district, form) {
                         option.text = record.district_name_english;
                         userDistrict.appendChild(option);
                     }
-
+                    
                     if(!isNaN(district)){
                         userDistrict.value = district;
                     }
@@ -83,17 +138,6 @@ function levenshteinDistance(a, b) {
 
   return matrix[b.length][a.length];
 }
-
-// function fuzzySearch(query, list, threshold = 70) {
-//   query = query.toLowerCase();
-//   return list.filter(item => {
-//     const itemLower = item.toLowerCase();
-//     const distance = levenshteinDistance(query, itemLower);
-//     const maxLen = Math.max(query.length, itemLower.length);
-//     const similarity = ((maxLen - distance) / maxLen) * 100;
-//     return similarity >= threshold;
-//   });
-// }
 
 function fuzzySearch(query, items, threshold = 70) {
   query = query.toLowerCase();
@@ -175,6 +219,17 @@ function fetch_subdistricts(statecode, districtcode, sub_district, form) {
             });
     }
 }
+
+// function fuzzySearch(query, list, threshold = 70) {
+//   query = query.toLowerCase();
+//   return list.filter(item => {
+//     const itemLower = item.toLowerCase();
+//     const distance = levenshteinDistance(query, itemLower);
+//     const maxLen = Math.max(query.length, itemLower.length);
+//     const similarity = ((maxLen - distance) / maxLen) * 100;
+//     return similarity >= threshold;
+//   });
+// }
 
 //#endregion
 //#region filter table 

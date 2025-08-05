@@ -1,76 +1,85 @@
-{% extends 'index.html' %}
 {% load static %}
-{% block contact %}
-    
-    <!-- Contact Section Begin -->
-    <section class="contact spad">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-6 col-md-6 col-sm-6 text-center">
-                    <div class="contact__widget">
-                        <span class="icon_phone"></span>
-                        <h4>Phone/WhatsApp</h4>
-                        <p>+91-85949-90911</p>
-                    </div>
-                </div>
-                <div class="col-lg-6 col-md-6 col-sm-6 text-center">
-                    <div class="contact__widget">
-                        <span class="icon_mail_alt"></span>
-                        <h4>Email</h4>
-                        <p>connect@farmerharvest.in</p>
-                    </div>
-                </div>
-            </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact Us</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <!-- Header -->
+  <header class="text-white p-4" style="background-color: #047857;">
+    {% include 'header.html' %}
+  </header>
+  <!-- Contact Info Section -->
+  <section class="py-10 bg-white border-b border-gray-200">
+    <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 text-center">
+      <!-- Phone -->
+      <div class="bg-gray-100 p-6 rounded-lg shadow hover:shadow-md transition">
+        <div class="text-green-600 text-4xl mb-3">
+          📞
         </div>
-    </section>
-    <!-- Contact Section End -->
+        <h4 class="text-xl font-semibold mb-1">Phone / WhatsApp</h4>
+        <p class="text-gray-700 text-sm">+91-85949-90911</p>
+      </div>
 
-    <!-- Map Begin -->
-    <!-- <div class="map">
-        <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d49116.39176087041!2d-86.41867791216099!3d39.69977417971648!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x886ca48c841038a1%3A0x70cfba96bf847f0!2sPlainfield%2C%20IN%2C%20USA!5e0!3m2!1sen!2sbd!4v1586106673811!5m2!1sen!2sbd"
-            height="500" style="border:0;" allowfullscreen="" aria-hidden="false" tabindex="0"></iframe>
-        <div class="map-inside">
-            <i class="icon_pin"></i>
-            <div class="inside-widget">
-                <h4>New York</h4>
-                <ul>
-                    <li>Phone: +91-85949-90911</li>
-                    <li>Address: 2321/2981, Lane 6, Niladri Nagar, NH-316 (Puri-Cuttack Bypass), Bhubaneswar, Odisha, India, 751006</li>
-                </ul>
-            </div>
+      <!-- Email -->
+      <div class="bg-gray-100 p-6 rounded-lg shadow hover:shadow-md transition">
+        <div class="text-blue-600 text-4xl mb-3">
+          ✉️
         </div>
-    </div> -->
-    <!-- Map End -->
-
-    <!-- Contact Form Begin -->
-    <div class="contact-form spad">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="contact__form__title">
-                        <h2>Leave Message</h2>
-                    </div>
-                </div>
-            </div>
-            <form id="contactForm" action="{% url 'contact' %}?q=msg" method="post">
-                {% csrf_token %}
-                <div class="row">
-                    <div class="col-lg-6 col-md-6">
-                        <input type="text" name="senderName" placeholder="Your name">
-                    </div>
-                    <div class="col-lg-6 col-md-6">
-                        <input type="text" name="senderEmail" placeholder="Your Email/Phone">
-                    </div>
-                    <div class="col-lg-12 text-center">
-                        <textarea placeholder="Your message" name="senderMsg"></textarea>
-                        <button type="submit" class="site-btn">SEND MESSAGE</button>
-                    </div>
-                </div>
-            </form>
-        </div>
+        <h4 class="text-xl font-semibold mb-1">Email</h4>
+        <p class="text-gray-700 text-sm">connect@farmerharvest.in</p>
+      </div>
     </div>
-    <!-- Contact Form End -->
+  </section>
+
+  <!-- Contact Form Section -->
+  <section class="py-12 bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4">
+      <div class="mb-8 text-center">
+        <h2 class="text-3xl font-bold text-green-700">Leave a Message</h2>
+        <p class="text-sm text-gray-500 mt-2">We’d love to hear from you!</p>
+      </div>
+
+      <form id="contactForm" action="{% url 'contact' %}?q=msg" method="post" class="bg-white rounded-lg shadow-md p-6 space-y-6">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="senderName" class="block text-sm font-medium text-gray-700">Your Name</label>
+            <input type="text" name="senderName" id="senderName" placeholder="Enter your name"
+              class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-green-500 focus:border-green-500">
+          </div>
+          <div>
+            <label for="senderEmail" class="block text-sm font-medium text-gray-700">Email / Phone</label>
+            <input type="text" name="senderEmail" id="senderEmail" placeholder="Enter your email or phone"
+              class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-green-500 focus:border-green-500">
+          </div>
+        </div>
+
+        <div>
+          <label for="senderMsg" class="block text-sm font-medium text-gray-700">Your Message</label>
+          <textarea name="senderMsg" id="senderMsg" rows="5" placeholder="Write your message here"
+            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-green-500 focus:border-green-500 resize-none"></textarea>
+        </div>
+
+        <div class="text-center">
+          <button type="submit"
+            class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition shadow">
+            SEND MESSAGE
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+  <!-- Footer -->
+  <footer class="bg-green-800 text-white py-6 mt-10">
+    {% include 'footer.html' %}
+  </footer>
+</body>
+<!-- Contact Form End -->
     <script>
         document.getElementById("contactForm").addEventListener("submit", function(event){
             const form = event.target;
@@ -94,4 +103,4 @@
             }
         });
     </script>
-{% endblock %}
+</html>

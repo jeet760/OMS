@@ -1,54 +1,60 @@
 {% extends 'index.html' %}
 {% block CheckOut %}
-<h3>Pay Online</h3>
-<form id="checkoutForm" action="{% url 'payment_success' %}" method="post">
+<section class="max-w-xl mx-auto mt-10 p-6 bg-white shadow-md rounded-md">
+  <h3 class="text-xl font-semibold mb-4 text-green-700 text-center">Pay Online</h3>
+
+  <form id="checkoutForm" method="post" action="{% url 'payment_success' %}">
     {% csrf_token %}
-    <script
-        src="https://checkout.razorpay.com/v1/checkout.js"
-        data-key="{{ razorpay_key_id }}"
-        data-amount="{{ payment.amount }}"
-        data-currency="INR"
-        data-order_id="{{ payment.id }}"
-        data-buttontext="Pay with Razorpay"
-        data-name="Farmer Harvest"
-        data-description="Purchase Transaction"
-        data-theme.color="#F37254">
-    </script>
-  <input type="hidden" custom="Hidden Element" name="hidden">
-    <!-- <table>
-        <tr>
-            <td><strong>Order From</strong></td>
-            <td>{{login_user}}</td>
-        </tr>
-        <tr>
-            <td><strong>Order Date</strong></td>
-            <td>{{order_date}}</td>
-        </tr>
-        <tr>
-            <td><strong>Order Amount</strong></td>
-            <td>₹{{order_amount}}</td>
-        </tr>
-        <tr>
-            <td><strong>Select Payment Type</strong></td>
-            <td>
-                <select>
-                    <option>Select</option>
-                    <option value="cc">Credit Card</option>
-                    <option value="dc">Debit Card</option>
-                    <option value="upi">UPI</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <a href="{% url 'createorder' 0 0 0 0 %}?pay=online" class="primary-btn">Proceed to Checkout</a>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2" style="color:red;">
-                <sup>*</sup>Online Payment will be activated as soon as possible! Sorry, for the inconvenience caused.
-            </td>
-        </tr>
-    </table> -->
-</form>
+    <div class="p-4 border rounded bg-gray-50 text-sm text-gray-700">
+      <p><strong>Amount:</strong> ₹{{ label_amount|floatformat:2 }}</p>
+      <p><strong>Description:</strong> Purchase from Farmer Harvest</p>
+      <p><strong>Order ID:</strong> {{ payment.id }}</p>
+    </div>
+
+    <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+    <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+    <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+    
+    <div class="flex justify-center mt-4">
+      <button type="button"
+              id="payButton"
+              class="px-6 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-center">
+        Pay ₹{{ label_amount|floatformat:2 }} with Razorpay
+      </button>
+    </div>
+  </form>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    const options = {
+      "key": "{{ razorpay_key_id }}",
+      "amount": "{{ payment.amount }}", // in paise
+      "currency": "INR",
+      "name": "Farmer Harvest",
+      "description": "Purchase Transaction",
+      "order_id": "{{ payment.id }}",  // Order ID from Razorpay
+      "theme": {
+        "color": "#F37254"
+      },
+      "handler": function (response) {
+        // Set the hidden form inputs
+        document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+        document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+        document.getElementById('razorpay_signature').value = response.razorpay_signature;
+        // Submit the form
+        document.getElementById('checkoutForm').submit();
+      }
+    };
+
+    const rzp = new Razorpay(options);
+
+    document.getElementById('payButton').onclick = function(e){
+      rzp.open();
+      e.preventDefault();
+    };
+  </script>
+
+</section>
+
+
 {% endblock %}

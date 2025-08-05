@@ -384,7 +384,16 @@
     <!-- Account Deactivation Details -->
     <section id="accountSettings">
       <h2 class="text-xl font-semibold mb-4 text-gray-700">4. Account</h2>
-      <button type="button" class="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700" onclick="deactivateUser('{{user.pk}}')">Deactivate Your FPO Account</button>
+      <button type="button" class="px-6 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700" onclick="changeNumber('{{user.phone}}')">
+        Change Your Mobile Number
+      </button>
+      <button type="button" class="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700" onclick="deactivateUser('{{user.pk}}')">
+        {% if request.user.userType == '1'%}
+        Deactivate Your FPO Account
+        {% else %}
+        Deactivate Your Account
+        {% endif %}
+      </button>
     </section>
   </div>
   <!-- Basic Details -->
@@ -432,7 +441,7 @@
                 <!-- <input type="text" id="businessName" name="businessName" value="{{userform.org_name}}" placeholder="Business or company name" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" /> -->
               </div>
               <!-- Phone Number -->
-              <div>
+              <div class="disabled-inputs">
                 <label for="phone" class="block text-gray-600 mb-2">Phone Number</label>
                 {{userform.phone}}
                 <!-- <input type="tel" id="phone" name="phone" placeholder="+91 98765 43210" value="{{userform.phone}}" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" /> -->
@@ -787,12 +796,24 @@
 
   function deactivateUser(userID){
       url = "{% url 'activate-user' 0 'false' %}".replace(0,userID);
-      var msg = prompt('Upon deactivation, the you cannot access FarmerHarvest account. Are you sure to deactive the User?\nProvide Reason:');
+      var msg = prompt('Upon deactivation, you cannot access FarmerHarvest account. Are you sure to deactive the User?\nProvide Reason:');
       if(msg){
         window.location.href = url;
       }
       else{
         alert('The user remains active.');
+      }
+    }
+
+  function changeNumber(phone){
+      var newphone = prompt('Do you want to change mobile number?\nYour existing number is:'+phone+'\nEnter your new phone number:');
+      url = "{% url 'change-phone' 0 %}".replace(0,newphone);
+      if(newphone){
+        window.location.href = url;
+        alert('Your mobile number is changed to '+newphone);
+      }
+      else{
+        alert('Mobile number remains '+phone);
       }
     }
 </script>

@@ -1,0 +1,71 @@
+{% extends 'landing.html' %}
+{% load static %}
+{% block featured_product %}
+<!-- Featured Crops with Pagination -->
+  <div class="max-w-7xl mx-auto">
+  <h2 class="text-3xl font-bold mb-6 text-center">Featured Items</h2>
+
+  <div class="grid md:grid-cols-3 gap-6">
+    {% for item in featureItems_page_obj %}
+    <div class="bg-white shadow rounded overflow-hidden flex flex-col {% if item.itemInStock == False %}opacity-50 pointer-events-none{% endif %}">
+      
+      <!-- Item Image -->
+      <img src="{{ item.itemImg.url }}" alt="{{ item.itemName }}" class="w-full h-48 object-cover">
+
+      <!-- Item Details -->
+      <div class="p-4 flex-1">
+        <h3 class="font-semibold text-lg mb-1">{{ item.itemName }}</h3>
+        <p class="text-sm text-gray-600 mb-2">Price: ₹{{ item.itemPrice }}/{{ item.itemUnit }} | Location: {{ item.userID.userCity_name }}</p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-between items-center border-t px-4 py-2 bg-gray-50">
+        
+        <!-- Get Details Button -->
+        <a href="{% url 'shopdetails' item.itemID %}" class="text-green-700 hover:text-green-900 flex items-center space-x-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          <span class="text-sm">Details</span>
+        </a>
+
+        <!-- Add to Cart Form -->
+        <form action="{% url 'add_to_cart' item.itemID %}?source=landing&qty=1" method="post">
+          {% csrf_token %}
+          <button type="submit" class="text-green-700 hover:text-green-900 flex items-center space-x-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.293 2.707a1 1 0 00.293 1.293L7 18h10a1 1 0 001-1l-1-2m-6 4a1 1 0 11-2 0 1 1 0 012 0z" />
+            </svg>
+            <span class="text-sm">Add to Cart</span>
+          </button>
+        </form>
+
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination controls -->
+  <div class="mt-8 flex justify-center space-x-2">
+    {% if featureItems_page_obj.has_previous %}
+      <a href="?page=1" class="px-3 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200">&laquo; First</a>
+      <a href="?page={{ featureItems_page_obj.previous_page_number }}" class="px-3 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200">&lsaquo; Prev</a>
+    {% endif %}
+
+    <span class="px-4 py-1 bg-green-700 text-white rounded">
+      Page {{ featureItems_page_obj.number }} of {{ featureItems_page_obj.paginator.num_pages }}
+    </span>
+
+    {% if featureItems_page_obj.has_next %}
+      <a href="?page={{ featureItems_page_obj.next_page_number }}" class="px-3 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200">Next &rsaquo;</a>
+      <a href="?page={{ featureItems_page_obj.paginator.num_pages }}" class="px-3 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200">Last &raquo;</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

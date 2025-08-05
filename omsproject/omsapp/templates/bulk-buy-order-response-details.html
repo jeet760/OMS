@@ -1,81 +1,81 @@
-{% extends 'index.html' %}
 {% load static %}
-{% block bulk_buy_orders_response_details %}
-<p>Order #:<strong>{{order_details.bulkBuyID.bulkBuyNo}}</strong><br>
-    Response Date:<strong>{{order_details.response_date}}</strong><br>
-    Response From: <strong>{{order_details.response_userID.last_name}}</strong><br>
-    Responder's Contact:<strong>{{order_details.response_userID.phone}}</strong><br>
-    Status of Order:<strong>{{response_remark}}</strong>
-</p>
-<table class="table table-hover" id="bulkbuyDetailsTable">
-    <thead>
-        <tr>
-            <th>
-                Sl #
-            </th>
-            <th>
-                Item Name
-            </th>
-            <th>
-                Indicative Quantity
-            </th>
-            <th>
-                Unit
-            </th>
-            <th>
-                Indicative Price
-            </th>
-            <th>
-                Responded Price
-            </th>
-            <th>
-                Price Difference
-            </th>
-        </tr>
-    </thead>
-    <tbody class="table table-hover table-group-divider">
-        {% for response in response_details %}
-        <tr>
-            <td>
-                {{forloop.counter}}
-            </td>
-            <td>
-                {{response.itemName}}
-            </td>
-            <td>
-                {{response.itemQty}}
-            </td>
-            <td>
-                {{response.itemUnit}}
-            </td>
-            <td>
-                {{response.itemPrice}}
-            </td>
-            <td>
-                {{response.itemPrice_response}}
-            </td>
-            <td>
-                {% if response.itemPrice_response %}
-                    {{response.price_difference}}
-                {% else %}
-                    Not Responded
-                {% endif %}
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="7">
-                No Item is enquired for bulk buy!
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="2"></td>
-            <td colspan="2"><a href="{% url 'bulk-buy-order-response' bulkBuyID %}" class="btn btn-sm btn-secondary">Go Back</a></td>
-            <td colspan="3"><a href="{% url 'bulk-buy-response-accept' bulkBuyID response_userID%}" class="btn btn-sm btn-info {% if response_accepted == 'Yes'%}disabled{% endif %}">Accept</a></td>
-        </tr>
-    </tfoot>
-</table>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bulk Buy Response Details</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+<!-- Header -->
+  <header class="bg-green-700 text-white py-4 px-6">
+    {% include 'header.html' %}
+  </header>
+  <div class="max-w-6xl mx-auto px-4 py-8 space-y-6">
+
+    <!-- Header Info Card -->
+    <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
+      <h2 class="text-xl font-semibold text-green-700 mb-4">Bulk Buy Response Details</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+        <p><span class="text-gray-500 font-medium">Order #:</span> <strong>{{ order_details.bulkBuyID.bulkBuyNo }}</strong></p>
+        <p><span class="text-gray-500 font-medium">Response Date:</span> <strong>{{ order_details.response_date }}</strong></p>
+        <p><span class="text-gray-500 font-medium">Responder Name:</span> <strong>{{ order_details.response_userID.last_name }}</strong></p>
+        <p><span class="text-gray-500 font-medium">Contact:</span> <strong>{{ order_details.response_userID.phone }}</strong></p>
+        <p class="col-span-1 sm:col-span-2"><span class="text-gray-500 font-medium">Status of Order:</span> <strong>{{ response_remark }}</strong></p>
+      </div>
+    </div>
+
+    <!-- Item Response Card List -->
+    <div class="bg-white rounded-lg shadow border border-gray-200 p-4 space-y-4">
+      <h3 class="text-lg font-semibold text-blue-600">Item Details</h3>
+
+      {% for response in response_details %}
+      <div class="border border-gray-100 rounded-lg p-4 bg-gray-50 hover:shadow-sm transition text-sm">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div><span class="text-gray-500 font-medium">Sl #:</span> {{ forloop.counter }}</div>
+          <div><span class="text-gray-500 font-medium">Item Name:</span> {{ response.itemName }}</div>
+          <div><span class="text-gray-500 font-medium">Unit:</span> {{ response.itemUnit }}</div>
+          <div><span class="text-gray-500 font-medium">Indicative Qty:</span> {{ response.itemQty }}</div>
+          <div><span class="text-gray-500 font-medium">Indicative Price:</span> ₹{{ response.itemPrice }}</div>
+          <div><span class="text-gray-500 font-medium">Responded Price:</span>
+            {% if response.itemPrice_response %}
+              ₹{{ response.itemPrice_response }}
+            {% else %}
+              <span class="italic text-red-500">Not Responded</span>
+            {% endif %}
+          </div>
+          <div><span class="text-gray-500 font-medium">Price Difference:</span>
+            {% if response.itemPrice_response %}
+              ₹{{ response.price_difference }}
+            {% else %}
+              <span class="italic text-gray-400">N/A</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="bg-yellow-50 text-yellow-700 border border-yellow-300 rounded p-4 text-center">
+        No item is enquired for bulk buy!
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Footer Action Buttons -->
+    <div class="flex justify-between items-center mt-6">
+      <a href="{% url 'bulk-buy-order-response' bulkBuyID %}"
+         class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition text-sm">
+        ← Go Back
+      </a>
+      <a href="{% url 'bulk-buy-response-accept' bulkBuyID response_userID %}"
+         class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition text-sm {% if response_accepted == 'Yes' %}opacity-50 cursor-not-allowed pointer-events-none{% endif %}">
+        Accept Response
+      </a>
+    </div>
+
+  </div>
+
+</body>
+</html>

@@ -1,168 +1,261 @@
 {% extends 'index.html' %}
 {% load static %}
-{% block CartPage %}
-<div class="cart-container text-center" style="margin-left: 5rem; margin-right: 5rem;">
-    <div class="row cartitem-row" style="text-align: center; padding-top: 1rem; font-weight: bold;">
-        <div class="col-md-1">
-            Sl. #
-        </div>
-        <div class="col-md-1">
-            Item
-        </div>
-        <div class="col-md-4">
-            Item Name
-        </div>
-        <div class="col-md-1">
-            Price
-        </div>
-        <div class="col-md-1">
-            Qty.
-        </div>
-        <div class="col-md-1">
-            Total Price
-        </div>
-        <div class="col-md-3">
-            Actions
-        </div>
-    </div>
-    {% for item in cart %}
-    <form method="post" id="ordereditemform" action="{% url 'update_cart' item.product.itemID %}">
-        {% csrf_token %}
-        <div class="row cartitem-row">
-            <div class="col-md-1" style="text-align: center; padding-top: 1rem;">
-                {{ forloop.counter }}
-            </div>
-            <div class="col-md-1">
-                <img src="{{item.product.itemImg.url}}" alt={{item.itemName}} height="50px" width="50px" style="padding: 5px 5px 5px 5px;">
-            </div>
-            <div class="col-md-4" style="text-align: left;">
-                <h5>{{item.product.itemName}}</h5>
-                <span class="form-text">
-                    Sold By: {{ item.product.userID.first_name }}
-                 </span>
-            </div>
-            <div class="col-md-1" style="text-align: right; padding-top: 1rem;">
-                {{ item.price }} X 
-            </div>
-            <div class="col-md-1" style="text-align: left;padding-top: 1rem;">
-                <select class="form-select form-select-sm" style="width: 70px; height:30px;" id="selectQty" name="selectQuantity">
-                    <option value="{{ item.quantity }}" selected>{{ item.quantity }}</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="8">8</option>
-                    <option value="9">9</option>
-                    <option value="10">10</option>
-                    <option value="15">15</option>
-                    <option value="20">20</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                </select>
-            </div>
-            <div class="col-md-1" style="text-align: right;padding-top: 1rem;">
-                {{ item.total_price }}
-            </div>
-            <div class="col-md-3" style="padding-top: 1rem;">
-                <button type="submit" id={{item.itemID}} name="updateItem" class="btn btn-info btn-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cart-check" viewBox="0 0 16 16">
-                        <path d="M11.354 6.354a.5.5 0 0 0-.708-.708L8 8.293 6.854 7.146a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0z"/>
-                        <path d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1zm3.915 10L3.102 4h10.796l-1.313 7zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0m7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
-                    </svg>
-                    Update
-                </button>
-                <a class="btn btn-danger btn-sm" href="{% url 'remove_from_cart' item.product.itemID %}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cart-dash" viewBox="0 0 16 16">
-                        <path d="M6.5 7a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1z"/>
-                        <path d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1zm3.915 10L3.102 4h10.796l-1.313 7zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0m7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
-                    </svg>
-                    Remove
-                </a>
-            </div>
-        </div>
-    </form>
-    {% endfor %}
-</div>
-<div class="alert alert-info" role="alert" id="cartEmptyAlert">
-    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" fill="currentColor" class="bi bi-cart" viewBox="0 0 16 16">
-        <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5M3.102 4l1.313 7h8.17l1.313-7zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4m-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2m7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
-      </svg>
-    The basket seems to be empty!
-    <a href="{% url 'index' %}" class="alert-link">Click to Add Items.</a>
-</div>
-<div class="sticky-bottom container" style="background-color: rgb(243, 183, 236); height:5rem">
-    <form method="post" id="orderForm" action="{% if user_authenticated %}{% url 'createorder' total_qty total_price 0 0 %}{% else %}{% url 'login' %}{% endif %}"> <!--cart.total_quantity cart.total_price-->
-        {% csrf_token %}
-        <div>
-            <div class="row" style="text-align: center; padding-top: 1rem; font-weight: bold;">
-                <div class="col-md-2">
-                    Total Quantity:
-                    {{ total_qty }}
+{% block cart %}
+    <div class="max-w-6xl mx-auto py-10 px-4">
+        <h1 class="text-3xl font-bold text-green-700 mb-8">My Cart</h1>
+        {% if cart %}
+        <div class="space-y-6">
+            {% for item in cart %}
+            <div class="bg-white shadow rounded p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                <!-- Item Info -->
+                {% if item.product.itemInStock and item.product.userID_id != request.user.pk %}
+                <div class="flex items-center space-x-4">
+                {% else %}
+                <div class="flex items-center space-x-4 opacity-50 pointer-events-none">
+                {% endif %}
+                    <img src="{{ item.product.itemImg.url }}" alt="{{ item.product.itemName }}" class="w-20 h-20 object-cover rounded border" />
+                    <div>
+                        <h2 class="font-semibold text-lg">{{ item.product.itemName }}</h2>
+                        <p class="text-sm text-gray-600">₹{{ item.product.itemPrice }}/{{ item.product.itemUnit }}</p>
+                        <p class="text-sm text-gray-500">From: {{ item.product.userID.userCity_name }}</p>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    Total Amount (in Rs.):
-                    {{ total_price }}
+                
+                <!-- Quantity Controls -->
+                {% if item.product.itemInStock %}
+                <div class="flex items-center justify-center sm:justify-start space-x-2">
+                {% else %}
+                <div class="flex items-center justify-center sm:justify-start space-x-2 opacity-50 pointer-events-none">
+                {% endif %}
+                    <form method="post" action="{% url 'update_cart' %}?item={{item.product.pk}}" class="flex items-center space-x-2">
+                        {% csrf_token %}
+                        <button type="button" class="px-2 py-1 bg-gray-200 rounded text-lg font-bold" onclick="changeQty(this, -1)">−</button>
+                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="w-12 text-center border rounded px-1 py-1" readonly />
+                        <button type="button" class="px-2 py-1 bg-gray-200 rounded text-lg font-bold" onclick="changeQty(this, 1)">+</button>
+                        <button type="submit" name="action" value="update" class="hidden"></button>
+                    </form>
                 </div>
-                <div class="col-md-1" style="text-align: right;">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000">
-                        <path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z"/>
-                    </svg>
+
+                <!-- Price & Remove -->
+                <div class="text-right">
+                    <p class="text-lg font-bold text-green-700">₹{{ item.total_price }}</p>
+                    <form method="post" action="{% url 'remove_from_cart' item.product.itemID %}">
+                        {% csrf_token %}
+                        <button class="text-red-600 text-sm hover:underline mt-1">Remove</button>
+                    </form>
                 </div>
-                <div class="col-md-1">
-                    <select class="form-control" id="selectDeliveryDate" name="selectDeliveryDate" style="font-size: 12px; height: 30px; width: 130px;">
-                        {% for date in dateSeries %}
-                        <option value="{{date}}">
-                            {{date}}
-                        </option>
+            </div>
+            {% endfor %}
+            {% if item_stock == False %}
+                <p class="text-red-600 text-sm mt-2">
+                    <sup>*</sup> Remove the Out of Stock Item to Proceed for Order.
+                </p>
+            {% elif item_seller == True %}
+                <p class="text-red-600 text-sm mt-2">
+                    <sup>*</sup> Own item cannot be added to the cart!
+                </p>
+            {% endif %}
+        </div>
+        {% else %}
+        <p class="text-gray-600">Your cart is empty. <a href="{% url 'shop' %}" class="text-green-700 underline">Shop now</a>.</p>
+        {% endif %}
+
+        <!-- Cart Layout -->
+        <div class="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Billing & Shipping Address -->
+            <div class="bg-white p-6 rounded shadow">
+                <h2 class="text-xl font-bold text-green-700 mb-4">Billing & Shipping Address</h2>
+
+                <!-- Billing Address -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-green-700 mb-3">Billing Address</h3>
+                    <div class="space-y-4">
+                        {% for bill_address in billing_addresses %}
+                        {% for state_code in states %}
+                        {% if state_code.0 == bill_address.userState %}
+                        <label class="block border rounded-lg px-4 py-3 shadow-sm cursor-pointer transition hover:border-green-500 {{ bill_address.setDefault|yesno:'border-green-600 bg-green-50,border-gray-300' }}">
+                            <input type="radio" name="bill_address" value="{{ bill_address.id }}" class="mr-2 accent-green-600" {% if bill_address.setDefault %} checked {% endif %}>
+                            <span class="text-sm text-gray-700">{{ bill_address.userAddress }}, {{ bill_address.userCity_name }}, {{ state_code.1 }}, {{ bill_address.pinCode }}</span>
+                        </label>
+                        {% endif %}
                         {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-1" style="text-align: right; font-size: 10px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000">
-                        <path d="m612-292 56-56-148-148v-184h-80v216l172 172ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-400Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/>
-                    </svg>
-                </div>
-                <div class="col-md-1">
-                    <select class="form-control" id="selectDeliveryTime" name="selectDeliveryTime" style="font-size: 12px; height: 30px; width: 120px;">
-                        {% for time in timeSeries %}
-                        <option value="{{time}}">
-                            {{time}}
-                        </option>
                         {% endfor %}
-                    </select>
+                    </div>
                 </div>
-                <div class="col-md-2" style="text-align: center;">
-                    <button type="submit" class="btn btn-primary btn-sm" id="buyButton" style="height: 30px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
-                            <path d="m480-560-56-56 63-64H320v-80h167l-64-64 57-56 160 160-160 160ZM280-80q-33 0-56.5-23.5T200-160q0-33 23.5-56.5T280-240q33 0 56.5 23.5T360-160q0 33-23.5 56.5T280-80Zm400 0q-33 0-56.5-23.5T600-160q0-33 23.5-56.5T680-240q33 0 56.5 23.5T760-160q0 33-23.5 56.5T680-80ZM40-800v-80h131l170 360h280l156-280h91L692-482q-11 20-29.5 31T622-440H324l-44 80h480v80H280q-45 0-68.5-39t-1.5-79l54-98-144-304H40Z"/>
-                        </svg>
-                        Proceed to Buy
+
+                <!-- Shipping Address -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-green-700 mb-3">Shipping Address</h3>
+                    <div class="space-y-4">
+                        {% for ship_address in shipping_addresses %}
+                            {% for state_code in states %}
+                                {% if state_code.0 == ship_address.userState1 %}
+                                    {% with deliverable=ship_address.pinCode1 %}
+                                        {% if ship_address.setDefault and ship_address.pinCode1 == pincode %}
+                                            <label class="block border rounded-lg px-4 py-3 shadow-sm border-green-600 bg-green-50">
+                                        {% elif ship_address.pinCode1 != pincode %}
+                                            <label class="block border rounded-lg px-4 py-3 shadow-sm border-gray-300 opacity-50 cursor-not-allowed">
+                                        {% else %}
+                                            <label class="block border rounded-lg px-4 py-3 shadow-sm border-gray-300 hover:border-green-500 cursor-pointer">
+                                        {% endif %}
+
+                                            <input type="radio" name="ship_address" value="{{ ship_address.id }}"
+                                                class="mr-2 accent-green-600"
+                                                {% if ship_address.setDefault and ship_address.pinCode1 == pincode %} checked {% endif %}
+                                                {% if ship_address.pinCode1 != pincode %} disabled {% endif %}>
+
+                                            <span class="text-sm text-gray-700">
+                                                {{ ship_address.userAddress1 }}, {{ ship_address.userCity1_name }}, {{ state_code.1 }}, {{ ship_address.pinCode1 }}
+                                            </span>
+
+                                            {% if ship_address.pinCode1 != pincode %}
+                                                <div class="text-red-600 text-xs mt-1 ml-6">(Can't be delivered here)</div>
+                                            {% endif %}
+                                        </label>
+                                    {% endwith %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+
+                {% if request.user.is_authenticated %}
+                <div class="mt-4">
+                    <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded shadow" onclick="openModal('modalAddAddress')">
+                    + Add Address
                     </button>
                 </div>
+                {% endif %}
+            </div>
+
+            <!-- Cart Summary -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 w-full">
+                <h2 class="text-2xl font-semibold text-green-700 mb-6 border-b pb-2">Cart Summary</h2>
+                <form method="post" id="orderForm" action="{% if request.user.is_authenticated %}{% url 'createorder' transportation_cost total_cart_price gst_amount deduction_amount %}{% else %}{% url 'login' %}{% endif %}"> <!--cart.total_quantity cart.total_price-->
+                    {% csrf_token %}
+                
+                    <div class="space-y-3 text-sm text-gray-800">
+                        <div class="flex justify-between">
+                            <span>Subtotal</span>
+                            <span>₹{{ total_cart_price }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Delivery Charges</span>
+                            <span>₹{{ transportation_cost }}.00</span>
+                        </div>
+                        <!-- <div class="flex justify-between">
+                            <span>Tax</span>
+                            <span>₹{{ tax_amount }}</span>
+                        </div> -->
+                        {% if deduction_amount > 0 %}
+                        <div class="flex justify-between text-green-700 font-semibold">
+                            <span>Discount</span>
+                            <span>- ₹{{ discount }}</span>
+                        </div>
+                        {% endif %}
+                        <hr class="my-2 border-gray-300">
+                        <div class="flex justify-between font-bold text-lg text-gray-900">
+                            <span>Total</span>
+                            <span>₹{{ grand_total }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Delivery Date -->
+                    <div class="mt-6">
+                        <label for="selectDeliveryDate" class="block text-sm font-medium text-gray-700 mb-1">Select Delivery Date</label>
+                        <div class="relative">
+                            <select id="selectDeliveryDate" name="selectDeliveryDate" class="appearance-none w-full text-sm h-9 px-3 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 bg-white">
+                                {% for date in dateSeries %}
+                                <option value="{{ date }}">{{ date }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-11 6h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delivery Time -->
+                    <div class="mt-4">
+                        <label for="selectDeliveryTime" class="block text-sm font-medium text-gray-700 mb-1">Select Delivery Time</label>
+                        <div class="relative">
+                            <select id="selectDeliveryTime" name="selectDeliveryTime" class="appearance-none w-full h-9 text-sm px-3 pr-8 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600">
+                                {% for time in timeSeries %}
+                                <option value="{{ time }}">{{ time }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Order Note -->
+                    <div class="mt-4">
+                        <label for="orderNote" class="block text-sm font-medium text-gray-700 mb-1">Order Note</label>
+                        <textarea id="orderNote" name="orderNote" rows="3"
+                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600"
+                                placeholder="Any specific instructions for delivery?"></textarea>
+                    </div>
+
+                    <!-- Payment Mode -->
+                    <div class="mt-4">
+                        <label for="paymentMode" class="block text-sm font-medium text-gray-700 mb-1">Payment Mode</label>
+                        <select id="paymentMode" name="paymentMode"
+                                class="w-full h-9 px-3 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600">
+                            <option value="1">Cash on Delivery</option>
+                            {% if user_type == '3' %}
+                            <option value="2">Institutional Credit</option>
+                            {% endif %}
+                            <option value="3">Online</option>
+                        </select>
+                    </div>
+
+                    <!-- Checkout Button -->
+                    <div class="mt-6">
+                        {% if item_stock and item_seller == False and cart|length > 0%}
+                        <button type="submit" class="block w-full text-center bg-green-700 hover:bg-green-800 text-white font-semibold py-2 rounded-md transition">
+                            Proceed to Checkout
+                        </button>
+                        {% else %}
+                        <button disabled type="submit" class="block w-full text-center bg-green-700 hover:bg-green-800 text-white font-semibold py-2 rounded-md transition opacity-50 pointer-events-none">
+                            Proceed to Checkout
+                        </button>
+                        {% endif %}
+                    </div>
+                </form>
             </div>
         </div>
-    </form>
-</div>
-<script>
-    window.addEventListener("load", (event) => {
-        var shoppingBasket = document.getElementById('shoppingBasket');
-        var buyButton = document.getElementById('buyButton');
-        var totalPrice = document.getElementById('totalPrice').innerText;
-        var cartEmptyAlert = document.getElementById('cartEmptyAlert');
-        if(totalPrice == 0){
-            buyButton.disabled = true;
-            cartEmptyAlert.style.display = "block";
-            shoppingBasket.style.display="none";
+    </div>
+
+    <!-- Modal Background -->
+    <div id="modalAddAddress" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-xl p-6 relative">
+            {% include 'add-address.html'%}
+        </div>
+    </div>
+
+
+    <script>
+        function changeQty(button, delta) {
+            const form = button.closest('form');
+            const input = form.querySelector('input[name="quantity"]');
+            let value = parseInt(input.value);
+            value = isNaN(value) ? 1 : value + delta;
+            value = Math.max(1, value);
+            input.value = value;
+            form.querySelector('button[type="submit"]').click();
         }
-        else
-        {
-            buyButton.disabled = false;
-            cartEmptyAlert.style.display = "none";
-            shoppingBasket.style.display="block";
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
         }
-    });
-</script>
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+    </script>
+
 {% endblock %}

@@ -1,113 +1,117 @@
-{% extends 'index.html' %}
 {% load static %}
-{% block deliverypolicy %}
-<section class="blog spad">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>Delivery & Fulfillment Policy</h2>
-                </div>
-                <p>This Delivery & Fulfillment Policy outlines the terms and conditions regarding the processing, shipping, and fulfillment of orders placed on the Farmer Harvest platform ("Platform"). By using our services, buyers and sellers agree to the terms outlined below.</p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>1. Order Processing</h2>
-                </div>
-                <ul>
-                    <li>Orders are processed by the respective Farmer Producer Organizations (FPOs), Cooperatives, or Producer Groups registered on the Platform.</li>
-                    <li>Sellers are responsible for confirming order acceptance within 24 hours of placement.</li>
-                    <li>Buyers will receive confirmation notifications via email and/or SMS once their order is accepted.</li>
-                </ul>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>2. Delivery Timelines</h2>
-                </div>
-                <ul>
-                    <li><strong>Hyperlocal Orders:</strong> Orders meant for local delivery are typically fulfilled within 1-5 business days, depending on the seller’s location and logistics availability.</li>
-                    <li><strong>Regional & National Orders:</strong> Orders beyond the seller’s immediate operational area may take 5-15 business days for delivery.</li>
-                    <li><strong>Bulk & Institutional Orders:</strong> Special arrangements may be required for large orders, and delivery timelines will be communicated directly to buyers.</li>
-                </ul>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>3. Shipping & Logistics</h2>
-                </div>
-                <ul>
-                    <li>Sellers are responsible for ensuring proper packaging and timely dispatch of goods.</li>
-                    <li>Logistics services may be provided by third-party courier partners or arranged directly by sellers.</li>
-                    <li>Shipping charges, if applicable, will be displayed at checkout before payment confirmation.</li>
-                    <li>Tracking details (if available) will be shared with buyers for real-time order monitoring.</li>
-                </ul>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>4. Buyer Responsibilities</h2>
-                </div>
-                <ul>
-                    <li>Buyers must provide accurate shipping details at the time of order placement.</li>
-                    <li>It is the buyer’s responsibility to be available to receive the delivery or authorize a representative to do so.</li>
-                    <li>Any failed delivery attempts due to incorrect addresses or unavailability may result in additional delivery charges.</li>
-                </ul>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>5. Order Fulfillment & Delays</h2>
-                </div>
-                <ul>
-                    <li>While every effort is made to deliver orders on time, unforeseen circumstances (weather, strikes, regulatory delays, etc.) may cause delays.</li>
-                    <li>If an order is delayed beyond the committed timeline, buyers will be notified with an updated delivery estimate.</li>
-                    <li>In case of non-fulfillment by a seller, buyers may request a refund as per the Return & Refund Policy.</li>
-                </ul>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>6. International & Long-Distance Orders</h2>
-                </div>
-                <ul>
-                    <li>Orders shipped outside the immediate geography of the seller’s operational area may require additional time for customs clearance and shipping logistics.</li>
-                    <li>International shipping (if applicable) will be subject to customs duties, taxes, and other regulations as per the destination country’s laws.</li>
-                </ul>
-            </div>
-        </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Delivery & Fulfillment Policy | Farmer Harvest</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-white text-gray-800">
+    <header class="text-white p-4" style="background-color: #047857;">
+        {% include 'header.html' %}
+    </header>
+  <section class="py-12 bg-gray-50">
+    <div class="max-w-5xl mx-auto px-4 space-y-12">
+      
+      <!-- Title -->
+      <div class="text-center">
+        <h2 class="text-3xl font-bold text-green-700">Delivery & Fulfillment Policy</h2>
+        <p class="mt-4 text-gray-700">
+          This Delivery & Fulfillment Policy outlines the terms and conditions regarding the processing, shipping, and fulfillment of orders placed on the <strong>Farmer Harvest</strong> platform. By using our services, buyers and sellers agree to the terms outlined below.
+        </p>
+      </div>
 
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">    
-                    <h2>7. Order Cancellation</h2>
-                </div>
-                <ul>
-                    <li>Buyers may cancel orders before they are processed and dispatched.</li>
-                    <li>Once an order has been shipped, cancellations are not permitted.</li>
-                    <li>Sellers reserve the right to cancel orders due to unforeseen circumstances, in which case buyers will be notified and refunded as per policy.</li>
-                </ul>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>8. Contact Information</h2>
-                </div>
-                <p>For any queries related to order delivery and fulfillment, please contact:</p>
-            </div>
-            <p><strong>Pradeep Kumar Rout</strong><br>
-            Chief Operating Officer<br>
-            Email: <a href="mailto:pradeep@billionnextbop.com">pradeep@billionnextbop.com</a><br>
-            Phone: +91-9853092385</p>
-        </div>
+      <!-- Section 1 -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h3 class="text-2xl font-semibold text-green-800 mb-3">1. Order Processing</h3>
+        <ul class="list-disc list-inside text-gray-700 space-y-2">
+          <li>Orders are processed by the respective Farmer Producer Organizations (FPOs), Cooperatives, or Producer Groups registered on the platform.</li>
+          <li>Sellers are responsible for confirming order acceptance within 24 hours of placement.</li>
+          <li>Buyers will receive confirmation notifications via email and/or SMS once their order is accepted.</li>
+        </ul>
+      </div>
+
+      <!-- Section 2 -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h3 class="text-2xl font-semibold text-green-800 mb-3">2. Delivery Timelines</h3>
+        <ul class="list-disc list-inside text-gray-700 space-y-2">
+          <li><strong>Hyperlocal Orders:</strong> Delivered within 1–5 business days depending on seller location and logistics.</li>
+          <li><strong>Regional & National Orders:</strong> May take 5–15 business days beyond the seller’s area.</li>
+          <li><strong>Bulk & Institutional Orders:</strong> Special arrangements will be communicated directly to buyers.</li>
+        </ul>
+      </div>
+
+      <!-- Section 3 -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h3 class="text-2xl font-semibold text-green-800 mb-3">3. Shipping & Logistics</h3>
+        <ul class="list-disc list-inside text-gray-700 space-y-2">
+          <li>Sellers ensure proper packaging and timely dispatch.</li>
+          <li>Logistics may be handled by third-party couriers or directly by sellers.</li>
+          <li>Shipping charges (if any) will appear at checkout.</li>
+          <li>Tracking details (if available) will be shared with buyers.</li>
+        </ul>
+      </div>
+
+      <!-- Section 4 -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h3 class="text-2xl font-semibold text-green-800 mb-3">4. Buyer Responsibilities</h3>
+        <ul class="list-disc list-inside text-gray-700 space-y-2">
+          <li>Provide accurate delivery details when placing the order.</li>
+          <li>Be available to receive or authorize someone for delivery.</li>
+          <li>Incorrect addresses or missed deliveries may result in extra charges.</li>
+        </ul>
+      </div>
+
+      <!-- Section 5 -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h3 class="text-2xl font-semibold text-green-800 mb-3">5. Order Fulfillment & Delays</h3>
+        <ul class="list-disc list-inside text-gray-700 space-y-2">
+          <li>Delays due to weather, strikes, or logistics will be communicated to the buyer.</li>
+          <li>Updated delivery estimates will be provided in case of delay.</li>
+          <li>Non-fulfillment by seller entitles the buyer to a refund as per the Return & Refund Policy.</li>
+        </ul>
+      </div>
+
+      <!-- Section 6 -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h3 class="text-2xl font-semibold text-green-800 mb-3">6. International & Long-Distance Orders</h3>
+        <ul class="list-disc list-inside text-gray-700 space-y-2">
+          <li>Additional customs or delivery time may apply for orders outside seller's local area.</li>
+          <li>International orders are subject to duties, taxes, and local regulations.</li>
+        </ul>
+      </div>
+
+      <!-- Section 7 -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h3 class="text-2xl font-semibold text-green-800 mb-3">7. Order Cancellation</h3>
+        <ul class="list-disc list-inside text-gray-700 space-y-2">
+          <li>Buyers can cancel orders before they are processed and dispatched.</li>
+          <li>No cancellations allowed after the order is shipped.</li>
+          <li>Sellers may cancel due to unforeseen reasons; buyers will be notified and refunded accordingly.</li>
+        </ul>
+      </div>
+
+      <!-- Section 8: Contact Info -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h3 class="text-2xl font-semibold text-green-800 mb-3">8. Contact Information</h3>
+        <p class="text-gray-700">
+          For any queries related to order delivery and fulfillment, please contact:
+        </p>
+        <p class="mt-2 text-gray-700">
+          <strong>Pradeep Kumar Rout</strong><br>
+          Chief Operating Officer<br>
+          Email: <a href="mailto:connect@farmerharvest.in" class="text-blue-600 underline">connect@farmerharvest.in</a><br>
+          Phone: +91-98450-92385
+        </p>
+      </div>
+
     </div>
-</section>
-{% endblock %}
+  </section>
+<!-- Footer -->
+  <footer class="bg-green-800 text-white py-6 mt-10">
+    {% include 'footer.html' %}
+  </footer>
+</body>
+</html>

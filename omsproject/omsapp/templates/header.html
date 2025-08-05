@@ -1,202 +1,131 @@
 {% load static %}
 {% block header %}
-
-    <!-- Humberger Begin -->
-    <div class="humberger__menu__overlay"></div>
-    <div class="humberger__menu__wrapper">
-        <div class="humberger__menu__logo">
-            <a href="#"><img src="{% static 'img/logo.png' %}" alt=""></a>
-        </div>
-        <div class="humberger__menu__cart">
-            <ul>
-                <li><a href="{% url 'shoppingcart' %}"><i class="fa fa-shopping-bag"></i> <span>{{total_qty}}</span></a></li>
-            </ul>
-            <div class="header__cart__price">Amount: <span>₹ {{total_price}}/-</span></div>
-        </div>
-        <div class="humberger__menu__widget">
-            <div class="header__top__right__language">
-                <!-- <img src="img/language.png" alt="">
-                <div>English</div>
-                <span class="arrow_carrot-down"></span>
-                <ul>
-                    <li><a href="#">Spanis</a></li>
-                    <li><a href="#">English</a></li>
-                </ul> -->
-                <i class="fa fa-user"></i>
-                <div><strong>{% if login_user == 'Guest!' %}<a style="color: black; text-decoration: none;" href="{% url 'login' %}">Login</a>{% else %}{{login_user}}{% endif %}</strong></div>
-                <span class="arrow_carrot-down"></span>
-                {% if login_user != 'Guest!' %}
-                <ul>
-                    {% if user_type == '1' %}
-                        {% if user_approved == True %}
-                        <li><a href="{% url 'dashboard' %}"><i class="fa fa-user"></i>FPO Hub</a></li>
-                        {% else %}
-                        <li><a href="{% url 'profile-auth' %}"><i class="fa fa-user"></i>Request for FPO Hub</a></li>
-                        {% endif %}
-                    {% else %}
-                        <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>My Profile</a></li>
-                    {% endif %}
-                    <li><a href="{% url 'orders' %}">My Orders</a></li>
-                    <li><a href="{% url 'logout' %}">Log Out</a></li>
-                </ul>
-                {% endif %}
-            </div>
-        </div>
-        <nav class="humberger__menu__nav mobile-menu">
-            <ul>
-                <li class="{% if clicked == 'Home' %} active {% endif %}"><a href="{% url 'index' %}">Home</a></li>
-                <li class="{% if clicked == 'Shop' %} active {% endif %}"><a href="{% url 'shop' %}">Shop</a></li>
-                <!-- <li><a href="#">Pages</a>
-                    <ul class="header__menu__dropdown">
-                        <li><a href="./shop-details.html">Shop Details</a></li>
-                        <li><a href="{% url 'shoppingcart' %}">Shoping Cart</a></li>
-                        <li><a href="./checkout.html">Check Out</a></li>
-                        <li><a href="./blog-details.html">Blog Details</a></li>
-                    </ul>
-                </li> -->
-                <li class="{% if clicked == 'Bulk' %} active {% endif %}"><a href="{% url 'bulk-buy' %}">Bulk Buy</a></li>
-                <li class="{% if clicked == 'Contact' %} active {% endif %}"><a href="{% url 'contact' %}">Contact</a></li>
-            </ul>
-        </nav>
-        <div id="mobile-menu-wrap"></div>
-        <div class="header__top__right__social">
-            <a href="https://www.facebook.com/farmerharvestindia"><i class="fa fa-facebook"></i></a>
-            <a href="https://www.x.com/farmerharvest"><i class="fa fa-twitter"></i></a>
-            <a href="https://www.linkedin.com/company/farmerharvestindia"><i class="fa fa-linkedin"></i></a>
-            <a href="https://www.instagram.com/farmerharvestindia"><i class="fa fa-instagram"></i></a>
-        </div>
-        <div class="humberger__menu__contact">
-            <ul>
-                <li><i class="fa fa-envelope"></i> connect@farmerharvest.in</li>
-                <li>Free Shipping for all Orders above ₹999/-</li>
-            </ul>
-        </div>
+<!-- <header class="bg-green-700 text-white w-full"> -->
+  <div class="max-w-7xl mx-auto px-2 py-1 flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0">
+    <!-- Logo -->
+    <div class="flex items-center space-x-2 flex-shrink-0">
+      <a href="/" class="flex items-center space-x-2">
+        <img src="{% static 'img/logo.png' %}" alt="FarmerHarvest" class="h-8">
+        <span class="text-xl font-semibold whitespace-nowrap">Farmer <span class="text-[#FF9933]">HARVEST</span></span>
+      </a>
     </div>
-    <!-- Humberger End -->
 
-    <!-- Header Section Begin -->
-    <header class="header">
-        <div class="header__top" style="height:50px;">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-6 col-md-6">
-                        <div class="header__top__left">
-                            <ul>
-                                <li><i class="fa fa-envelope"></i> connect@farmerharvest.in</li>
-                                <li>Free Shipping for all Orders above ₹999/-</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 col-md-6">
-                        <div class="header__top__right" style="margin-top:-25px;">
-                            <div class="header__top__right__social">
-                                <a href="https://www.facebook.com/farmerharvestindia"><i class="fa fa-facebook"></i></a>
-                                <a href="https://www.x.com/farmerharvest"><i class="fa fa-twitter"></i></a>
-                                <a href="https://www.linkedin.com/company/farmerharvestindia"><i class="fa fa-linkedin"></i></a>
-                                <a href="https://www.instagram.com/farmerharvestindia"><i class="fa fa-instagram"></i></a>
-                            </div>
-                            <!--<div class="header__top__right__language">
-                                <img src="img/language.png" alt="">
-                                <div>English</div>
-                                <span class="arrow_carrot-down"></span>
-                                <ul>
-                                    <li><a href="#">Odia</a></li>
-                                    <li><a href="#">English</a></li>
-                                </ul>
-                            </div>-->
-                            <div class="header__top__right__auth">
-                                <nav class="header__menu">
-                                    <ul>
-                                        <li><a href="{% if login_user == 'Guest!' %}{% url 'login' %}{% endif %}"><i class="fa fa-user"></i> {% if login_user == 'Guest!' %}Login{% else %}{{login_user}}{% endif %}</a>
-                                            {% if login_user != 'Guest!' %}
-                                            <ul class="header__menu__dropdown">
-                                                {% if user_type == '1' %}
-                                                    {% if user_approved == True %}
-                                                    <li><a href="{% url 'dashboard' %}"><i class="fa fa-user"></i>FPO Hub</a></li>
-                                                    {% else %}
-                                                    <li><a href="{% url 'profile-auth' %}"><i class="fa fa-user"></i>Request for FPO Hub</a></li>
-                                                    {% endif %}
-                                                {% else %}
-                                                    <li><a href="{% url 'profile' %}"><i class="fa fa-user"></i>My Profile</a></li>
-                                                {% endif %}
-                                                <li><a href="{% url 'orders' %}">My Orders</a></li>
-                                                <li><a href="{% url 'logout' %}">Log Out</a></li>
-                                            </ul>
-                                            {% endif %}
-                                        </li>
-                                    </ul>
-                                </nav>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- Search Bar (now well positioned) -->
+    <div class="w-full md:w-auto">
+      <form method="GET" action="{% url 'shop' %}?search={search}" class="flex items-center bg-white rounded-md px-2 py-1 text-sm w-full md:w-80">
+        <input type="text" name="search"
+          placeholder="Search items/types..."
+          value="{{ request.GET.search|default:'' }}"
+          class="flex-grow px-2 py-1 text-gray-800 focus:outline-none rounded-l-md"
+        />
+        <button type="submit" class="ml-1 text-blue-600 hover:text-blue-800 font-semibold whitespace-nowrap">
+          Search
+        </button>
+      </form>
+    </div>
+
+    <!-- Navigation and Auth/Cart -->
+    <nav class="flex flex-wrap items-center justify-end gap-3 text-sm w-full md:w-auto">
+      <a href="/" class="hover:underline">Home</a>
+      <a href="/shop" class="hover:underline">Shop</a>
+      <a href="/bulk-buy" class="hover:underline">Bulk Buy</a>
+
+      {% if request.user.is_authenticated %}
+        <div x-data="{ open: false }" class="relative">
+          <button @click="open = !open" class="flex items-center focus:outline-none">
+            <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="Avatar"
+              class="h-8 w-8 rounded-full border-2 border-white" />
+            <span class="ml-2 hidden sm:inline-block text-sm font-medium text-white">{{ request.user.last_name }}</span>
+            <svg class="ml-1 h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.584l3.71-4.353a.75.75 0 111.14.976l-4.25 5a.75.75 0 01-1.14 0l-4.25-5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <div x-show="open" @click.away="open = false" x-transition
+            class="absolute right-0 mt-2 w-44 bg-white rounded shadow-lg z-50 text-sm text-gray-700 overflow-hidden">
+            {% if request.user.userType == '1' %}
+              {% if request.user.userApproved %}
+                <a href="{% url 'dashboard' %}" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-gray-700">
+                  <svg class="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M3 3h14v2H3V3zm0 4h14v2H3V7zm0 4h9v2H3v-2zm0 4h14v2H3v-2z"/>
+                  </svg> FPO Hub
+                </a>
+              {% else %}
+                <a href="{% url 'profile-auth' %}" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-yellow-700">
+                  <svg class="h-4 w-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 12h2V8H9v4zm0 4h2v-2H9v2zm1-16C4.477 0 0 4.477 0 10s4.477 10 10 10 10-4.477 10-10S15.523 0 10 0z"/>
+                  </svg> Request for FPO Hub
+                </a>
+              {% endif %}
+            {% else %}
+              <a href="{% url 'profile' %}" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-gray-700">
+                <svg class="h-4 w-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 10a4 4 0 100-8 4 4 0 000 8zm1 2H9a6 6 0 00-6 6v1h14v-1a6 6 0 00-6-6z" clip-rule="evenodd"/>
+                </svg> My Profile
+              </a>
+            {% endif %}
+            <a href="{% url 'orders' %}" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-gray-700">
+              <!-- 📦 Orders Icon -->
+              <svg class="h-4 w-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 6a2 2 0 012-2h1V3a1 1 0 011-1h6a1 1 0 011 1v1h1a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm3-1v1h10V5H5zm0 3v7h10V8H5z" />
+              </svg>
+              My Orders
+            </a>
+
+            <a href="{% url 'bulk-buy-orders' %}" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-gray-700">
+              <!-- 🧺 Bulk Buy Icon -->
+              <svg class="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M4 4a1 1 0 000 2h12a1 1 0 100-2H4zm1 3a1 1 0 000 2h10a1 1 0 100-2H5zm-1 4a1 1 0 011-1h10a1 1 0 011 1v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5z" />
+              </svg>
+              Bulk Buys
+            </a>
+
+            <form method="post" action="{% url 'logout' %}" class="border-t">
+              {% csrf_token %}
+              <button type="submit" class="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700">
+                <!-- 🚪 Logout Icon -->
+                <svg class="h-4 w-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h6a1 1 0 110 2H5v12h5a1 1 0 110 2H4a1 1 0 01-1-1V3zm13.707 6.293a1 1 0 00-1.414 1.414L17.586 12H9a1 1 0 100 2h8.586l-2.293 2.293a1 1 0 101.414 1.414l4-4a1 1 0 000-1.414l-4-4z" clip-rule="evenodd" />
+                </svg>
+                Logout
+              </button>
+
+            </form>
+          </div>
         </div>
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3">
-                    <div class="header__logo">
-                        <a href="{% url 'index' %}"><img src="{% static 'img/logo.png' %}" alt=""></a>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <nav class="header__menu">
-                        <ul>
-                            <li class="{% if clicked == 'Home' %} active {% endif %}"><a href="{% url 'index' %}">Home</a></li>
-                            <li class="{% if clicked == 'Shop' %} active {% endif %}"><a href="{% url 'shop' %}">Shop</a></li>
-                            <li class="{% if clicked == 'Bulk' %} active {% endif %}"><a href="{% url 'bulk-buy' %}">Bulk Buy</a></li>
-                            <!-- <li><a href="#">Pages</a>
-                                <ul class="header__menu__dropdown">
-                                    <li><a href="./shop-details.html">Shop Details</a></li>
-                                    <li><a href="{% url 'shoppingcart' %}">Shoping Cart</a></li>
-                                    <li><a href="{% url 'checkout' %}">Check Out</a></li>
-                                    <li><a href="./blog-details.html">Blog Details</a></li>
-                                </ul>
-                            </li> -->
-                            <!-- <li class="{% if clicked == 'Blog' %} active {% endif %}"><a href="{% url 'blog' %}">Blog</a></li> -->
-                            <li class="{% if clicked == 'Contact' %} active {% endif %}"><a href="{% url 'contact' %}">Contact</a></li>
-                        </ul>
-                    </nav>
-                </div>
-                <div class="col-lg-3">
-                    <div class="header__cart">
-                        <ul>
-                            <li><a onclick="getPinCode()" id="delivery"><i class="fa fa-map-marker"></i>{% if pincode %}{{pincode}}{% else %}Delivery Pincode{% endif %}</a></li>
-                            {% if messages %}
-                            {% for message in messages %}
-                            <script>
-                                alert("{{ message|escapejs }}");
-                            </script>
-                            {% endfor %}
-                            {% endif %}
-                            <li><a href="{% url 'shoppingcart' %}"><i class="fa fa-shopping-bag"></i> <span>{{total_qty}}</span></a></li>
-                        </ul>
-                        <div class="header__cart__price">Amount: <span>₹ {{total_price}}/-</span></div>
-                    </div>
-                </div>
-            </div>
-            <div class="humberger__open">
-                <i class="fa fa-bars"></i>
-            </div>
-        </div>
-    </header>
-    <!-- Header Section End -->
-     <script>
-        function getPinCode(){
-            let input;
-            while (true) {
-                input = prompt("Please enter delivery pincode:");
-                if (input !== null && input.trim() !== "" && !isNaN(input) && input.length == 6) {
-                    var baseURL = window.location.origin+"/shop/zip/";
-                    var newURL = baseURL+input;
-                    window.location.href = newURL;
-                    document.getElementById('delivery').innerText=input;
-                    break; // exit the loop if valid
-                } else {
-                    alert("Invalid input. Please enter a valid pincode.");
-                    break;
-                }
-            }
-        }
-     </script>
- {% endblock %}
+      {% else %}
+        <a href="/register" class="hover:underline">Register</a>
+        <a href="/login" class="hover:underline">Login</a>
+      {% endif %}
+
+      <!-- Cart Icon -->
+      <a href="{% url 'cart_view' %}" class="relative group inline-block">
+        <svg class="h-6 w-6 text-white group-hover:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.293 2.707a1 1 0 00.293 1.293L7 18h10a1 1 0 001-1l-1-2m-6 4a1 1 0 11-2 0 1 1 0 012 0z" />
+        </svg>
+        {% if total_cart_qty > 0 %}
+        <span class="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-md">
+          {{ total_cart_qty }}
+        </span>
+        {% endif %}
+      </a>
+
+      <!-- Pincode Input -->
+      <form method="GET" action="{% url 'shop' %}?pin={pincode}" class="flex items-center bg-white rounded px-2 py-1 text-sm ml-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-700 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zM12 2C8.134 2 5 5.134 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.866-3.134-7-7-7z"/>
+        </svg>
+        <input type="text" name="pincode"
+          value="{{ request.session.pincode|default:'' }}"
+          placeholder="Pincode"
+          pattern="\d{6}"
+          maxlength="6"
+          class="w-20 text-sm text-gray-800 focus:outline-none text-center"
+          title="Enter 6-digit pincode" />
+        <button type="submit" class="ml-1 text-green-700 hover:text-green-800 font-medium">Set</button>
+      </form>
+    </nav>
+  </div>
+<!-- </header> -->
+{% endblock %}

@@ -1,61 +1,55 @@
-{% extends 'index.html' %}
-{% block success %}
-<style>
-    .success-container {
-      text-align: center;
-      background: #e6ffee;
-      padding: 40px 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Order Success | FarmerHarvest</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen px-4">
 
-    .success-icon {
-      font-size: 60px;
-      color: #28a745;
-    }
+  <div class="bg-white rounded-lg shadow-lg p-6 md:p-10 max-w-xl text-center">
+    <div class="flex justify-center mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg"
+          width="80"
+          height="80"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#16a34a"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          role="img"
+          aria-hidden="true">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9 12l2 2 4-4" />
+      </svg>
+    </div>
 
-    .success-title {
-      font-size: 24px;
-      margin-top: 15px;
-      color: #2d624d;
-    }
-
-    .success-message {
-      font-size: 16px;
-      margin-top: 10px;
-      color: #555;
-    }
-
-    .btn-home {
-      display: inline-block;
-      margin-top: 25px;
-      padding: 10px 20px;
-      background: #28a745;
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
-      font-weight: bold;
-    }
-
-    .btn-home:hover {
-      background: #218838;
-    }
-
-    a:hover{
-        color: red;
-    }
-</style>
-<div class="success-container">
-    <div class="success-icon">✅</div>
-    <div class="success-title">Success!</div>
     {% if orderType == 'Order' %}
-    <div class="success-message">Your order has been placed successfully with Order No.<a href="{% url 'orderdetails' orderID %}">{{orderNo}}</a>!</div>
-    <p>Payment Reference Number: {{pay_ref}}</p>
+      <h1 class="text-2xl md:text-3xl font-bold text-green-700 mb-2">Order Placed Successfully!</h1>
+      <p class="text-gray-700 text-sm md:text-base mb-6">
+        Thank you for shopping with FarmerHarvest. Your order with Order # <a href="{% url 'orderdetails' orderID %}">{{orderNo}}</a> has been confirmed and will be delivered as scheduled.
+      </p>
+      <p class="text-gray-700 text-sm md:text-base mb-6">Payment Reference Number: {{pay_ref}}</p>
     {% elif orderType == 'Bulk' %}
-    <div class="success-message">Your order has been placed successfully with Order No.<a href="{% url 'bulk-buy-orders' %}">{{orderNo}}</a>!</div>
+      <h1 class="text-2xl md:text-3xl font-bold text-green-700 mb-2">Bulk Buy Request Placed Successfully!</h1>
+      <p class="text-gray-700 text-sm md:text-base mb-6">
+        Thank you for shopping with FarmerHarvest. Your Bulk Buy Request Order # <a href="{% url 'orderdetails' orderID %}">{{orderNo}}</a> has been placed and will be responded by suppliers.
+      </p>
+    {% else %}
+      <h1 class="text-2xl md:text-3xl font-bold text-green-700 mb-2">Bulk Buy Response Accepted!</h1>
     {% endif %}
-    <a href="{% url 'index' %}">
-        Go Back to Homepage.
-    </a>
-</div>
-{% endblock %}
+    <div class="flex justify-center gap-4 flex-col sm:flex-row">
+      <a href="{% url 'orders' %}" class="bg-green-700 hover:bg-green-800 text-white font-medium py-2 px-5 rounded transition">
+        View My Orders
+      </a>
+      <a href="{% url 'shop' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-5 rounded transition">
+        Continue Shopping
+      </a>
+    </div>
+  </div>
+
+</body>
+</html>

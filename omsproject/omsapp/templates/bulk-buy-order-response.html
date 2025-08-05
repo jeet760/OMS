@@ -1,74 +1,44 @@
 {% extends 'index.html' %}
 {% load static %}
-{% block bulk_buy_orders_response %}
-<p><strong>Order #:{{bulkbuyresponses.0.bulkBuyID.bulkBuyNo}}</strong></p>
-<table class="table table-hover" id="bulkbuyDetailsTable">
-    <thead>
-        <tr>
-            <th>
-                Sl #
-            </th>
-            <th>
-                Responder's Name
-            </th>
-            <th>
-                Responded On
-            </th>
-            <th>
-                Indicative Quantity
-            </th>
-            <th>
-                Responded Quantity
-            </th>
-            <th>
-                Status
-            </th>
-            <th>
-                Action
-            </th>
-        </tr>
-    </thead>
-    <tbody class="table table-hover table-group-divider">
-        {% for response in bulkbuyresponses %}
-        <tr>
-            <td>
-                {{forloop.counter}}
-            </td>
-            <td>
-                {{response.response_userID.last_name}}
-            </td>
-            <td>
-                {{response.response_date}}
-            </td>
-            <td>
-                {{response.count_enquired_items}}
-            </td>
-            <td>
-                {{response.count_response_items}}
-            </td>
-            <td>
-                {{response.response_remark}}
-            </td>
-            <td>
-                <a href="{% url 'bulk-buy-order-response-details' response.bulkBuyID_id response.response_userID_id   %}" class="btn btn-info btn-sm">View</a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="7">
-                No Item is enquired for bulk buy!
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="3"></td>
-            <td>
-                <a href="{% url 'bulk-buy-orders' %}" class="btn btn-sm btn-secondary">Go Back</a>
-            </td>
-            <td colspan="3"></td>
-        </tr>
-    </tfoot>
-</table>
+{% block bulk_buy_responses %}
+  <div class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold text-green-700 mb-6">Bulk Buy Responses</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for response in bulkbuyresponses %}
+      <div class="bg-white rounded-lg shadow-md border border-gray-200 p-4 space-y-2">
+        <div class="flex justify-between text-sm text-gray-500">
+          <span><strong>Sl #:</strong> {{ forloop.counter }}</span>
+          <span><strong>Date:</strong> {{ response.response_date }}</span>
+        </div>
+
+        <div class="text-gray-700 text-sm space-y-1">
+          <p><strong>Responder:</strong> {{ response.response_userID.last_name }}</p>
+          <p><strong>Indicative Quantity:</strong> {{ response.count_enquired_items }}</p>
+          <p><strong>Responded Quantity:</strong> {{ response.count_response_items }}</p>
+          <p><strong>Status:</strong> {{ response.response_remark }}</p>
+        </div>
+
+        <div class="text-right pt-2">
+          <a href="{% url 'bulk-buy-order-response-details' response.bulkBuyID_id response.response_userID_id %}"
+             class="inline-block bg-blue-600 text-white text-sm px-4 py-2 rounded hover:bg-blue-700 transition">
+            View Details
+          </a>
+        </div>
+      </div>
+      {% empty %}
+      <div class="bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-300 p-4">
+        No item is enquired for bulk buy!
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Footer CTA -->
+    <div class="mt-8 text-center">
+      <a href="{% url 'bulk-buy-orders' %}"
+         class="inline-block bg-gray-600 text-white text-sm px-5 py-2 rounded hover:bg-gray-700 transition">
+        ← Go Back
+      </a>
+    </div>
+  </div>
 {% endblock %}

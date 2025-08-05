@@ -1,117 +1,149 @@
 {% extends 'index.html' %}
 {% load static %}
-{% block orderdetails %}
-<table class="table table-hover" id="tableOrderDetails">
-    <thead>
-        <tr>
-            <th>
-                Sl #
-            </th>
-            <th>
-                Name
-            </th>
-            <th>
-                Quantity
-            </th>
-            <th>
-                Price
-            </th>
-            <th>
-                Total Amount
-            </th>
-            <th>
-                Supplier
-            </th>
-            <th>
-                Remark
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for orderitem in order_details%}
-        <tr>
-            <td>{{forloop.counter}}</td>
-            <td>{{orderitem.itemID.itemName}}</td>
-            <td>{{orderitem.itemQty}}</td>
-            <td>{{orderitem.itemPrice}}</td>
-            <td>{{orderitem.itemPricewithGST}}</td>
-            <td>{{orderitem.itemID.userID.first_name}}</td>
-            <td>
-                {% if orderitem.orderStatus == 'Accepted' %}
-                <span style="color: green;">{{orderitem.remark}}</span>
-                {% elif orderitem.orderStatus == 'Rejected' %}
-                <span style="color: red;">{{orderitem.remark}}</span>
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-    <tfoot class="table-group-divider">
-        <tr class="table-group-divider">
-            <td colspan="2">
-                <a class='btn btn-secondary' href="{% url 'orders' %}">
-                    Go Back to Orders
-                </a>
-            </td>
-            <td colspan="2" style="text-align: left;">
-                <strong>Order Note:</strong> {{orderNote}}<br>
-                <strong>Payment Mode:</strong> {% if paymentMode == 1 %}Cash On Delivery{%elif paymentMode == 2%}Institutional Credit{%elif paymentMode == 3%}Online{%endif%}<br>
-                <strong>Payment Status:</strong> {% if paymentStatus %}Paid{%else%}Not Paid{%endif%}<br>
-                <strong>Payment Reference:</strong> {{paymentRefNo}}<br>
-            </td>
-            <td colspan="3" style="text-align: left;">
-                <!-- Download Invoice -->
-                <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#staticBackdrop">
-                    Download Invoices
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
-                        <path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/>
-                    </svg>
-                </button>
-                <div class="modal fade" id="staticBackdrop" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                        <h4 class="modal-title fs-5" id="staticBackdropLabel">Order No.: {{order_details.0.orderID.orderNo}}</h4>
-                        </div>
-                        <div class="modal-body">
-                            <table class="table table-hover">
-                                <caption class="caption-top">Total Invoices: {{invoices|length}}</caption>
-                                <thead>
-                                    <tr>
-                                        <th>
-                                            #
-                                        </th>
-                                        <th>
-                                            Invoice
-                                        </th>
-                                        <th>
-                                            From
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for invoice in invoices %}
-                                    <tr>
-                                        <td>{{forloop.counter}}</td>
-                                        <td>
-                                            <a href="{{ invoice.invoiceFile.url }}" download>{{ invoice.invoiceFile.name|cut:'uploads/' }}</a>
-                                        </td>
-                                        <td>
-                                            {{invoice.userID.last_name}}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Close</button>
-                        </div>
-                    </div>
-                    </div>
-                </div>
-            </td>
-        </tr>
-    </tfoot>
-</table>
+{% block my_order_details %}
+  <div class="max-w-7xl mx-auto p-6">
+    <h1 class="text-2xl font-semibold text-green-700 mb-6">Order Details</h1>
+
+    <div class="grid grid-cols-1 gap-6">
+      {% for orderitem in order_details %}
+      <div class="bg-white shadow border border-gray-200 rounded-lg p-5 space-y-2">
+        <div class="flex justify-between text-sm text-gray-500">
+          <span><strong>Sl #:</strong> {{ forloop.counter }}</span>
+          <span><strong>Supplier:</strong> {{ orderitem.itemID.userID.first_name }}</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+          <p><strong>Item Name:</strong> {{ orderitem.itemID.itemName }}</p>
+          <p><strong>Quantity:</strong> {{ orderitem.itemQty }}</p>
+          <p><strong>Price:</strong> ₹{{ orderitem.itemPrice }}</p>
+          <p><strong>Total Amount (with GST):</strong> ₹{{ orderitem.itemPricewithGST }}</p>
+        </div>
+
+        <div>
+          <strong>Remark:</strong>
+          {% if orderitem.orderStatus == 'Accepted' %}
+          <span class="text-green-600">{{ orderitem.remark }}</span>
+          {% elif orderitem.orderStatus == 'Rejected' %}
+          <span class="text-red-600">{{ orderitem.remark }}</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Order details Footer Info -->
+    <div class="mt-8 bg-white border border-gray-200 shadow-md rounded-lg p-6 space-y-2 text-sm">
+      <p><strong>Order Note:</strong> {{ orderNote }}</p>
+      <p><strong>Payment Mode:</strong>
+        {% if paymentMode == 1 %}Cash On Delivery
+        {% elif paymentMode == 2 %}Institutional Credit
+        {% elif paymentMode == 3 %}Online
+        {% endif %}
+      </p>
+      <p><strong>Payment Status:</strong> {% if paymentStatus %}Paid{% else %}Not Paid{% endif %}</p>
+      <p><strong>Payment Reference:</strong> {{ paymentRefNo }}</p>
+
+      <!-- Action Buttons -->
+      <div class="mt-4 flex flex-col md:flex-row justify-between gap-4">
+        <a href="{% url 'orders' %}" class="bg-gray-700 hover:bg-gray-800 text-white text-sm px-5 py-2 rounded-md">
+          ← Go Back to Orders
+        </a>
+
+        <div class="flex gap-3">
+          <!-- View Photo Button -->
+          <button onclick="document.getElementById('photoModal').classList.remove('hidden')"
+                  class="bg-green-600 hover:bg-green-700 text-white text-sm px-5 py-2 rounded-md inline-flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 fill-white" viewBox="0 0 24 24">
+              <path d="M21 19V5a2 2 0 0 0-2-2H5c-1.1 0-2 .9-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM7 14l3-4 2 3 3-4 4 5H7z"/>
+            </svg>
+            View Photo
+          </button>
+
+          <!-- Download Invoice Button -->
+          <button onclick="document.getElementById('invoiceModal').classList.remove('hidden')"
+                  class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-5 py-2 rounded-md inline-flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 fill-white" viewBox="0 0 24 24">
+              <path d="M12 16L8 12h3V8h2v4h3l-4 4zm0-14a9.99 9.99 0 00-10 10c0 5.523 4.477 10 10 10s10-4.477 10-10S17.523 2 12 2z"/>
+            </svg>
+            Download Invoices
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal (Hidden by Default) -->
+  <!-- Invoice Modal -->
+  <div id="invoiceModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg">
+      <div class="border-b px-6 py-4 flex justify-between items-center">
+        <h2 class="text-lg font-semibold">Order No.: {{order_details.0.orderID.orderNo}}</h2>
+        <button onclick="document.getElementById('invoiceModal').classList.add('hidden')" class="text-red-500 hover:text-red-700 text-xl font-bold">×</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto max-h-96">
+        <h3 class="font-medium text-sm text-gray-600 mb-3">Total Invoices: {{ invoices|length }}</h3>
+        <ul class="divide-y divide-gray-200 text-sm">
+          {% for invoice in invoices %}
+          <li class="py-2 flex justify-between items-center">
+            <div>
+              <span class="font-medium">#{{ forloop.counter }}</span> – 
+              <a href="{{ invoice.invoiceFile.url }}" download class="text-blue-600 hover:underline">
+                {{ invoice.invoiceFile.name|cut:'uploads/' }}
+              </a>
+            </div>
+            <span class="text-gray-500">{{ invoice.userID.last_name }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="border-t px-6 py-4 text-right">
+        <button onclick="document.getElementById('invoiceModal').classList.add('hidden')"
+                class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Photo Modal -->
+  <div id="photoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl">
+      <!-- Modal Header -->
+      <div class="border-b px-6 py-4 flex justify-between items-center">
+        <h2 class="text-lg font-semibold">Order No.: {{ order_details.0.orderID.orderNo }}</h2>
+        <button onclick="document.getElementById('photoModal').classList.add('hidden')" class="text-red-500 hover:text-red-700 text-xl font-bold">×</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto max-h-[32rem]">
+        {% if delivery|length == 0 %}
+          <p class="text-gray-600 text-center">No Photo Found!</p>
+        {% elif delivery|length == 1 %}
+          <div class="flex flex-col items-center space-y-4">
+            <p class="text-sm text-gray-500">{{ delivery.0.deliveryImg.name|cut:"deliveryimg/" }}</p>
+            <img src="{{ delivery.0.deliveryImg.url }}" alt="Uploaded Photo" class="max-w-full h-auto rounded-lg border border-gray-200 shadow-md" width="300" height="300">
+          </div>
+        {% else %}
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {% for d in delivery %}
+              <div class="bg-gray-50 p-2 rounded-lg border shadow-sm flex flex-col items-center space-y-2">
+                <p class="text-xs text-gray-500 truncate w-full text-center">{{ d.deliveryImg.name|cut:"deliveryimg/" }}</p>
+                <img src="{{ d.deliveryImg.url }}" alt="Photo" class="w-full h-auto rounded border">
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="border-t px-6 py-4 text-right">
+        <button onclick="document.getElementById('photoModal').classList.add('hidden')"
+                class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
 {% endblock %}

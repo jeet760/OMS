@@ -4,25 +4,36 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('', views.landing_page, name='index'),
-    path('home/', views.landing_page, name='index'),
-    path('home/cat/<str:category>', views.landing_page, name='index'),
-    path('shop', views.shop, name='shop'),
-    path('shop/cat/<str:category>', views.shop, name='shop-cat'),
-    path('shop/fpo/<str:fpo>', views.shop, name='shop-fpo'),
-    path('shop/zip/<str:region>', views.shop, name='shop-zip'),
-    path('shop/details/<str:item_id>',views.shop_details, name='shopdetails'),
-    path('shoppingcart', views.shopping_cart, name='shoppingcart'),
-    path('contact', views.contact, name='contact'),
-    path('blog', views.blog, name='blog'),
+#region new UI urls
+    path('', views.featured_product, name='index'),
+    path('shop/', views.marketplace, name='shop'),
+    path('shop/details/<str:item_id>',views.item_details, name='shopdetails'),
+    path('cart/',views.cart_view, name='cart'),
+    # path('fetch-district/<int:state_code>/',views.fetch_lgd_data_distrct, name='fetch-district'),
+    # path('fetch-subdistrict/<str:state_code>/<str:district_code>',views.fetch_lgd_data_subdistrict, name='fetch-subdistrict'),
+#endregion
+    # path('', views.landing_page, name='index'),
+    # path('home/', views.landing_page, name='index'),
+    # path('home/cat/<str:category>', views.landing_page, name='index'),
+    # path('shop', views.shop, name='shop'),
+    # path('shop/cat/<str:category>', views.shop, name='shop-cat'),
+    # path('shop/fpo/<str:fpo>', views.shop, name='shop-fpo'),
+    # path('shop/zip/<str:region>', views.shop, name='shop-zip'),
+    # path('shop/details/<str:item_id>',views.shop_details, name='shopdetails'),
+    # path('shoppingcart', views.shopping_cart, name='shoppingcart'),
     path('checkout', views.checkout, name='checkout'),
     path('invoices/<int:order_id>', views.order_invoices, name='invoices'),
+
+#region useful linkes
+    path('contact', views.contact, name='contact'),
+    path('blog', views.blog, name='blog'),
     path('about-us', views.aboutus, name='about-us'),
     path('privacy-policy', views.privacypolicy, name='privacy-policy'),
     path('delivery-policy', views.deliverypolicy, name='delivery-policy'),
     path('return-policy', views.returnpolicy, name='return-policy'),
     path('eula', views.eula, name='eula'),
     path('testimonials', views.testimonials, name='testimonials'),
+#endregion
 
     path('bulk-buy', views.bulk_buy, name='bulk-buy'),
     path('bulk-buy/order', views.bulk_buy_order_place, name='bulk-buy-order'),
@@ -50,6 +61,7 @@ urlpatterns = [
     path('activate-user/<int:userID>/<str:activate>', views.activate_user, name='activate-user'),
     path('fetch-school/<str:udise>', views.fetch_school, name='fetch-school'),
     path('track-coordinate/', views.show_fpo_customers_in_map, name='track-coordinate'),
+    path('change-phone/<str:new_phone>', views.change_mobile_number, name='change-phone'),
 
     path('user-form/', views.profile_view, name='user-form'),
     path('add-address/', views.add_address, name='add-address'),

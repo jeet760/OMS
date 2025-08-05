@@ -1,367 +1,112 @@
-{% extends 'index.html'%}
+{% extends 'index.html' %}
 {% load static %}
 {% block landing %}
-<style>
-    .out-of-stock{
-        /* filter: grayscale(100%); */
-        opacity: 0.5;
-        position: relative;
-        pointer-events: none;
-        color: red;
-        font-size: 24px;
-        font-weight: bold;
-        border-radius: 5px;
-    }
-    .pagination ul a {
-        padding: 4px 8px;
-        text-decoration: none;
-        background: #f2f2f2;
-        color: #333;
-        border-radius: 4px;
-    }
+<!-- Stats Section -->
+    <section class="bg-gray-50 py-6">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative" x-data="{ scrollPos: 0 }">
 
-    .pagination ul a:hover {
-        background: #007bff;
-        color: white;
-    }
+        <!-- Left Arrow -->
+        <button @click="$refs.carousel.scrollBy({ left: -300, behavior: 'smooth' })"
+                class="absolute left-0 top-1/2 -translate-y-1/2 bg-white shadow-md rounded-full p-2 z-10">
+          <svg class="h-5 w-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M12.707 15.707a1 1 0 01-1.414 0L6.586 11l4.707-4.707a1 1 0 011.414 1.414L9.414 11l3.293 3.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+          </svg>
+        </button>
 
-    .pagination ul li {
-        display: inline-block;
-    }
-</style>
-{% include 'herosection.html'%}
-<!-- Categories Section Begin (Carousel)
-<section class="categories">
-    <div class="container">
-        <div class="row">
-            <div class="categories__slider owl-carousel">
-                {% for item in items %}
-                <div class="col-lg-3">
-                    <div class="categories__item set-bg" data-setbg="{{item.itemImg.url}}">
-                        <h5><a href="#">{{item.itemCat}}</a></h5>
-                    </div>
-                </div>
-                {% endfor %}
+        <!-- Carousel Items -->
+        <div x-ref="carousel" class="flex overflow-x-auto gap-4 scrollbar-hide scroll-smooth px-10 py-2">
+          {% for item in stats %}
+          <a href="{% url 'shop' %}?item_type={{item.label}}">
+            <div class="min-w-[180px] bg-white rounded-xl shadow p-6 text-center flex-shrink-0 hover:shadow-md transition duration-300">
+              <h3 class="text-2xl font-bold text-green-600">{{ item.value }}</h3>
+              <p class="text-sm text-gray-600">{{ item.label }}</p>
             </div>
+          </a>
+          {% endfor %}
         </div>
-    </div>
-</section>
-Categories Section End -->
 
-<!-- Featured Section Begin -->
-<section class="featured spad">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="section-title">
-                    <h2>Featured Product</h2>
-                </div>
-                <div class="featured__controls">
-                    <ul>
-                        <li class="active" data-filter="*">All</li>
-                        {% regroup featureItems_page_obj|dictsort:"itemCat" by itemCat as categories_list %}
-                        {% for category in categories_list %}
-                        <li data-filter=".{{category.grouper|cut:' '}}">{{category.grouper}}</li>
-                        {% endfor %}
-                    </ul>
-                    
-                </div>
-            </div>
-        </div>
-        <div class="row featured__filter">
-            {% for item in featureItems_page_obj %}
-                <div class="col-lg-3 col-md-4 col-sm-6 mix {{item.itemCat|cut:' '}}">
-                    {% if item.itemInStock%}
-                    <div class="featured__item">
-                    {% else %}
-                    <div class="featured__item out-of-stock">
-                        Out of Stock
-                    {% endif %}
-                        <div class="featured__item__pic set-bg" data-setbg="{{item.itemImg.url}}" onclick="itemRedirect('{{item.itemID}}')" style="cursor: pointer;">
-                            <ul class="featured__item__pic__hover">
-                                <li><a href="{% url 'shopdetails' item.itemID %}"><i class="fa fa-list"></i></a></li>
-                                <li><a href="{% url 'add_to_cart' item.itemID %}?source=landing&qty=1"><i class="fa fa-shopping-cart"></i></a></li>
-                            </ul>
-                        </div>
-                        <div class="featured__item__text">
-                            <h6><a href="#">{{item.itemName}}</a></h6>
-                            <h5>₹ {{item.itemPrice}}/{{item.itemUnit}}</h5>
-                        </div>
-                    </div>
-                </div>
-                {% empty %}
-                <p>Sorry, no item found!</p>
-            {% endfor %}
-        </div>
-        <div class="pagination" style="margin-top: 20px; margin-left: 25%;">
-            <ul style="display: flex; list-style: none; padding: 0; gap: 8px; flex-wrap: wrap;">
-              
-              {# Previous button #}
-              {% if featureItems_page_obj.has_previous %}
-                <li><a href="?page={{ featureItems_page_obj.previous_page_number }}">« Prev</a></li>
-              {% endif %}
-          
-              {# First page #}
-              {% if featureItems_page_obj.number > 6 %}
-                <li><a href="?page=1">1</a></li>
-                <li>...</li>
-              {% endif %}
-          
-              {# Page range centered around current page (max 10 total) #}
-              {% for page_num in featureItems_page_obj.paginator.page_range %}
-                {% if page_num >= featureItems_page_obj.number|add:'-4' and page_num <= featureItems_page_obj.number|add:'5' %}
-                  {% if page_num == featureItems_page_obj.number %}
-                    <li><strong style="padding: 4px 8px; background: #007bff; color: white; border-radius: 4px;">{{ page_num }}</strong></li>
-                  {% else %}
-                    <li><a href="?page={{ page_num }}">{{ page_num }}</a></li>
-                  {% endif %}
-                {% endif %}
-              {% endfor %}
-          
-              {# Last page #}
-              {% if featureItems_page_obj.number < featureItems_page_obj.paginator.num_pages|add:'-5' %}
-                <li>...</li>
-                <li><a href="?page={{ featureItems_page_obj.paginator.num_pages }}">{{ featureItems_page_obj.paginator.num_pages }}</a></li>
-              {% endif %}
-          
-              {# Next button #}
-              {% if featureItems_page_obj.has_next %}
-                <li><a href="?page={{ featureItems_page_obj.next_page_number }}">Next »</a></li>
-              {% endif %}
-          
-            </ul>
-        </div>
-    </div>
-</section>
-<!-- Featured Section End -->
+        <!-- Right Arrow -->
+        <button @click="$refs.carousel.scrollBy({ left: 300, behavior: 'smooth' })"
+                class="absolute right-0 top-1/2 -translate-y-1/2 bg-white shadow-md rounded-full p-2 z-10">
+          <svg class="h-5 w-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M7.293 4.293a1 1 0 011.414 0L13.414 9l-4.707 4.707a1 1 0 01-1.414-1.414L10.586 9 7.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+    </section>
 
-<!-- Banner Begin -->
-<div class="banner">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-6 col-md-6 col-sm-6">
-                <div class="banner__pic">
-                    <img src="{% static 'img/banner/1.png'%}" alt="">
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-6 col-sm-6">
-                <div class="banner__pic">
-                    <img src="{% static 'img/banner/2.png'%}" alt="">
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Banner End -->
+    <!-- Hero Section -->
+    <section class="bg-green-100 py-12 text-center">
+      <div class="relative w-full h-[280px]"
+        x-data="{ 
+          activeSlide: 0, 
+          slides: [
+            '{% static 'img/hero/1.png' %}', 
+            '{% static 'img/hero/2.png' %}', 
+            '{% static 'img/hero/3.png' %}' 
+          ] 
+        }"
+        x-init="setInterval(() => { 
+          activeSlide = (activeSlide + 1) % slides.length 
+        }, 4000)"> <!-- Auto change every 4 seconds -->
 
-<!-- Latest Product Section Begin -->
-<section class="latest-product spad">
-    <!-- <div class="container">
-        <div class="row">
-            <div class="col-lg-4 col-md-6">
-                <div class="latest-product__text">
-                    <h4>Latest Products</h4>
-                    <div class="latest-product__slider owl-carousel">
-                        <div class="latest-prdouct__slider__item">
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-1.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-2.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-3.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="latest-prdouct__slider__item">
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-1.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-2.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-3.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6">
-                <div class="latest-product__text">
-                    <h4>Top Rated Products</h4>
-                    <div class="latest-product__slider owl-carousel">
-                        <div class="latest-prdouct__slider__item">
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-1.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-2.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-3.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="latest-prdouct__slider__item">
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-1.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-2.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-3.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6">
-                <div class="latest-product__text">
-                    <h4>Review Products</h4>
-                    <div class="latest-product__slider owl-carousel">
-                        <div class="latest-prdouct__slider__item">
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-1.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-2.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-3.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="latest-prdouct__slider__item">
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-1.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-2.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                            <a href="#" class="latest-product__item">
-                                <div class="latest-product__item__pic">
-                                    <img src="{% static 'img/latest-product/lp-3.jpg'%}" alt="">
-                                </div>
-                                <div class="latest-product__item__text">
-                                    <h6>Crab Pool Security</h6>
-                                    <span>₹30.00</span>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+        <!-- Carousel Slides -->
+        <template x-for="(slide, index) in slides" :key="index">
+          <div x-show="activeSlide === index"
+              x-transition:enter="transition ease-out duration-500"
+              x-transition:enter-start="opacity-0"
+              x-transition:enter-end="opacity-100"
+              x-transition:leave="transition ease-in duration-300"
+              x-transition:leave-start="opacity-100"
+              x-transition:leave-end="opacity-0"
+              class="absolute inset-0">
+            <img :src="slide" alt="Slide" class="w-full h-full object-cover rounded">
+          </div>
+        </template>
+
+        <!-- Arrows -->
+        <button @click="activeSlide = (activeSlide === 0) ? slides.length - 1 : activeSlide - 1"
+                class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white text-green-800 p-2 rounded-r shadow hover:bg-green-100">
+          &#10094;
+        </button>
+        <button @click="activeSlide = (activeSlide === slides.length - 1) ? 0 : activeSlide + 1"
+                class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white text-green-800 p-2 rounded-l shadow hover:bg-green-100">
+          &#10095;
+        </button>
+
+        <!-- Floating CTA Button -->
+        <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10">
+          <a href="/shop" class="bg-green-700 text-white px-6 py-2 rounded-full shadow-lg hover:bg-green-800 transition">
+            Shop Now
+          </a>
         </div>
-    </div> -->
-</section>
-<!-- Latest Product Section End -->
-<script>
-    function itemRedirect(itemID){
-        var url = "{% url 'shopdetails' 0 %}".replace('0', itemID);
-        location.href=url;
-    }
- </script>
+      </div>
+    </section>
+
+    <!-- Featured Crops -->
+    <section class="py-12 px-6">
+      {% block featured_product %}{% endblock%}
+    </section>
+
+    <!-- How it Works -->
+    <section class="py-12 bg-green-50">
+      <div class="max-w-6xl mx-auto text-center">
+        <h2 class="text-3xl font-bold mb-8">How Farmer Harvest Works</h2>
+        <div class="grid md:grid-cols-3 gap-6 text-left">
+          <div class="p-4">
+            <h3 class="font-semibold text-lg mb-2">1. Register</h3>
+            <p class="text-sm text-gray-700">Create a free account as an FPO or consumer.</p>
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold text-lg mb-2">2. List or Browse Crops</h3>
+            <p class="text-sm text-gray-700">Post your produce or explore available listings.</p>
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold text-lg mb-2">3. Connect & Transact</h3>
+            <p class="text-sm text-gray-700">Chat, negotiate and complete transactions securely.</p>
+          </div>
+        </div>
+      </div>
+    </section>
 {% endblock %}
-    

@@ -1,69 +1,68 @@
 {% load static %}
-<!-- Footer Section Begin -->
-<footer class="footer spad">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-3 col-md-6 col-sm-6">
-                <div class="footer__about">
-                    <div class="footer__about__logo">
-                        <a href="{% url 'index' %}"><img src="{% static 'img/logo.png' %}" alt=""></a>
-                    </div>
-                    <ul>
-                        <li>Address: Bhubaneswar</li>
-                        <li>Phone: +91-85949-90911</li>
-                        <li>Email: connect@farmerharvest.in</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 col-sm-6 offset-lg-1">
-                <div class="footer__widget">
-                    <h6>Useful Links</h6>
-                    <ul>
-                        <li><a href="{% url 'about-us' %}">About Us</a></li>
-                        <!-- <li><a href="#">About Our Shop</a></li> -->
-                        <li><a href="{% url 'eula' %}">End User Agreement</a></li>
-                        <li><a href="{% url 'return-policy' %}">Return Policy</a></li>
-                        <li><a href="{% url 'delivery-policy' %}">Delivery infomation</a></li>
-                        <li><a href="{% url 'privacy-policy' %}">Privacy Policy</a></li>
-                        <!-- <li><a href="#">Our Sitemap</a></li> -->
-                    </ul>
-                    <ul>
-                        <!-- <li><a href="#">Who We Are</a></li> -->
-                        <!-- <li><a href="#">Our Services</a></li> -->
-                        <!-- <li><a href="#">Projects</a></li> -->
-                        <li><a href="{% url 'contact' %}">Contact</a></li>
-                        <!-- <li><a href="#">Innovation</a></li> -->
-                        <li><a href="{% url 'testimonials' %}">Testimonials</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-12">
-                <div class="footer__widget">
-                    <h6>Join Our Newsletter Now</h6>
-                    <p>Get E-mail updates about our latest shop and special offers.</p>
-                    <form action="#">
-                        <input type="text" placeholder="Enter your mail">
-                        <button type="submit" class="site-btn">Subscribe</button>
-                    </form>
-                    <div class="footer__widget__social">
-                        <a href="https://www.facebook.com/farmerharvestindia"><i class="fa fa-facebook"></i></a>
-                        <a href="https://www.x.com/farmerharvest"><i class="fa fa-twitter"></i></a>
-                        <a href="https://www.linkedin.com/company/farmerharvestindia"><i class="fa fa-linkedin"></i></a>
-                        <a href="https://www.instagram.com/farmerharvestindia"><i class="fa fa-instagram"></i></a>
-                    </div>
-                </div>
-            </div>
+{% block footer %}
+<footer class="bg-gray-900 text-gray-100 py-12">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      <!-- Logo & Contact -->
+      <div>
+        <a href="{% url 'index' %}" class="block mb-4">
+          <img src="{% static 'img/logo.png' %}" alt="Farmer Harvest" class="h-10">
+        </a>
+        <ul class="space-y-2 text-sm text-gray-300">
+          <li><strong>Address:</strong> Bhubaneswar</li>
+          <li><strong>Phone:</strong> +91-85949-90911</li>
+          <li><strong>Email:</strong> connect@farmerharvest.in</li>
+        </ul>
+      </div>
+
+      <!-- Useful Links 1 -->
+      <div>
+        <h4 class="text-lg font-semibold text-white mb-3">Useful Links</h4>
+        <ul class="space-y-2 text-sm text-gray-300">
+          <li><a href="{% url 'about-us' %}" class="hover:text-white">About Us</a></li>
+          <li><a href="{% url 'eula' %}" class="hover:text-white">End User Agreement</a></li>
+          <li><a href="{% url 'return-policy' %}" class="hover:text-white">Return Policy</a></li>
+          <li><a href="{% url 'delivery-policy' %}" class="hover:text-white">Delivery Information</a></li>
+          <li><a href="{% url 'privacy-policy' %}" class="hover:text-white">Privacy Policy</a></li>
+        </ul>
+      </div>
+
+      <!-- Useful Links 2 -->
+      <div>
+        <h4 class="text-lg font-semibold text-white mb-3 invisible">More</h4>
+        <ul class="space-y-2 text-sm text-gray-300">
+          <li><a href="{% url 'contact' %}" class="hover:text-white">Contact</a></li>
+          <li><a href="{% url 'testimonials' %}" class="hover:text-white">Testimonials</a></li>
+        </ul>
+      </div>
+
+      <!-- Newsletter -->
+      <div>
+        <h4 class="text-lg font-semibold text-white mb-3">Join Our Newsletter</h4>
+        <p class="text-sm mb-4 text-gray-400">Get updates on our latest offers and marketplace news.</p>
+        <form action="#" class="flex flex-col sm:flex-row items-center gap-2">
+          <input disabled type="email" placeholder="Enter your email" class="w-full px-3 py-2 rounded bg-gray-800 text-sm text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm transition">
+            Subscribe
+          </button>
+        </form>
+        <div class="mt-4 flex gap-4 text-xl text-gray-400">
+          <a href="https://www.facebook.com/farmerharvestindia" target="_blank" class="hover:text-white"><i class="fa fa-facebook"></i></a>
+          <a href="https://www.x.com/farmerharvest" target="_blank" class="hover:text-white"><i class="fa fa-twitter"></i></a>
+          <a href="https://www.linkedin.com/company/farmerharvestindia" target="_blank" class="hover:text-white"><i class="fa fa-linkedin"></i></a>
+          <a href="https://www.instagram.com/farmerharvestindia" target="_blank" class="hover:text-white"><i class="fa fa-instagram"></i></a>
         </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="footer__copyright">
-                    <div class="footer__copyright__text"><p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-Copyright &copy;{% now "Y" %} | Farmer Harvest | All rights reserved
-<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p></div>
-                    <div class="footer__copyright__payment"><img src="{% static 'img/payment-item1.png' %}" alt="" height="30px" width="300px"></div>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
+
+    <!-- Bottom -->
+    <div class="border-t border-gray-700 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
+      <p>© {% now "Y" %} Farmer Harvest | All rights reserved.</p>
+      <div class="mt-4 md:mt-0">
+        <img src="{% static 'img/payment-item1.png' %}" alt="Payment Options" class="h-6 w-auto">
+      </div>
+    </div>
+  </div>
 </footer>
-<!-- Footer Section End -->
+
+{% endblock %}

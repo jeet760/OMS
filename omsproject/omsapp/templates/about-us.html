@@ -1,82 +1,86 @@
-{% extends 'index.html' %}
 {% load static %}
-{% block aboutus %}
-<!-- Blog Section Begin -->
-<section class="blog spad">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="contact__form__title">
-                    <h2>About Farmer Harvest</h2>
-                </div>
-                <p><strong>Farmer Harvest</strong> is a unified aggregator marketplace designed to empower farmer collectives by providing them with a seamless platform to sell their produce directly to a wide range of buyers. Our platform connects Farmer Producer Companies (FPCs), Cooperatives, and Producer Groups—each legally registered in India—with consumers, businesses, and institutional buyers, ensuring a fair and transparent marketplace for agricultural trade.</p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <h3><strong>A Marketplace for Farmer Collectives</strong></h3>
-                <p>Unlike conventional marketplaces, Farmer Harvest exclusively onboards legally registered farmer collectives, ensuring authenticity, traceability, and quality assurance. By eliminating multiple middle layer supply chain enablers, we help farmers receive better value for their produce while offering consumers direct access to fresh, high-quality agricultural goods.</p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <h3><strong>Catering to Diverse Buyer Needs</strong></h3>
-                <p>Farmer Harvest serves a diverse customer base, including:</p>
-                <ul>
-                    <li>
-                        <strong>Retail consumers</strong>looking for fresh and ethically sourced produce.
-                    </li>
-                    <li>
-                        <strong>Businesses</strong>such as grocery stores, wholesalers, and food processors.
-                    </li>
-                    <li>
-                        <strong>Institutional buyers</strong>including schools, residential hostels, and religious institutions that require bulk agricultural supplies for preparing fresh meals.
-                    </li>
-                    <li>
-                        <strong>Buyers beyond the local geography</strong>enabling farmer collectives to expand their reach to customers outside their immediate operational area.
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <br>
-        <div class="row">
-            <div class="col-lg-12">
-                <h3><strong>Dual Sales Channels: Hyperlocal & Extended Reach</strong></h3>
-                <p>Farmer Harvest operates on both <strong>hyperlocal and extended reach</strong> sales models:</p>
-                <ul>
-                    <li>
-                        <strong>Sales: </strong> Farmer collectives directly serve local consumers and institutions within their respective regions, ensuring quick and efficient delivery. Bulk procurement by institutions such as schools and religious establishments ensures steady demand for farmers' produce.
-                    </li>
-                    <li>
-                        <strong>Extended Reach Sales:</strong>Beyond local boundaries, Farmer Harvest enables farmer collectives to connect with buyers across different regions, expanding their market reach without being restricted to their immediate geography.
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <br>
-        <div class="row">
-            <div class="col-lg-12">
-                <h3><strong>Powered by Advanced Technology</strong></h3>
-                <p>
-                    Farmer Harvest is built on cutting-edge technology to streamline operations for both farmers and buyers. The platform is designed for easy integration with third-party services, offering farmer collectives comprehensive business management solutions, from inventory tracking to logistics support.
-                </p>
-            </div>
-        </div>
-        <br>
-        <div class="row">
-            <div class="col-lg-12">
-                <h3><strong>
-                    Developed by Billion Next BoP Solutions Pvt. Ltd.
-                </strong></h3>
-                <p>
-                    Farmer Harvest is a proprietary platform developed and owned by <strong>Billion Next BoP Solutions Private Limited</strong>, reflecting our commitment to transforming agricultural trade through innovation and inclusivity.
-                </p>
-                <p>
-                    Join us in revolutionizing the way farmer collectives connect with buyers—locally and beyond—ensuring a sustainable and prosperous future for India's agricultural sector.
-                </p>
-            </div>
-        </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>About Farmer Harvest</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 leading-relaxed">
+<!-- Header -->
+  <header class="text-white p-4" style="background-color: #047857;">
+    {% include 'header.html' %}
+  </header>
+  <section class="py-12 px-4 max-w-5xl mx-auto">
+    <!-- Title -->
+    <div class="mb-10 text-center">
+      <h2 class="text-3xl font-bold text-green-700 mb-3">About Farmer Harvest</h2>
+      <p class="text-gray-700 max-w-3xl mx-auto">
+        <strong>Farmer Harvest</strong> is a unified aggregator marketplace designed to empower farmer collectives by providing them with a seamless platform to sell their produce directly to a wide range of buyers. Our platform connects Farmer Producer Companies (FPCs), Cooperatives, and Producer Groups—each legally registered in India—with consumers, businesses, and institutional buyers, ensuring a fair and transparent marketplace for agricultural trade.
+      </p>
     </div>
-</section>
-<!--End of blog section-->
-{% endblock %}
+
+    <!-- Section Cards -->
+    <div class="space-y-10">
+      <!-- Marketplace -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h3 class="text-xl font-semibold text-green-800 mb-2">A Marketplace for Farmer Collectives</h3>
+        <p>
+          Unlike conventional marketplaces, Farmer Harvest exclusively onboards legally registered farmer collectives, ensuring authenticity, traceability, and quality assurance. By eliminating multiple middle layer supply chain enablers, we help farmers receive better value for their produce while offering consumers direct access to fresh, high-quality agricultural goods.
+        </p>
+      </div>
+
+      <!-- Buyer Needs -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h3 class="text-xl font-semibold text-green-800 mb-2">Catering to Diverse Buyer Needs</h3>
+        <p>Farmer Harvest serves a diverse customer base, including:</p>
+        <ul class="list-disc list-inside mt-2 space-y-1 text-gray-700">
+          <li><strong>Retail consumers</strong> looking for fresh and ethically sourced produce.</li>
+          <li><strong>Businesses</strong> such as grocery stores, wholesalers, and food processors.</li>
+          <li><strong>Institutional buyers</strong> including schools, hostels, and religious institutions needing bulk fresh produce.</li>
+          <li><strong>Buyers beyond the local geography</strong>, helping farmer collectives reach wider markets.</li>
+        </ul>
+      </div>
+
+      <!-- Sales Channels -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h3 class="text-xl font-semibold text-green-800 mb-2">Dual Sales Channels: Hyperlocal & Extended Reach</h3>
+        <p>Farmer Harvest operates on both <strong>hyperlocal and extended reach</strong> models:</p>
+        <ul class="list-disc list-inside mt-2 space-y-1 text-gray-700">
+          <li>
+            <strong>Sales:</strong> Farmer collectives serve local consumers and institutions with quick deliveries. Bulk orders from schools and religious places support steady demand.
+          </li>
+          <li>
+            <strong>Extended Reach Sales:</strong> The platform enables collectives to reach buyers beyond their geographic limits, expanding market access.
+          </li>
+        </ul>
+      </div>
+
+      <!-- Technology -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h3 class="text-xl font-semibold text-green-800 mb-2">Powered by Advanced Technology</h3>
+        <p>
+          Farmer Harvest is built on cutting-edge technology to streamline operations for both farmers and buyers. The platform integrates easily with third-party services, offering tools for inventory management, order tracking, and logistics support—enabling professional and scalable agri-commerce.
+        </p>
+      </div>
+
+      <!-- Ownership -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+        <h3 class="text-xl font-semibold text-green-800 mb-2">Developed by Agro Visionary Technologies Pvt. Ltd.</h3>
+        <p>
+          Farmer Harvest is a proprietary platform developed and owned by <strong>Agro Visionary Technologies Private Limited</strong>, reflecting our commitment to transforming agricultural trade through innovation and inclusivity.
+        </p>
+        <p class="mt-2">
+          Join us in revolutionizing how farmer collectives connect with buyers—locally and nationally—building a sustainable and prosperous future for Indian agriculture.
+        </p>
+      </div>
+    </div>
+  </section>
+<!-- Footer -->
+  <footer class="bg-green-800 text-white py-6 mt-10">
+    {% include 'footer.html' %}
+  </footer>
+</body>
+</html>

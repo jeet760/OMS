@@ -14,7 +14,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
 from datetime import datetime
-from .models import CustomUser, UserShippingAddresses, UserBillingAddresses, FPOServingAddresses, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, OrderInvoice, OrderDelivery, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder, FPOAuthorisationDocs, UserMessage, SchoolUDISE
+from .models import CustomUser, UserShippingAddresses, UserBillingAddresses, FPOServingAddresses, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, OrderInvoice, OrderDelivery, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder, FPOAuthorisationDocs, UserMessage, SchoolUDISE #LGDData
 from .models import LIST_STATES, USERTYPES, GST_TREATMENT
 from .forms import ItemForm, UserRegistrationForm, UserLoginForm, OrderForm, OrderDetailsForm, InvoiceForm, FPOAuthrisationForm, ItemImportExcelForm
 import json
@@ -31,9 +31,35 @@ import random
 from django.core.files.base import ContentFile
 import base64
 
-#region StartPage_CommonPages
-def landing_page(request, category=None,fpo=None, region=None):
-    items = Item.objects.filter(itemActive=True).order_by('-itemInStock').only('itemCat')
+# #region LGD data fetch
+# def fetch_lgd_data_distrct(request, state_code):
+#     #referer = request.META.get('HTTP_REFERER')    
+#     district_data = list(
+#         LGDData.objects
+#         .filter(state_code=state_code)
+#         .values('district_name_english', 'district_code')
+#         .distinct().order_by('district_name_english')
+#     )
+#     lgd_context = {
+#         'district_data': district_data
+#     }
+#     return JsonResponse(lgd_context)
+
+# def fetch_lgd_data_subdistrict(request, state_code, district_code):
+#     subdistrict_data = list(
+#         LGDData.objects
+#         .filter(state_code=state_code, district_code=district_code)
+#         .values('subdistrict_name_english','subdistrict_code')
+#         .distinct().order_by('subdistrict_name_english'))
+#     lgd_context = {
+#         'subdistrict_data':subdistrict_data
+#     }
+#     return JsonResponse(lgd_context)
+# #endregion
+
+#region New index page and shop page
+#Featured Products in the landing page
+def featured_product(request):
     user_type = ''
     user_name = 'Guest!'#display the username
     user_approved=''
@@ -41,123 +67,274 @@ def landing_page(request, category=None,fpo=None, region=None):
     if request.session.get('pincode') != '' and request.session.get('pincode') != None:
         pincode = request.session.get('pincode')
 
-    featureItems = Item.objects.filter(featureItem=True).exclude(userID_id = request.user.pk)
-    if request.user.is_authenticated:
-        user_name = request.user.last_name
-        user_type = request.user.userType
-        user_approved = request.user.userApproved
-        if pincode == 'Delivery Pincode':
-            pincode = request.user.pinCode
+    featureItems = Item.objects.filter(featureItem=True, userID_id__isActive=True, itemActive=True).order_by('-itemInStock')#featured items whose owner/seller is active and is in stock from seller's side
+    if request.user.is_authenticated:#if the user is logged in
+        pincode = request.user.pinCode
         request.session['pincode'] = pincode
-        # if user_type == '1':
-        #     items = items.exclude(userID_id = request.user.pk)
-        featureItems = Item.objects.filter(featureItem=True).exclude(userID_id = request.user.pk).filter(userID_id__pinCode=pincode)
-    featureItems = featureItems.filter(itemActive=True).order_by('-itemInStock')
-    counter = featureItems.__len__()
-    featureItems = featureItems.filter(userID_id__isActive=True)
-    counter1 = featureItems.__len__()
-    # length = items.__len__()#get the total items
+        featureItems = featureItems.exclude(userID_id = request.user.pk).filter(userID_id__pinCode=pincode)
     
-    #pagination in the landing page
+    #pagination in featured items
     paginator = Paginator(featureItems,12)
     page_number = request.GET.get('page')
     featureItems_page_obj = paginator.get_page(page_number)
 
     cart = Cart(request)
-    total_qty = cart.__len__()#display total number quantities added in the basket
-    total_price = cart.get_total_price()
-    region_list = fpo = fpo_list(request)
-    landing_page_context = {
-        'items': items, 
+    total_cart_qty = cart.__len__()#display total number quantities added in the basket
+    total_cart_price = cart.get_total_price()
+
+    #to display in the stats section
+    veg_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Vegetables').__len__()
+    fru_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Fruits').__len__()
+    dai_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Dairy').__len__()
+    spi_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Spices').__len__()
+    cer_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Cereals').__len__()
+    pul_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Pulses').__len__()
+    ani_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Animal Sourced').__len__()
+    for_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Forest Produces').__len__()
+    pac_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Packaged Foods').__len__()
+    oth_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Others').__len__()
+
+    stats = [
+        {"value": veg_value, "label": "Vegetables"},
+        {"value": fru_value, "label": "Fruits"},
+        {"value": dai_value, "label": "Dairy"},
+        {"value": spi_value, "label": "Spices"},
+        {"value": cer_value, "label": "Cereals"},
+        {"value": pul_value, "label": "Pulses"},
+        {"value": ani_value, "label": "Animal Sourced"},
+        {"value": for_value, "label": "Forest Produces"},
+        {"value": pac_value, "label": "Packaged Foods"},
+        {"value": oth_value, "label": "Others"},
+    ]
+
+    fp_context = {
+        'featureItems':featureItems,
         'featureItems_page_obj':featureItems_page_obj,
-        # 'form': form, 
-        # 'total_items':length, 
         'login_user':user_name,
         'user_type':user_type,
         'user_approved':user_approved, 
-        'total_qty':total_qty, 
-        'fpo_list':fpo, 
-        'regions':region_list,
-        'total_price':total_price,
-        'featureItems':featureItems,
         'clicked':'Home',
-        'pincode':pincode
+        'pincode':pincode,
+        'total_cart_qty':total_cart_qty,
+        'total_cart_price':total_cart_price,
+        'stats':stats
     }
-    return render(request, 'landing.html', landing_page_context)
+    return render(request, 'featured-product.html', context=fp_context)
 
-def shop(request, category=None, fpo=None, region=None):
-    items = Item.objects.filter(itemActive=True).order_by('-itemInStock')
-    item_sort = request.GET.get('sort')
-    user_name = 'Guest!'#display the username
+#shop
+def marketplace(request):
     user_type = ''
-    user_approved = ''
-    pincode='Delivery Pincode'
-    pincode_area = ''
-    fpo_name = ''
-    if category is not None:
-        items = Item.objects.filter(itemCat=category).filter(itemActive=True).order_by('-itemInStock')
-    if fpo is not None:
-        items = Item.objects.filter(userID_id=fpo).filter(itemActive=True).order_by('-itemInStock')
-        fpo_name = get_object_or_404(CustomUser,pk=fpo).last_name
-    if region is not None:
-        items = Item.objects.filter(userID_id__pinCode=region).filter(itemActive=True).order_by('-itemInStock')
-        pincode_area = PinCodeAPI(request, region)
-        pincode=region
-    form = ItemForm()
+    user_name = 'Guest!'#display the username
+    user_approved=''
+    pincode = 'Delivery Pincode'
+    if request.session.get('pincode') != '' and request.session.get('pincode') != None:
+        pincode = request.session.get('pincode')
 
+    #all active and in stock items
+    items = Item.objects.filter(itemActive=True).order_by('-itemInStock')
+
+    if request.GET.__len__() > 0:
+        #data received from filter or from search box
+        item_type= '' if request.GET.get('item_type')is None or request.GET.get('item_type') == '' else request.GET.get('item_type')
+        fpo_selected = '' if request.GET.get('fpo_selected') is None or request.GET.get('fpo_selected') == '' else request.GET.get('fpo_selected')
+        max_price = 0 if request.GET.get('max_price') is None or request.GET.get('max_price') == '' else request.GET.get('max_price')
+
+        #searched item or item types/categories
+        search = request.GET.get('search')
+
+        if search is not None and search != '':
+            items = items.filter(Q(itemName__icontains=search)|Q(itemCat__icontains=search))
+        if item_type is not None and item_type != '':
+            items = items.filter(itemCat__icontains=item_type)
+        if fpo_selected is not None and fpo_selected != '':
+            items = items.filter(userID__last_name__icontains=fpo_selected)
+        if max_price is not None and max_price != 0:
+            items = items.filter(itemPrice__range=(0,float(max_price)))
+    
+    entered_pincode = request.GET.get('pincode')
+    if entered_pincode is not None:
+        request.session['pincode'] = entered_pincode
+        pincode = entered_pincode
+        items = items.filter(userID_id__pinCode=pincode)
+
+
+    fpos = CustomUser.objects.filter(userType='1',pinCode=pincode).exclude(pk=request.user.pk)
     if request.user.is_authenticated:
         user_name = request.user.last_name
         user_type = request.user.userType
         user_approved = request.user.userApproved
         pincode = request.session.get('pincode') #get the logged in user's pincode
-        if region is not None: #if the user is logged in and explicitly enters a pincode, then the items of that pincode will be displayed, not the user's own pincode
-            pincode = region
-            request.session['pincode'] = pincode
-        items = Item.objects.filter(userID_id__pinCode=pincode).filter(itemActive=True).order_by('-itemInStock') #if the user is logged in, then only the items available in user's pincode will be available to it.
-        counter = items.__len__()
-        items = items.filter(userID_id__isActive=True)
-        counter1 = items.__len__()
-        if user_type == '1':
-            items = items.exclude(userID_id = request.user.pk)
-    else:#if the user is not logged in and explicitly enters the pincode
-        pincode = region
-        request.session['pincode'] = pincode
-
-    if item_sort == 'price_asc':
-        items = items.order_by('itemPrice')
-    elif item_sort == 'price_desc':
-        items = items.order_by('-itemPrice')
+        items = items.exclude(userID_id = request.user.pk)
 
     paginator = Paginator(items,12)
     page_number = request.GET.get('page')
     items_page_obj = paginator.get_page(page_number)
 
     cart = Cart(request)
-    total_qty = cart.__len__()#display total number quantities added in the basket
-    total_price = cart.get_total_price()
-    region_list = fpo = fpo_list(request)
-    min_price = items.aggregate(Min('itemPrice'))['itemPrice__min']
-    max_price = items.aggregate(Max('itemPrice'))['itemPrice__max']
-    shop_page_context ={
-        'items': items, 
+    total_cart_qty = cart.__len__()#display total number quantities added in the basket
+    total_cart_price = cart.get_total_price()
+
+    shop_context = {
+        'items':items,
         'items_page_obj':items_page_obj,
-        'form': form, 
-        'login_user':user_name,
-        'user_approved':user_approved, 
-        'total_qty':total_qty, 
-        'fpo_list':fpo, 
-        'fpo_name':fpo_name,
-        'item_sort':item_sort,
-        'regions':region_list,
-        'total_price':total_price,
-        'min_price':min_price,
-        'max_price':max_price,
-        'pincode_area':pincode_area,
-        'clicked':'Shop',
-        'pincode':pincode,
-        'user_type':user_type
+        'fpos':fpos,
+        'total_cart_qty':total_cart_qty,
+        'total_cart_price':total_cart_price,
+        'pincode':pincode
     }
-    return render(request, 'shop-grid.html', shop_page_context)
+    return render(request, 'shop.html', context=shop_context)
+
+#item details while shopping
+def item_details(request, item_id):
+    user_type = ''
+    user_name = 'Guest!'#display the username
+    user_approved=''
+    pincode = 'Delivery Pincode'
+    if request.session.get('pincode') != '' and request.session.get('pincode') != None:
+        pincode = request.session.get('pincode')
+
+    item = get_object_or_404(Item, pk=item_id)
+    pincode = item.userID.pinCode
+    related_items = Item.objects.filter(itemCat = item.itemCat).filter(userID_id__pinCode=pincode).exclude(pk=item_id)
+    counter = related_items.count()
+    item_details_context = {
+        'item':item,
+        'related_items':related_items
+    }
+    return render(request, 'item-details.html', context = item_details_context)
+
+#pincode based search
+def pincode_based_search(request):
+    return ''
+#endregion
+
+#region StartPage_CommonPages
+# def landing_page(request, category=None,fpo=None, region=None):
+#     items = Item.objects.filter(itemActive=True).order_by('-itemInStock').only('itemCat')
+#     user_type = ''
+#     user_name = 'Guest!'#display the username
+#     user_approved=''
+#     pincode = 'Delivery Pincode'
+#     if request.session.get('pincode') != '' and request.session.get('pincode') != None:
+#         pincode = request.session.get('pincode')
+
+#     featureItems = Item.objects.filter(featureItem=True).exclude(userID_id = request.user.pk)
+#     if request.user.is_authenticated:
+#         user_name = request.user.last_name
+#         user_type = request.user.userType
+#         user_approved = request.user.userApproved
+#         if pincode == 'Delivery Pincode':
+#             pincode = request.user.pinCode
+#         request.session['pincode'] = pincode
+#         # if user_type == '1':
+#         #     items = items.exclude(userID_id = request.user.pk)
+#         featureItems = Item.objects.filter(featureItem=True).exclude(userID_id = request.user.pk).filter(userID_id__pinCode=pincode)
+#     featureItems = featureItems.filter(itemActive=True).order_by('-itemInStock')
+#     counter = featureItems.__len__()
+#     featureItems = featureItems.filter(userID_id__isActive=True)
+#     counter1 = featureItems.__len__()
+#     # length = items.__len__()#get the total items
+    
+#     #pagination in the landing page
+#     paginator = Paginator(featureItems,12)
+#     page_number = request.GET.get('page')
+#     featureItems_page_obj = paginator.get_page(page_number)
+
+#     cart = Cart(request)
+#     total_cart_qty = cart.__len__()#display total number quantities added in the basket
+#     total_cart_price = cart.get_total_price()
+#     region_list = fpo = fpo_list(request)
+#     landing_page_context = {
+#         'items': items, 
+#         'featureItems_page_obj':featureItems_page_obj,
+#         # 'form': form, 
+#         # 'total_items':length, 
+#         'login_user':user_name,
+#         'user_type':user_type,
+#         'user_approved':user_approved, 
+#         'total_cart_qty':total_cart_qty, 
+#         'fpo_list':fpo, 
+#         'regions':region_list,
+#         'total_cart_price':total_cart_price,
+#         'featureItems':featureItems,
+#         'clicked':'Home',
+#         'pincode':pincode
+#     }
+#     return render(request, 'landing.html', landing_page_context)
+
+# def shop(request, category=None, fpo=None, region=None):
+#     items = Item.objects.filter(itemActive=True).order_by('-itemInStock')
+#     item_sort = request.GET.get('sort')
+#     user_name = 'Guest!'#display the username
+#     user_type = ''
+#     user_approved = ''
+#     pincode='Delivery Pincode'
+#     pincode_area = ''
+#     fpo_name = ''
+#     if category is not None:
+#         items = Item.objects.filter(itemCat=category).filter(itemActive=True).order_by('-itemInStock')
+#     if fpo is not None:
+#         items = Item.objects.filter(userID_id=fpo).filter(itemActive=True).order_by('-itemInStock')
+#         fpo_name = get_object_or_404(CustomUser,pk=fpo).last_name
+#     if region is not None:
+#         items = Item.objects.filter(userID_id__pinCode=region).filter(itemActive=True).order_by('-itemInStock')
+#         pincode_area = PinCodeAPI(request, region)
+#         pincode=region
+#     form = ItemForm()
+
+#     if request.user.is_authenticated:
+#         user_name = request.user.last_name
+#         user_type = request.user.userType
+#         user_approved = request.user.userApproved
+#         pincode = request.session.get('pincode') #get the logged in user's pincode
+#         if region is not None: #if the user is logged in and explicitly enters a pincode, then the items of that pincode will be displayed, not the user's own pincode
+#             pincode = region
+#             request.session['pincode'] = pincode
+#         items = Item.objects.filter(userID_id__pinCode=pincode).filter(itemActive=True).order_by('-itemInStock') #if the user is logged in, then only the items available in user's pincode will be available to it.
+#         counter = items.__len__()
+#         items = items.filter(userID_id__isActive=True)
+#         counter1 = items.__len__()
+#         if user_type == '1':
+#             items = items.exclude(userID_id = request.user.pk)
+#     else:#if the user is not logged in and explicitly enters the pincode
+#         pincode = region
+#         request.session['pincode'] = pincode
+
+#     if item_sort == 'price_asc':
+#         items = items.order_by('itemPrice')
+#     elif item_sort == 'price_desc':
+#         items = items.order_by('-itemPrice')
+
+#     paginator = Paginator(items,12)
+#     page_number = request.GET.get('page')
+#     items_page_obj = paginator.get_page(page_number)
+
+#     cart = Cart(request)
+#     total_cart_qty = cart.__len__()#display total number quantities added in the basket
+#     total_cart_price = cart.get_total_price()
+#     region_list = fpo = fpo_list(request)
+#     min_price = items.aggregate(Min('itemPrice'))['itemPrice__min']
+#     max_price = items.aggregate(Max('itemPrice'))['itemPrice__max']
+#     shop_page_context ={
+#         'items': items, 
+#         'items_page_obj':items_page_obj,
+#         'form': form, 
+#         'login_user':user_name,
+#         'user_approved':user_approved, 
+#         'total_cart_qty':total_cart_qty, 
+#         'fpo_list':fpo, 
+#         'fpo_name':fpo_name,
+#         'item_sort':item_sort,
+#         'regions':region_list,
+#         'total_cart_price':total_cart_price,
+#         'min_price':min_price,
+#         'max_price':max_price,
+#         'pincode_area':pincode_area,
+#         'clicked':'Shop',
+#         'pincode':pincode,
+#         'user_type':user_type
+#     }
+#     return render(request, 'shop-grid.html', shop_page_context)
 
 def is_online(host='api.postalpincode.in', port=443, timeout=3):
     try:
@@ -189,8 +366,8 @@ def PinCodeAPI(request, pincode):
 def shop_details(request, item_id):
     item = get_object_or_404(Item,pk=item_id)
     cart = Cart(request)
-    total_qty = cart.__len__()#display total number quantities added in the basket
-    total_price = cart.get_total_price()
+    total_cart_qty = cart.__len__()#display total number quantities added in the basket
+    total_cart_price = cart.get_total_price()
     if request.user.is_authenticated:
         user_name=request.user.last_name
         pincode = request.session.get('pincode') #get the logged in user's pincode
@@ -219,62 +396,62 @@ def shop_details(request, item_id):
         'user_type':user_type,
         'pincode':pincode,
         'clicked':'Shop',
-        'total_qty':total_qty,
-        'total_price':total_price
+        'total_cart_qty':total_cart_qty,
+        'total_cart_price':total_cart_price
     }
     return render(request, 'shop-details.html', shop_details_context)
 
-def shopping_cart(request):
-    cart = Cart(request)
-    cart_items = cart.__iter__()
-    item_stock = True
-    for cart_item in cart_items:
-        stock = cart_item['product'].itemInStock
-        if stock == False:
-            item_stock = False
-            break
-    total_qty = cart.__len__()
-    no_of_cart_item = cart.cart.__len__()
-    total_price = cart.get_total_price()
-    transportation_cost = 0 if total_price > 999 else 99
-    grand_total = total_price + transportation_cost
-    ds = DeliverySchedule()
-    user_name = 'Guest!'#display the username
-    pincode='Delivery Pincode'
-    user_type=''
-    user_approved=''
-    billing_addresses = None
-    shipping_addresses = None
-    if request.user.is_authenticated:
-        user_name = request.user.last_name
-        user_type=request.user.userType
-        user_approved = request.user.userApproved
-        pincode = request.session.get('pincode')
-        billing_addresses = UserBillingAddresses.objects.filter(userID_id=request.user.pk)
-        shipping_addresses = UserShippingAddresses.objects.filter(userID_id=request.user.pk)
-    shopping_cart_context = {
-        'user_authenticated':request.user.is_authenticated, 
-        'user_type':user_type,
-        'user_approved':user_approved,
-        'cart': cart, 
-        'no_of_cart_item':no_of_cart_item,
-        'total_qty':total_qty, 
-        'total_price':total_price, 
-        'transportation_cost':transportation_cost,
-        'gst_amount':0,
-        'deduction_amount':0,
-        'grand_total':grand_total,
-        'dateSeries':ds.dateSeries, 
-        'timeSeries':ds.timeSeries, 
-        'login_user':user_name,
-        'pincode':pincode,
-        'billing_addresses':billing_addresses,
-        'shipping_addresses':shipping_addresses,
-        'add_address_from':'cart',
-        'states':LIST_STATES,
-        'item_stock':item_stock
-    }
-    return render(request, 'shopping-cart.html', context=shopping_cart_context)
+# def shopping_cart(request):
+#     cart = Cart(request)
+#     cart_items = cart.__iter__()
+#     item_stock = True
+#     for cart_item in cart_items:
+#         stock = cart_item['product'].itemInStock
+#         if stock == False:
+#             item_stock = False
+#             break
+#     total_cart_qty = cart.__len__()
+#     no_of_cart_item = cart.cart.__len__()
+#     total_cart_price = cart.get_total_price()
+#     transportation_cost = 0 if total_cart_price > 999 else 99
+#     grand_total = total_cart_price + transportation_cost
+#     ds = DeliverySchedule()
+#     user_name = 'Guest!'#display the username
+#     pincode='Delivery Pincode'
+#     user_type=''
+#     user_approved=''
+#     billing_addresses = None
+#     shipping_addresses = None
+#     if request.user.is_authenticated:
+#         user_name = request.user.last_name
+#         user_type=request.user.userType
+#         user_approved = request.user.userApproved
+#         pincode = request.session.get('pincode')
+#         billing_addresses = UserBillingAddresses.objects.filter(userID_id=request.user.pk)
+#         shipping_addresses = UserShippingAddresses.objects.filter(userID_id=request.user.pk)
+#     shopping_cart_context = {
+#         'user_authenticated':request.user.is_authenticated, 
+#         'user_type':user_type,
+#         'user_approved':user_approved,
+#         'cart': cart, 
+#         'no_of_cart_item':no_of_cart_item,
+#         'total_cart_qty':total_cart_qty, 
+#         'total_cart_price':total_cart_price, 
+#         'transportation_cost':transportation_cost,
+#         'gst_amount':0,
+#         'deduction_amount':0,
+#         'grand_total':grand_total,
+#         'dateSeries':ds.dateSeries, 
+#         'timeSeries':ds.timeSeries, 
+#         'login_user':user_name,
+#         'pincode':pincode,
+#         'billing_addresses':billing_addresses,
+#         'shipping_addresses':shipping_addresses,
+#         'add_address_from':'cart',
+#         'states':LIST_STATES,
+#         'item_stock':item_stock
+#     }
+#     return render(request, 'shopping-cart.html', context=shopping_cart_context)
 
 def contact(request):
     qs = request.GET.get('q')
@@ -285,8 +462,8 @@ def contact(request):
         UserMessage.objects.create(name=senderName,email=senderEmail,msg=senderMsg)
         return redirect('contact')
     cart = Cart(request)
-    total_qty = cart.__len__()#display total number quantities added in the basket
-    total_price = cart.get_total_price()
+    total_cart_qty = cart.__len__()#display total number quantities added in the basket
+    total_cart_price = cart.get_total_price()
     user_name = 'Guest!'#display the username
     user_type =''
     user_approved = ''
@@ -298,8 +475,8 @@ def contact(request):
         user_approved = request.user.userApproved
     contact_context = {
         'clicked':'Contact',
-        'total_qty':total_qty,
-        'total_price':total_price,
+        'total_cart_qty':total_cart_qty,
+        'total_cart_price':total_cart_price,
         'login_user':user_name,
         'pincode':pincode,
         'user_type':user_type,
@@ -309,12 +486,12 @@ def contact(request):
 
 def blog(request):
     cart = Cart(request)
-    total_qty = cart.__len__()#display total number quantities added in the basket
-    total_price = cart.get_total_price()
+    total_cart_qty = cart.__len__()#display total number quantities added in the basket
+    total_cart_price = cart.get_total_price()
     blog_context = {
         'clicked':'Blog',
-        'total_qty':total_qty,
-        'total_price':total_price
+        'total_cart_qty':total_cart_qty,
+        'total_cart_price':total_cart_price
     }
     return render(request, 'blog.html', blog_context)
 
@@ -323,7 +500,7 @@ def checkout(request):
         checkout_context = {
             'login_user' : request.user.last_name,
             'order_date':datetime.now,
-            'order_amount':request.session['total_price']
+            'order_amount':request.session['total_cart_price']
         }
         return render(request, 'checkout.html', context=checkout_context)
     else:
@@ -338,67 +515,67 @@ def error_404_view(request):
 
 def aboutus(request):
     cart = Cart(request)
-    total_qty = cart.__len__()#display total number quantities added in the basket
-    total_price = cart.get_total_price()
+    total_cart_qty = cart.__len__()#display total number quantities added in the basket
+    total_cart_price = cart.get_total_price()
     aboutus_context = {
         'clicked':'About Us',
-        'total_qty':total_qty,
-        'total_price':total_price
+        'total_cart_qty':total_cart_qty,
+        'total_cart_price':total_cart_price
     }
     return render(request, 'about-us.html', aboutus_context)
 
 def privacypolicy(request):
     cart = Cart(request)
-    total_qty = cart.__len__()#display total number quantities added in the basket
-    total_price = cart.get_total_price()
+    total_cart_qty = cart.__len__()#display total number quantities added in the basket
+    total_cart_price = cart.get_total_price()
     privacy_context = {
         'clicked':'Privacy Policy',
-        'total_qty':total_qty,
-        'total_price':total_price
+        'total_cart_qty':total_cart_qty,
+        'total_cart_price':total_cart_price
     }
     return render(request, 'privacy-policy.html', privacy_context)
 
 def deliverypolicy(request):
     cart = Cart(request)
-    total_qty = cart.__len__()#display total number quantities added in the basket
-    total_price = cart.get_total_price()
+    total_cart_qty = cart.__len__()#display total number quantities added in the basket
+    total_cart_price = cart.get_total_price()
     delivery_context = {
         'clicked':'Delivery Policy',
-        'total_qty':total_qty,
-        'total_price':total_price
+        'total_cart_qty':total_cart_qty,
+        'total_cart_price':total_cart_price
     }
     return render(request, 'delivery-policy.html', delivery_context)
 
 def returnpolicy(request):
     cart = Cart(request)
-    total_qty = cart.__len__()#display total number quantities added in the basket
-    total_price = cart.get_total_price()
+    total_cart_qty = cart.__len__()#display total number quantities added in the basket
+    total_cart_price = cart.get_total_price()
     return_context = {
         'clicked':'Return Policy',
-        'total_qty':total_qty,
-        'total_price':total_price
+        'total_cart_qty':total_cart_qty,
+        'total_cart_price':total_cart_price
     }
     return render(request, 'return-policy.html', return_context)
 
 def eula(request):
     cart = Cart(request)
-    total_qty = cart.__len__()#display total number quantities added in the basket
-    total_price = cart.get_total_price()
+    total_cart_qty = cart.__len__()#display total number quantities added in the basket
+    total_cart_price = cart.get_total_price()
     eula_context = {
         'clicked':'End User',
-        'total_qty':total_qty,
-        'total_price':total_price
+        'total_cart_qty':total_cart_qty,
+        'total_cart_price':total_cart_price
     }
     return render(request, 'eula.html', eula_context)
 
 def testimonials(request):
     cart = Cart(request)
-    total_qty = cart.__len__()#display total number quantities added in the basket
-    total_price = cart.get_total_price()
+    total_cart_qty = cart.__len__()#display total number quantities added in the basket
+    total_cart_price = cart.get_total_price()
     testimonials_context = {
         'clicked':'Testimonials',
-        'total_qty':total_qty,
-        'total_price':total_price
+        'total_cart_qty':total_cart_qty,
+        'total_cart_price':total_cart_price
     }
     return render(request, 'testimonials.html', testimonials_context)
 
@@ -506,13 +683,13 @@ def registration_form(request):
     form = UserRegistrationForm()#new register point: opening the registratino page without login
     user_name = 'Guest!'
     cart = Cart(request)
-    total_qty = cart.__len__()#display total number quantities added in the basket
-    total_price = cart.get_total_price()
+    total_cart_qty = cart.__len__()#display total number quantities added in the basket
+    total_cart_price = cart.get_total_price()
     register_context = {
         'userform': form,
         'login_user':user_name,
-        'total_qty':total_qty,
-        'total_price':total_price,
+        'total_cart_qty':total_cart_qty,
+        'total_cart_price':total_cart_price,
         'states':LIST_STATES,
         'gst_tmts':GST_TREATMENT,
         'user_types':USERTYPES,
@@ -635,16 +812,16 @@ def profile_view(request):
     serving_addresses = FPOServingAddresses.objects.filter(userID=request.user.pk)
     contact_person = [CustomUser.objects.get(pk=request.user.pk).contactPerson, CustomUser.objects.get(pk=request.user.pk).contactNo]
     cart = Cart(request)
-    total_qty = cart.__len__()#display total number quantities added in the basket
-    total_price = cart.get_total_price()
+    total_cart_qty = cart.__len__()#display total number quantities added in the basket
+    total_cart_price = cart.get_total_price()
     register_context = {
         'userform': form,
         'user':user,
         'contact_person':contact_person,
         'login_user':user_name,
         'user_type':user_type,
-        'total_qty':total_qty,
-        'total_price':total_price,
+        'total_cart_qty':total_cart_qty,
+        'total_cart_price':total_cart_price,
         'states':LIST_STATES,
         'gst_tmts':GST_TREATMENT,
         'user_types':USERTYPES,
@@ -783,6 +960,12 @@ def activate_user(request, userID, activate):
     else:
         return redirect('logout')
 
+def change_mobile_number(request, new_phone):
+    if request.user.is_authenticated:
+        exist_phone = get_object_or_404(CustomUser, pk=request.user.pk).phone
+        update_records = CustomUser.objects.filter(pk = request.user.pk,phone = exist_phone).update(phone=new_phone)
+    return redirect('user-form')
+
 def add_address(request):
     if request.user.is_authenticated:
         userID=request.user.pk
@@ -819,8 +1002,8 @@ def add_address(request):
         referer = request.META.get('HTTP_REFERER')
         parsed_url = urlparse(referer)
         path_only = parsed_url.path  # e.g., /some/path/
-        if path_only == '/shoppingcart':
-            return redirect('shoppingcart')    
+        if path_only == '/cart':
+            return redirect('cart')    
         else:
             return redirect('user-form')
     else:
@@ -858,6 +1041,14 @@ def fetch_lat_lon_from_pincode_api(pincode):
     pincode_data = api_response.json()
     lat = pincode_data['records'][0]['latitude']
     lon = pincode_data['records'][0]['longitude']
+    if lat == 'NA':
+        if pincode_data['count'] > 1:
+            lat = pincode_data['records'][1]['latitude']
+            lon = pincode_data['records'][1]['longitude']
+        else:
+            lat = 0.0
+            lon = 0.0
+
     lat_lon_context = {
         'lat':lat,
         'lon':lon
@@ -1559,7 +1750,7 @@ def add_to_cart(request, product_id):
     cart = Cart(request)
     product = get_object_or_404(Item, itemID=product_id)
     if selectedQty is None or selectedQty == '':
-        selectedQty = request.POST['selectQuantity']
+        selectedQty = request.POST['quantity']
     qty = int(selectedQty)
     cart.add(product=product, quantity=qty, update_quantity=False)
     if source == 'landing':
@@ -1569,31 +1760,77 @@ def add_to_cart(request, product_id):
 
 def update_cart(request):
     cart = Cart(request)
-    data = json.loads(request.body)
-    product_id = data.get('item_id')
-    selectedQty = data.get('quantity')
+    product_id = request.GET['item']
+    selectedQty = request.POST['quantity']
+    # data = json.loads(request.body)
+    # product_id = data.get('item_id')
+    # selectedQty = data.get('quantity')
     product = get_object_or_404(Item, itemID=product_id)
     qty = int(selectedQty)
     cart.add(product=product, quantity=qty, update_quantity=True)
-    return redirect('shoppingcart')
+    return redirect('cart')
 
 def remove_from_cart(request, product_id):
     cart = Cart(request)
     product = get_object_or_404(Item, itemID=product_id)
     cart.remove(product)
-    return redirect('shoppingcart')
+    return redirect('cart')
 
 def cart_view(request):
     cart = Cart(request)
-    total_qty = cart.__len__()
-    total_price = cart.get_total_price()
+    cart_items = cart.__iter__()
+    item_stock = True
+    item_seller = False
+    for cart_item in cart_items:
+        stock = cart_item['product'].itemInStock
+        user_id_item = cart_item['product'].userID_id
+        if stock == False:
+            item_stock = False
+        elif user_id_item == request.user.pk:
+            item_seller = True
+            break
+    total_cart_qty = cart.__len__()
+    no_of_cart_item = cart.cart.__len__()
+    total_cart_price = cart.get_total_price()
+    transportation_cost = 0 if total_cart_price > 999 else 99
+    grand_total = total_cart_price + transportation_cost
     ds = DeliverySchedule()
-    user_name = 'Guest!'
+    user_name = 'Guest!'#display the username
+    pincode='Delivery Pincode'
+    user_type=''
+    user_approved=''
+    billing_addresses = None
+    shipping_addresses = None
     if request.user.is_authenticated:
         user_name = request.user.last_name
-    
-    #return render(request, 'shopping-cart.html', {'cart': cart, 'total_qty':total_qty, 'total_price':total_price, 'user_authenticated':request.user.is_authenticated, 'dateSeries':ds.dateSeries, 'timeSeries':ds.timeSeries, 'login_user':user_name})
-    return render(request, 'cart.html', {'cart': cart, 'basket_qty':total_qty, 'basket_price':total_price, 'user_authenticated':request.user.is_authenticated, 'dateSeries':ds.dateSeries, 'timeSeries':ds.timeSeries, 'login_user':user_name})
+        user_type=request.user.userType
+        user_approved = request.user.userApproved
+        pincode = request.session.get('pincode')
+        billing_addresses = UserBillingAddresses.objects.filter(userID_id=request.user.pk)
+        shipping_addresses = UserShippingAddresses.objects.filter(userID_id=request.user.pk)
+    shopping_cart_context = {
+        'user_type':user_type,
+        'user_approved':user_approved,
+        'cart': cart, 
+        'no_of_cart_item':no_of_cart_item,
+        'total_cart_qty':total_cart_qty, 
+        'total_cart_price':total_cart_price, 
+        'transportation_cost':transportation_cost,
+        'gst_amount':0,
+        'deduction_amount':0,
+        'grand_total':grand_total,
+        'dateSeries':ds.dateSeries, 
+        'timeSeries':ds.timeSeries, 
+        'login_user':user_name,
+        'pincode':pincode,
+        'billing_addresses':billing_addresses,
+        'shipping_addresses':shipping_addresses,
+        'add_address_from':'cart',
+        'states':LIST_STATES,
+        'item_stock':item_stock,
+        'item_seller':item_seller
+    }
+    return render(request, 'cart.html', context=shopping_cart_context)
 #endregion
 
 #region Order Mechanism
@@ -1623,7 +1860,7 @@ def create_order_invoice(param_order_no, param_invoice_no, param_user_id):
 def CreateOrder(request, param_transportation_cost, param_total_price, param_gst_amount, param_deduction):
     if request.user.is_authenticated:
         if request.method == 'POST' and request.user.is_authenticated:
-            paymentMode = request.POST['selectPaymentMethod']
+            paymentMode = request.POST['paymentMode']
             request.session['transportation_cost']=param_transportation_cost
             request.session['total_price']=param_total_price
             request.session['gst_amount']=param_gst_amount
@@ -1631,7 +1868,7 @@ def CreateOrder(request, param_transportation_cost, param_total_price, param_gst
             request.session['delivery_date']=request.POST['selectDeliveryDate']
             request.session['deliery_time']=request.POST['selectDeliveryTime']
             request.session['order_note'] = request.POST['orderNote']
-            request.session['pay_method'] = request.POST['selectPaymentMethod']
+            request.session['pay_method'] = request.POST['paymentMode']
             request.session['pay_status'] = False
             request.session['pay_date'] = None
             request.session['pay_ref'] = None
@@ -1791,6 +2028,9 @@ def order_successful(request):
     elif type == 'Order':
         orderID = Order.objects.all().latest('orderID').orderID
         orderNo = Order.objects.all().latest('orderID').orderNo
+    else:
+        orderID = ''
+        orderNo = ''
 
     success_context = {
         'orderID': orderID,
@@ -2096,8 +2336,8 @@ def bulk_buy(request):
         #items = items.exclude(userID_id=request.user.pk)
         distinct_units = items.values('itemUnit').distinct().order_by('itemUnit')
         cart = Cart(request)
-        total_qty = cart.__len__()#display total number quantities added in the basket
-        total_price = cart.get_total_price()
+        total_cart_qty = cart.__len__()#display total number quantities added in the basket
+        total_cart_price = cart.get_total_price()
         pincode = request.session.get('pincode')
     context = {
         'rejected_orders': rejected_orders,
@@ -2109,8 +2349,8 @@ def bulk_buy(request):
         'user_address':user_address,
         'user_address1':user_address1,
         'user_phone':user_phone,
-        'total_qty':total_qty,
-        'total_price':total_price,
+        'total_cart_qty':total_cart_qty,
+        'total_cart_price':total_cart_price,
         'items':items,
         'distinct_units':distinct_units,
         'pincode':pincode
@@ -2163,14 +2403,14 @@ def bulk_buy_order_response(request, bulkBuyID):
         user_name = request.user.last_name
         bulkbuyresponses = BulkBuyResponse.objects.annotate(count_enquired_items=Count('bulkBuyID__bulkbuyid_bbd',distinct=True),count_response_items=Count('bulkbuyid_bbrd',distinct=True)).filter(bulkBuyID_id = bulkBuyID)
         cart = Cart(request)
-        total_qty = cart.__len__()#display total number quantities added in the basket
-        total_price = cart.get_total_price()
+        total_cart_qty = cart.__len__()#display total number quantities added in the basket
+        total_cart_price = cart.get_total_price()
 
     response_context = {
         'bulkbuyresponses':bulkbuyresponses,
         'login_user':user_name,
-        'total_qty':total_qty,
-        'total_price':total_price,
+        'total_cart_qty':total_cart_qty,
+        'total_cart_price':total_cart_price,
     }
     return render(request, 'bulk-buy-order-response.html', context=response_context)
 
@@ -2178,8 +2418,8 @@ def bulk_buy_order_response_details(request, bulkBuyID, response_userID):
     if request.user.is_authenticated:
         user_name = request.user.last_name
         cart = Cart(request)
-        total_qty = cart.__len__()#display total number quantities added in the basket
-        total_price = cart.get_total_price()
+        total_cart_qty = cart.__len__()#display total number quantities added in the basket
+        total_cart_price = cart.get_total_price()
         order_details = BulkBuyResponse.objects.filter(bulkBuyID_id=bulkBuyID, response_userID_id=response_userID)[0]
         response_remark = BulkBuyResponse.objects.get(bulkBuyID_id=bulkBuyID, response_userID_id=response_userID).response_remark
         if BulkBuyResponse.objects.filter(bulkBuyID_id=bulkBuyID, response_remark='Accepted').__len__() > 0:
@@ -2211,8 +2451,8 @@ def bulk_buy_order_response_details(request, bulkBuyID, response_userID):
             'order_details':order_details,
             'response_details':response_details,
             'login_user':user_name,
-            'total_qty':total_qty,
-            'total_price':total_price,
+            'total_cart_qty':total_cart_qty,
+            'total_cart_price':total_cart_price,
             'bulkBuyID':bulkBuyID,
             'response_userID':response_userID,
             'response_remark':response_remark,
@@ -2224,14 +2464,14 @@ def bulk_buy_response_accept(request, bulkBuyID, response_userID):
     BulkBuyResponse.objects.filter(bulkBuyID_id=bulkBuyID, response_userID_id=response_userID).update(response_remark='Accepted',response_remark_date=datetime.today())
     BulkBuyResponse.objects.filter(bulkBuyID_id=bulkBuyID).exclude(response_userID_id=response_userID).update(response_remark='Not Accepted',response_remark_date=datetime.today())
     BulkBuy.objects.filter(pk=bulkBuyID).update(response_accept='True')
-    return redirect('bulk-buy-orders')
+    return redirect('order_successful')
 
 def bulk_buy_details(request, bulk_order_id):
     if request.user.is_authenticated:
         user_name = request.user.last_name
         bulkbuy = BulkBuy.objects.filter(bulkBuyID=bulk_order_id)
         bulkbuy_details = BulkBuyDetails.objects.filter(bulkBuyID=bulk_order_id)
-        no_of_response_made = BulkBuyResponse.objects.filter(response_userID_id=request.user.pk).__len__()
+        no_of_response_made = BulkBuyResponse.objects.filter(response_userID_id=request.user.pk, bulkBuyID_id=bulk_order_id).__len__()
     bulk_buy_context = {
         'bulkbuy':bulkbuy,
         'bulk_buy_details':bulkbuy_details,
@@ -2254,7 +2494,7 @@ def bulk_buy_supply(request):
     if request.user.is_authenticated:
         userApproved = False if request.user.userApproved == None or False else True
         login_user = request.user.last_name
-        bulkorder = BulkBuy.objects.annotate(count_items=Count('bulkbuyid_bbd', distinct=True, ), count_response = Count('bulkbuyid_bbr',distinct=True))
+        bulkorder = BulkBuy.objects.annotate(count_items=Count('bulkbuyid_bbd', distinct=True, ), count_response = Count('bulkbuyid_bbr',distinct=True)).order_by('-bulkBuyID')
         no_of_bulk_buy_orders = bulkorder.__len__()
         no_bulk_buy_orders_responded = BulkBuyResponse.objects.filter(response_userID_id=request.user.pk).__len__()
     bulk_context = {
@@ -2289,18 +2529,18 @@ def bulk_buy_supply_bid(request):
 def bulk_buy_orders(request):
     if request.user.is_authenticated:
         #bulk_orders = BulkBuy.objects.filter(userID_id=request.user.pk)
-        bulk_orders = BulkBuy.objects.annotate(count_items=Count('bulkbuyid_bbd', distinct=True),count_responses=Count('bulkbuyid_bbr__response_userID_id', distinct=True)).filter(userID_id=request.user.pk)
+        bulk_orders = BulkBuy.objects.annotate(count_items=Count('bulkbuyid_bbd', distinct=True),count_responses=Count('bulkbuyid_bbr__response_userID_id', distinct=True)).filter(userID_id=request.user.pk).order_by('-bulkBuyID')
         user_name = request.user.last_name
         user_approved = request.user.userApproved
         user_type = request.user.userType
         cart = Cart(request)
-        total_qty = cart.__len__()#display total number quantities added in the basket
-        total_price = cart.get_total_price()
+        total_cart_qty = cart.__len__()#display total number quantities added in the basket
+        total_cart_price = cart.get_total_price()
         bulk_orders_context = {
             'bulk_orders':bulk_orders,
             'login_user':user_name,
-            'total_qty':total_qty,
-            'total_price':total_price,
+            'total_cart_qty':total_cart_qty,
+            'total_cart_price':total_cart_price,
             'user_approved':user_approved,
             'user_type':user_type
         }
@@ -2382,13 +2622,13 @@ def PlacedOrders(request):
         user_type = request.user.userType
         user_approved = request.user.userApproved
         cart = Cart(request)
-        total_qty = cart.__len__()#display total number quantities added in the basket
-        total_price = cart.get_total_price()
+        total_cart_qty = cart.__len__()#display total number quantities added in the basket
+        total_cart_price = cart.get_total_price()
         render_context = {
             'placed_orders':orders,
             'login_user':user_name,
-            'total_qty':total_qty,
-            'total_price':total_price,
+            'total_cart_qty':total_cart_qty,
+            'total_cart_price':total_cart_price,
             'pincode':pincode,
             'user_type':user_type,
             'user_approved':user_approved
@@ -2404,6 +2644,7 @@ def placed_order_details(request,orderID):
     paymentMode = Order.objects.get(pk=orderID).paymentMode
     order_details = OrderDetails.objects.select_related('itemID').filter(orderID_id=orderID)
     invoice_details = OrderInvoice.objects.filter(orderID_id=orderID)
+    delivery_order = OrderDelivery.objects.filter(orderID_id=orderID) if OrderDelivery.objects.filter(orderID_id=orderID).count() > 0 else 0
     #query = str(order_details.query)
     pincode='Delivery Pincode'
     user_name = 'Guest!'
@@ -2412,14 +2653,15 @@ def placed_order_details(request,orderID):
         pincode = request.user.pinCode
         #order_invoices = order_invoices(request, orderID)
     cart = Cart(request)
-    total_qty = cart.__len__()#display total number quantities added in the basket
-    total_price = cart.get_total_price()
+    total_cart_qty = cart.__len__()#display total number quantities added in the basket
+    total_cart_price = cart.get_total_price()
     render_context = {
         'order_details':order_details,
         'login_user':user_name,
         'invoices':invoice_details,
-        'total_qty':total_qty,
-        'total_price':total_price,
+        'delivery':delivery_order,
+        'total_cart_qty':total_cart_qty,
+        'total_cart_price':total_cart_price,
         'pincode':pincode,
         'orderNote':orderNote,
         'paymentStatus':paymentStatus,
@@ -2563,7 +2805,8 @@ def initiate_payment(request):
         })
         context = {
             'payment': payment,
-            'razorpay_key_id': settings.RAZORPAY_KEY_ID
+            'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+            "label_amount":amount/100
         }
         return render(request, 'checkout.html', context)
     else:

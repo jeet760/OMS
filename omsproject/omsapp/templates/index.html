@@ -1,75 +1,55 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="zxx">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="description" content="FPO, Market, FPO Market, Fresh Produces, Farm Products, Harvest">
-    <meta name="keywords" content="Organic, Vegetable, Collective, Fresh Produces, Farm Products, Harvest, html">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Farmer Harvest</title>
-
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;900&display=swap" rel="stylesheet">
-
-    <!-- Css Styles -->
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" type="text/css">
-    <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}" type="text/css">
-    <link rel="stylesheet" href="{% static 'css/elegant-icons.css' %}" type="text/css">
-    <link rel="stylesheet" href="{% static 'css/nice-select.css' %}" type="text/css">
-    <link rel="stylesheet" href="{% static 'css/jquery-ui.min.css' %}" type="text/css">
-    <link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}" type="text/css">
-    <link rel="stylesheet" href="{% static 'css/slicknav.min.css' %}" type="text/css">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}" type="text/css">
-    
-    <!--unpkg.com package is for the search bar item-->
-    <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
-</head>
-
-<body>
-    <!-- Page Preloder -->
-    <div id="preloder">
-        <div class="loader"></div>
-    </div>
+<html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>FarmerHarvest - Empowering Agriculture</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <script src="https://cdn.tailwindcss.com"></script>
+      <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+      <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+      <style> 
+        html, body {
+          height: 100%;
+          margin: 0;
+        }
+        body { font-family: 'Poppins', sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      </style>
+    </head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+  <!-- Header -->
+  <header class="text-white p-4" style="background-color: #047857;">
     {% include 'header.html' %}
-    {% block login %}{% endblock %}<!--login.html-->
-    {% block landing %}{% endblock %}<!--landing.html-->
-    {% block shopgrid %}{% endblock %} <!--shop-grid.html-->
-    {% block shopdetails %}{% endblock %}<!--shop-details.html-->
-    {% block shoppingcart %}{% endblock %}<!--shopping-cart.html-->
-    {% block PlacedOrders %}{% endblock %}<!--orders.html-->
-    {% block orderdetails %}{% endblock %}<!--orderdetails.html-->
-    {% block success %}{% endblock %}<!--success.html-->
-    {% block blog %}{% endblock %}<!--blog.html-->
-    {% block contact %}{% endblock %}<!--contact.html-->
-    {% block Registration %}{% endblock %} <!-- register.html -->
-    {% block aboutus %}{% endblock %}<!--about-us.html-->
-    {% block privacypolicy %}{% endblock %}<!--privacy-policy.html-->
-    {% block deliverypolicy %}{% endblock %}<!--delivery-policy.html-->
-    {% block returnpolicy %}{% endblock %}<!--return-policy.html-->
-    {% block eula %}{% endblock %}<!--eula.html-->
-    {% block testimonials %}{% endblock %}<!--testimonials.html-->
-    {% block bulk_buy %}{% endblock %}<!--bulk-buy.html-->
-    {% block bulk_buy_orders %}{% endblock %}
-    {% block bulk_buy_orders_response %}{% endblock %} <!-- bulk-buy-order-response.html -->
-    {% block bulk_buy_orders_response_details %}{% endblock %} <!-- bulk-buy-order-response-details.html -->
-    {% block checkout %}{% endblock %}
-    {% block reset_password%}{% endblock %}
-    {% block CheckOut %}{% endblock %}
-    {% include 'footer.html' %}
-    <!-- Js Plugins -->
-    <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
-    <script src="{% static 'js/bootstrap.min.js' %}"></script>
-    <!-- <script src="{% static 'js/jquery.nice-select.min.js' %}"></script> -->
-    <script src="{% static 'js/jquery-ui.min.js' %}"></script>
-    <script src="{% static 'js/jquery.slicknav.js' %}"></script>
-    <script src="{% static 'js/mixitup.min.js' %}"></script>
-    <script src="{% static 'js/owl.carousel.min.js' %}"></script>
-    <script src="{% static 'js/main.js' %}"></script>
-    <script src="{% static 'js/appscript.js' %}"></script>
+  </header>
 
+  <!-- Main Content -->
+  <main class="flex-grow">
+    {% block register %}{% endblock %}
+    {% block landing %}{% endblock %}
+    {% block shop %}{% endblock %}
+    {% block cart %}{% endblock %}
+    {% block bulk_buy %}{% endblock %}
+    {% block CheckOut %}{% endblock %}
+    {% block my_orders %}{% endblock %}
+    {% block my_order_details %}{% endblock %}
+    {% block bulk_buy_orders %}{% endblock %}
+    {% block bulk_buy_responses %}{% endblock %}
+  </main>
+ <!-- Footer -->
+  <footer class="bg-green-800 text-white py-6 mt-10">
+    {% if request.user.is_authenticated == False or request.path == '/' %}
+      {% include 'footer.html' %}
+    {% else %}
+      {% include 'footer-1.html' %}
+    {% endif %}
+  </footer>
 
 </body>
-
 </html>

@@ -1,166 +1,153 @@
 {% extends 'index.html' %}
 {% load static %}
 {% block bulk_buy_orders %}
-<table class="table table-hover">
-    <thead>
-      <tr>
-        <th>Sl #</th>
-        <th>Order #</th>
-        <th>Order Placed On</th>
-        <th>Expected Delivery Date</th>
-        <th>No. of Vendors Responded</th>
-        <th>No. of Items Placed</th>
-        <th>View Items</th>
-        <th>View Responses</th>
-        <th>Bulk Buy Accepted?</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody">
+  <div class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-semibold text-green-700 mb-6">My Bulk Buy Requests</h1>
+
+    <div class="grid grid-cols-1 gap-6">
       {% for order in bulk_orders %}
-        <tr>
-            <td>{{forloop.counter}}</td>
-            <td>{{order.bulkBuyNo}}</td>
-            <td>{{order.bulkBuyDate}}</td>
-            <td>{{order.bulkBuyExpDate}}</td>
-            <td>{{order.count_responses}}</td>
-            <td>{{order.count_items}}</td>
-            <td>
-              <button class='btn btn-info btn-sm' onclick="openModal('{{order.bulkBuyID}}')">
-                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
-                  <path d="M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-146 0-266-81.5T40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200Zm0-300Zm0 220q113 0 207.5-59.5T832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280Z"/>
-                </svg>
-              </button>
-            </td>
-            <td>
-                <a class='btn btn-info btn-sm' href="{% url 'bulk-buy-order-response' order.bulkBuyID %}">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF">
-                        <path d="M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-146 0-266-81.5T40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200Zm0-300Zm0 220q113 0 207.5-59.5T832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280Z"/>
-                    </svg>
-                </a>
-            </td>
-            <td>{{order.response_accept}}</td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="8">
-            No bulk buy order has been placed by you! Want to Bulk Buy? <a href="{% url 'bulk-buy' %}">Click here</a>
-          </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-  </table>
-  <style>
-    /* Modal background */
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 999;
-        justify-content: center;
-        align-items: center;
-    }
+      <div class="bg-white shadow rounded-lg p-5 border border-gray-200">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+          <h2 class="text-xl font-semibold text-green-700">Order #{{ order.bulkBuyNo }}</h2>
+          <span class="text-sm text-gray-500 mt-1 sm:mt-0">Placed On: {{ order.bulkBuyDate }}</span>
+        </div>
 
-    /* Modal box */
-    .modal-box {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        max-width: 400px;
-        text-align: center;
-        position: relative;
-    }
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-700">
+          <p><strong>Expected Delivery:</strong> {{ order.bulkBuyExpDate }}</p>
+          <p><strong>Items Placed:</strong> {{ order.count_items }}</p>
+          <p><strong>Vendors Responded:</strong> {{ order.count_responses }}</p>
+          <p><strong>Accepted?:</strong> {{ order.response_accept }}</p>
+        </div>
 
-    .modal-box h2 {
-        margin-top: 0;
-    }
+        <div class="flex flex-wrap justify-end gap-3 mt-4">
+          <button onclick="openModal('{{ order.bulkBuyID }}')"
+                  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center text-sm shadow">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 -960 960 960">
+              <path d="M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-146 0-266-81.5T40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200Z"/>
+            </svg>
+            View Items
+          </button>
 
-    .close-btn {
-        position: absolute;
-        top: 10px; right: 15px;
-        cursor: pointer;
-        font-size: 20px;
-        border: none;
-        background: none;
-        background: #ef0808;
-    }
+          <a href="{% url 'bulk-buy-order-response' order.bulkBuyID %}"
+            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center text-sm shadow">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 -960 960 960">
+              <path d="M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-146 0-266-81.5T40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200Z"/>
+            </svg>
+            View Responses
+          </a>
+        </div>
+      </div>
+      {% empty %}
+      <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded">
+        No bulk buy order has been placed by you!
+        <a href="{% url 'bulk-buy' %}" class="font-medium underline ml-2">Click here to place one.</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  
+  <!-- Modal Overlay -->
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+    <!-- Modal Box -->
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl p-6 relative">
+      
+      <!-- Close Button -->
+      <button class="absolute top-3 right-3 text-gray-500 hover:text-red-600" onclick="closeModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
 
-    .btn {
-        padding: 8px 16px;
-        margin-top: 10px;
-        background: #3498db;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-    }
+      <!-- Title -->
+      <h2 class="text-xl font-semibold text-green-700 mb-4">Bulk Buy Items</h2>
 
-    .btn:hover {
-        background: #2980b9;
-    }
-</style>
-<div class="modal-overlay" id="modal">
-  <div class="modal-box">
-      <button class="close-btn" onclick="closeModal()"><strong>X</strong></button>
-      <label><strong>Bulk Buy Items</strong></label>
-      <div id="modal-content">
-        <table class="table table-hover">
-          <thead>
+      <!-- Modal Content (Table) -->
+      <div id="modal-content" class="overflow-x-auto">
+        <table class="min-w-full bg-white border border-gray-200 text-sm text-left">
+          <thead class="bg-gray-100 text-gray-700 font-semibold">
             <tr>
-              <th>Item</th>
-              <th>Specs.</th>
-              <th>Qty.</th>
-              <th>Price</th>
-              <th>Unit</th>
+              <th class="px-4 py-2 border">Item</th>
+              <th class="px-4 py-2 border">Specs.</th>
+              <th class="px-4 py-2 border">Qty.</th>
+              <th class="px-4 py-2 border">Price</th>
+              <th class="px-4 py-2 border">Unit</th>
             </tr>
           </thead>
-          <tbody id="modal-table-body">
+          <tbody id="modal-table-body" class="text-gray-800">
+            <!-- Dynamic rows will be injected here -->
           </tbody>
         </table>
       </div>
-      <button class="btn" onclick="closeModal()">Close</button>
-  </div>
-</div>
 
-<script>
-  function openModal(bulkbuyID) {
-      document.getElementById('modal').style.display = 'flex';
+      <!-- Close Button -->
+      <div class="mt-4 text-right">
+        <button onclick="closeModal()" class="px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-md">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openModal(bulkbuyID) {
+      const modal = document.getElementById('modal');
       const tableBody = document.getElementById('modal-table-body');
-      tableBody.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
-      // Fetch dynamic content via AJAX
-      url = "{% url 'bulk-buy-order-details' 0 %}".replace('0',bulkbuyID);
-      //alert(url);
+      const modalContent = document.getElementById('modal-content');
+
+      // Show the modal
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex'; // Optional, if using Tailwind’s flex modal styling
+
+      // Set loading message
+      tableBody.innerHTML = `
+          <tr>
+              <td colspan="5" class="text-center py-4 text-gray-600">Loading...</td>
+          </tr>
+      `;
+
+      // Construct URL (Django URL reverse needs to be inside a JS-safe string)
+      const url = "{% url 'bulk-buy-order-details' 0 %}".replace('0', bulkbuyID);
+
       fetch(url)
           .then(response => response.json())
           .then(data => {
-            const details = data.bulkbuy_details;
-            if (!details || details.length === 0) {
-              tableBody.innerHTML = '<tr><td colspan="3">No data found.</td></tr>';
-              return;
-            }
+              const details = data.bulkbuy_details;
+              if (!details || details.length === 0) {
+                  tableBody.innerHTML = `
+                      <tr>
+                          <td colspan="5" class="text-center text-gray-500 py-4">No data found.</td>
+                      </tr>
+                  `;
+                  return;
+              }
 
               let rows = '';
               details.forEach(item => {
-                rows += `
-                  <tr>
-                    <td>${item.itemName}</td>
-                    <td>${item.itemSpec}</td>
-                    <td>${item.itemQty}</td>
-                    <td>${item.itemPrice}</td>
-                    <td>${item.itemUnit}</td>
-                  </tr>
-                `;
+                  rows += `
+                      <tr class="hover:bg-gray-50">
+                          <td class="border px-4 py-2">${item.itemName}</td>
+                          <td class="border px-4 py-2">${item.itemSpec}</td>
+                          <td class="border px-4 py-2">${item.itemQty}</td>
+                          <td class="border px-4 py-2">₹${item.itemPrice}</td>
+                          <td class="border px-4 py-2">${item.itemUnit}</td>
+                      </tr>
+                  `;
               });
 
               tableBody.innerHTML = rows;
-            })
+          })
           .catch(error => {
-              document.getElementById('modal-content').innerText = error;
+              modalContent.innerHTML = `
+                  <div class="text-red-600 text-sm">Error loading data: ${error}</div>
+              `;
           });
   }
 
-  function closeModal() {
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
       document.getElementById('modal').style.display = 'none';
-  }
-</script>
+    }
+  </script>
 {% endblock %}
