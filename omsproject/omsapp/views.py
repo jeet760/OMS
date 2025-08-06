@@ -31,48 +31,34 @@ import random
 from django.core.files.base import ContentFile
 import base64
 
-# #region LGD data fetch
-# def fetch_lgd_data_distrct(request, state_code):
-#     #referer = request.META.get('HTTP_REFERER')    
-#     district_data = list(
-#         LGDData.objects
-#         .filter(state_code=state_code)
-#         .values('district_name_english', 'district_code')
-#         .distinct().order_by('district_name_english')
-#     )
-#     lgd_context = {
-#         'district_data': district_data
-#     }
-#     return JsonResponse(lgd_context)
-
-# def fetch_lgd_data_subdistrict(request, state_code, district_code):
-#     subdistrict_data = list(
-#         LGDData.objects
-#         .filter(state_code=state_code, district_code=district_code)
-#         .values('subdistrict_name_english','subdistrict_code')
-#         .distinct().order_by('subdistrict_name_english'))
-#     lgd_context = {
-#         'subdistrict_data':subdistrict_data
-#     }
-#     return JsonResponse(lgd_context)
-# #endregion
 
 #region New index page and shop page
 #Featured Products in the landing page
 def featured_product(request):
-    user_type = ''
-    user_name = 'Guest!'#display the username
-    user_approved=''
-    pincode = 'Delivery Pincode'
-    if request.session.get('pincode') != '' and request.session.get('pincode') != None:
-        pincode = request.session.get('pincode')
+    entered_pincode = request.GET.get('pincode')
+    session_pincode = request.session.get('pincode')
+    pincode = None
+
+    if entered_pincode:
+        pincode = entered_pincode
+    elif session_pincode:
+        pincode = session_pincode
+
+    if pincode:
+        request.session['pincode'] = pincode
+    else:
+        pincode = None
+
+    if request.user.is_authenticated:
+        if not pincode:
+            pincode = request.user.pinCode
+            request.session['pincode'] = pincode
 
     featureItems = Item.objects.filter(featureItem=True, userID_id__isActive=True, itemActive=True).order_by('-itemInStock')#featured items whose owner/seller is active and is in stock from seller's side
-    if request.user.is_authenticated:#if the user is logged in
-        pincode = request.user.pinCode
-        request.session['pincode'] = pincode
+    #irrespective of the login status, the explicitly entered pincode will prevails
+    if pincode:
         featureItems = featureItems.exclude(userID_id = request.user.pk).filter(userID_id__pinCode=pincode)
-    
+
     #pagination in featured items
     paginator = Paginator(featureItems,12)
     page_number = request.GET.get('page')
@@ -82,17 +68,30 @@ def featured_product(request):
     total_cart_qty = cart.__len__()#display total number quantities added in the basket
     total_cart_price = cart.get_total_price()
 
-    #to display in the stats section
-    veg_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Vegetables').__len__()
-    fru_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Fruits').__len__()
-    dai_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Dairy').__len__()
-    spi_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Spices').__len__()
-    cer_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Cereals').__len__()
-    pul_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Pulses').__len__()
-    ani_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Animal Sourced').__len__()
-    for_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Forest Produces').__len__()
-    pac_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Packaged Foods').__len__()
-    oth_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Others').__len__()
+    if pincode:
+        #to display in the stats section
+        veg_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Vegetables', userID_id__pinCode=pincode).__len__()
+        fru_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Fruits', userID_id__pinCode=pincode).__len__()
+        dai_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Dairy', userID_id__pinCode=pincode).__len__()
+        spi_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Spices', userID_id__pinCode=pincode).__len__()
+        cer_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Cereals', userID_id__pinCode=pincode).__len__()
+        pul_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Pulses', userID_id__pinCode=pincode).__len__()
+        ani_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Animal Sourced', userID_id__pinCode=pincode).__len__()
+        for_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Forest Produces', userID_id__pinCode=pincode).__len__()
+        pac_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Packaged Foods', userID_id__pinCode=pincode).__len__()
+        oth_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Others', userID_id__pinCode=pincode).__len__()
+    else:
+        #to display in the stats section
+        veg_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Vegetables').__len__()
+        fru_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Fruits').__len__()
+        dai_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Dairy').__len__()
+        spi_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Spices').__len__()
+        cer_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Cereals').__len__()
+        pul_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Pulses').__len__()
+        ani_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Animal Sourced').__len__()
+        for_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Forest Produces').__len__()
+        pac_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Packaged Foods').__len__()
+        oth_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Others').__len__()
 
     stats = [
         {"value": veg_value, "label": "Vegetables"},
@@ -110,9 +109,6 @@ def featured_product(request):
     fp_context = {
         'featureItems':featureItems,
         'featureItems_page_obj':featureItems_page_obj,
-        'login_user':user_name,
-        'user_type':user_type,
-        'user_approved':user_approved, 
         'clicked':'Home',
         'pincode':pincode,
         'total_cart_qty':total_cart_qty,
@@ -123,15 +119,30 @@ def featured_product(request):
 
 #shop
 def marketplace(request):
-    user_type = ''
-    user_name = 'Guest!'#display the username
-    user_approved=''
-    pincode = 'Delivery Pincode'
-    if request.session.get('pincode') != '' and request.session.get('pincode') != None:
-        pincode = request.session.get('pincode')
+    entered_pincode = request.GET.get('pincode')
+    session_pincode = request.session.get('pincode')
+    pincode = None
+
+    if entered_pincode:
+        pincode = entered_pincode
+    elif session_pincode:
+        pincode = session_pincode
+
+    if pincode:
+        request.session['pincode'] = pincode
+    else:
+        pincode = None
+
+    if request.user.is_authenticated:
+        if not pincode:
+            pincode = request.user.pinCode
+            request.session['pincode'] = pincode
 
     #all active and in stock items
-    items = Item.objects.filter(itemActive=True).order_by('-itemInStock')
+    items = Item.objects.filter(userID_id__isActive=True, itemActive=True).order_by('-itemInStock')
+    #irrespective the login status, the explicitly entered picode will previal    
+    if pincode:
+        items = items.exclude(userID_id = request.user.pk).filter(userID_id__pinCode=pincode)
 
     if request.GET.__len__() > 0:
         #data received from filter or from search box
@@ -150,22 +161,9 @@ def marketplace(request):
             items = items.filter(userID__last_name__icontains=fpo_selected)
         if max_price is not None and max_price != 0:
             items = items.filter(itemPrice__range=(0,float(max_price)))
-    
-    entered_pincode = request.GET.get('pincode')
-    if entered_pincode is not None:
-        request.session['pincode'] = entered_pincode
-        pincode = entered_pincode
-        items = items.filter(userID_id__pinCode=pincode)
-
 
     fpos = CustomUser.objects.filter(userType='1',pinCode=pincode).exclude(pk=request.user.pk)
-    if request.user.is_authenticated:
-        user_name = request.user.last_name
-        user_type = request.user.userType
-        user_approved = request.user.userApproved
-        pincode = request.session.get('pincode') #get the logged in user's pincode
-        items = items.exclude(userID_id = request.user.pk)
-
+    
     paginator = Paginator(items,12)
     page_number = request.GET.get('page')
     items_page_obj = paginator.get_page(page_number)
@@ -189,7 +187,7 @@ def item_details(request, item_id):
     user_type = ''
     user_name = 'Guest!'#display the username
     user_approved=''
-    pincode = 'Delivery Pincode'
+    pincode = 'Pincode'
     if request.session.get('pincode') != '' and request.session.get('pincode') != None:
         pincode = request.session.get('pincode')
 
@@ -203,139 +201,7 @@ def item_details(request, item_id):
     }
     return render(request, 'item-details.html', context = item_details_context)
 
-#pincode based search
-def pincode_based_search(request):
-    return ''
-#endregion
-
-#region StartPage_CommonPages
-# def landing_page(request, category=None,fpo=None, region=None):
-#     items = Item.objects.filter(itemActive=True).order_by('-itemInStock').only('itemCat')
-#     user_type = ''
-#     user_name = 'Guest!'#display the username
-#     user_approved=''
-#     pincode = 'Delivery Pincode'
-#     if request.session.get('pincode') != '' and request.session.get('pincode') != None:
-#         pincode = request.session.get('pincode')
-
-#     featureItems = Item.objects.filter(featureItem=True).exclude(userID_id = request.user.pk)
-#     if request.user.is_authenticated:
-#         user_name = request.user.last_name
-#         user_type = request.user.userType
-#         user_approved = request.user.userApproved
-#         if pincode == 'Delivery Pincode':
-#             pincode = request.user.pinCode
-#         request.session['pincode'] = pincode
-#         # if user_type == '1':
-#         #     items = items.exclude(userID_id = request.user.pk)
-#         featureItems = Item.objects.filter(featureItem=True).exclude(userID_id = request.user.pk).filter(userID_id__pinCode=pincode)
-#     featureItems = featureItems.filter(itemActive=True).order_by('-itemInStock')
-#     counter = featureItems.__len__()
-#     featureItems = featureItems.filter(userID_id__isActive=True)
-#     counter1 = featureItems.__len__()
-#     # length = items.__len__()#get the total items
-    
-#     #pagination in the landing page
-#     paginator = Paginator(featureItems,12)
-#     page_number = request.GET.get('page')
-#     featureItems_page_obj = paginator.get_page(page_number)
-
-#     cart = Cart(request)
-#     total_cart_qty = cart.__len__()#display total number quantities added in the basket
-#     total_cart_price = cart.get_total_price()
-#     region_list = fpo = fpo_list(request)
-#     landing_page_context = {
-#         'items': items, 
-#         'featureItems_page_obj':featureItems_page_obj,
-#         # 'form': form, 
-#         # 'total_items':length, 
-#         'login_user':user_name,
-#         'user_type':user_type,
-#         'user_approved':user_approved, 
-#         'total_cart_qty':total_cart_qty, 
-#         'fpo_list':fpo, 
-#         'regions':region_list,
-#         'total_cart_price':total_cart_price,
-#         'featureItems':featureItems,
-#         'clicked':'Home',
-#         'pincode':pincode
-#     }
-#     return render(request, 'landing.html', landing_page_context)
-
-# def shop(request, category=None, fpo=None, region=None):
-#     items = Item.objects.filter(itemActive=True).order_by('-itemInStock')
-#     item_sort = request.GET.get('sort')
-#     user_name = 'Guest!'#display the username
-#     user_type = ''
-#     user_approved = ''
-#     pincode='Delivery Pincode'
-#     pincode_area = ''
-#     fpo_name = ''
-#     if category is not None:
-#         items = Item.objects.filter(itemCat=category).filter(itemActive=True).order_by('-itemInStock')
-#     if fpo is not None:
-#         items = Item.objects.filter(userID_id=fpo).filter(itemActive=True).order_by('-itemInStock')
-#         fpo_name = get_object_or_404(CustomUser,pk=fpo).last_name
-#     if region is not None:
-#         items = Item.objects.filter(userID_id__pinCode=region).filter(itemActive=True).order_by('-itemInStock')
-#         pincode_area = PinCodeAPI(request, region)
-#         pincode=region
-#     form = ItemForm()
-
-#     if request.user.is_authenticated:
-#         user_name = request.user.last_name
-#         user_type = request.user.userType
-#         user_approved = request.user.userApproved
-#         pincode = request.session.get('pincode') #get the logged in user's pincode
-#         if region is not None: #if the user is logged in and explicitly enters a pincode, then the items of that pincode will be displayed, not the user's own pincode
-#             pincode = region
-#             request.session['pincode'] = pincode
-#         items = Item.objects.filter(userID_id__pinCode=pincode).filter(itemActive=True).order_by('-itemInStock') #if the user is logged in, then only the items available in user's pincode will be available to it.
-#         counter = items.__len__()
-#         items = items.filter(userID_id__isActive=True)
-#         counter1 = items.__len__()
-#         if user_type == '1':
-#             items = items.exclude(userID_id = request.user.pk)
-#     else:#if the user is not logged in and explicitly enters the pincode
-#         pincode = region
-#         request.session['pincode'] = pincode
-
-#     if item_sort == 'price_asc':
-#         items = items.order_by('itemPrice')
-#     elif item_sort == 'price_desc':
-#         items = items.order_by('-itemPrice')
-
-#     paginator = Paginator(items,12)
-#     page_number = request.GET.get('page')
-#     items_page_obj = paginator.get_page(page_number)
-
-#     cart = Cart(request)
-#     total_cart_qty = cart.__len__()#display total number quantities added in the basket
-#     total_cart_price = cart.get_total_price()
-#     region_list = fpo = fpo_list(request)
-#     min_price = items.aggregate(Min('itemPrice'))['itemPrice__min']
-#     max_price = items.aggregate(Max('itemPrice'))['itemPrice__max']
-#     shop_page_context ={
-#         'items': items, 
-#         'items_page_obj':items_page_obj,
-#         'form': form, 
-#         'login_user':user_name,
-#         'user_approved':user_approved, 
-#         'total_cart_qty':total_cart_qty, 
-#         'fpo_list':fpo, 
-#         'fpo_name':fpo_name,
-#         'item_sort':item_sort,
-#         'regions':region_list,
-#         'total_cart_price':total_cart_price,
-#         'min_price':min_price,
-#         'max_price':max_price,
-#         'pincode_area':pincode_area,
-#         'clicked':'Shop',
-#         'pincode':pincode,
-#         'user_type':user_type
-#     }
-#     return render(request, 'shop-grid.html', shop_page_context)
-
+#system checks whether the system is online or not
 def is_online(host='api.postalpincode.in', port=443, timeout=3):
     try:
         socket.setdefaulttimeout(timeout)
@@ -383,7 +249,7 @@ def shop_details(request, item_id):
 
     user_name = 'Guest!'#display the username
     user_type = ''
-    pincode='Delivery Pincode'
+    pincode='Pincode'
     if request.user.is_authenticated:
         user_name=request.user.last_name
         pincode = request.session.get('pincode')
@@ -401,58 +267,6 @@ def shop_details(request, item_id):
     }
     return render(request, 'shop-details.html', shop_details_context)
 
-# def shopping_cart(request):
-#     cart = Cart(request)
-#     cart_items = cart.__iter__()
-#     item_stock = True
-#     for cart_item in cart_items:
-#         stock = cart_item['product'].itemInStock
-#         if stock == False:
-#             item_stock = False
-#             break
-#     total_cart_qty = cart.__len__()
-#     no_of_cart_item = cart.cart.__len__()
-#     total_cart_price = cart.get_total_price()
-#     transportation_cost = 0 if total_cart_price > 999 else 99
-#     grand_total = total_cart_price + transportation_cost
-#     ds = DeliverySchedule()
-#     user_name = 'Guest!'#display the username
-#     pincode='Delivery Pincode'
-#     user_type=''
-#     user_approved=''
-#     billing_addresses = None
-#     shipping_addresses = None
-#     if request.user.is_authenticated:
-#         user_name = request.user.last_name
-#         user_type=request.user.userType
-#         user_approved = request.user.userApproved
-#         pincode = request.session.get('pincode')
-#         billing_addresses = UserBillingAddresses.objects.filter(userID_id=request.user.pk)
-#         shipping_addresses = UserShippingAddresses.objects.filter(userID_id=request.user.pk)
-#     shopping_cart_context = {
-#         'user_authenticated':request.user.is_authenticated, 
-#         'user_type':user_type,
-#         'user_approved':user_approved,
-#         'cart': cart, 
-#         'no_of_cart_item':no_of_cart_item,
-#         'total_cart_qty':total_cart_qty, 
-#         'total_cart_price':total_cart_price, 
-#         'transportation_cost':transportation_cost,
-#         'gst_amount':0,
-#         'deduction_amount':0,
-#         'grand_total':grand_total,
-#         'dateSeries':ds.dateSeries, 
-#         'timeSeries':ds.timeSeries, 
-#         'login_user':user_name,
-#         'pincode':pincode,
-#         'billing_addresses':billing_addresses,
-#         'shipping_addresses':shipping_addresses,
-#         'add_address_from':'cart',
-#         'states':LIST_STATES,
-#         'item_stock':item_stock
-#     }
-#     return render(request, 'shopping-cart.html', context=shopping_cart_context)
-
 def contact(request):
     qs = request.GET.get('q')
     if request.method == 'POST' and qs == 'msg':
@@ -467,7 +281,7 @@ def contact(request):
     user_name = 'Guest!'#display the username
     user_type =''
     user_approved = ''
-    pincode='Delivery Pincode'
+    pincode='Pincode'
     pincode = request.session.get('pincode')
     if request.user.is_authenticated:
         user_name = request.user.last_name
@@ -1002,7 +816,7 @@ def add_address(request):
         referer = request.META.get('HTTP_REFERER')
         parsed_url = urlparse(referer)
         path_only = parsed_url.path  # e.g., /some/path/
-        if path_only == '/cart':
+        if path_only == '/cart/':
             return redirect('cart')    
         else:
             return redirect('user-form')
@@ -1264,6 +1078,7 @@ def reset_password(request):
 
 @login_required
 def logout_view(request):
+    request.session.flush()
     logout(request)
     return redirect('index')
 #endregion
@@ -1796,7 +1611,7 @@ def cart_view(request):
     grand_total = total_cart_price + transportation_cost
     ds = DeliverySchedule()
     user_name = 'Guest!'#display the username
-    pincode='Delivery Pincode'
+    pincode='Pincode'
     user_type=''
     user_approved=''
     billing_addresses = None
@@ -2646,7 +2461,7 @@ def placed_order_details(request,orderID):
     invoice_details = OrderInvoice.objects.filter(orderID_id=orderID)
     delivery_order = OrderDelivery.objects.filter(orderID_id=orderID) if OrderDelivery.objects.filter(orderID_id=orderID).count() > 0 else 0
     #query = str(order_details.query)
-    pincode='Delivery Pincode'
+    pincode='Pincode'
     user_name = 'Guest!'
     if request.user.is_authenticated:
         user_name = request.user.last_name

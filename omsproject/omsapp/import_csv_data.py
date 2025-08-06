@@ -3,6 +3,8 @@ import sys
 import django
 from tqdm import tqdm
 from django.db import transaction
+from django.conf import settings
+import shutil
 
 # Step 1: Add project root to sys.path
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -15,7 +17,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'omsproject.settings')
 django.setup()
 
 # Now you can import your models
-from omsapp.models import SchoolUDISE, LGDData
+from omsapp.models import SchoolUDISE, CustomUser, Item, OrderDelivery, OrderInvoice, FPOAuthorisationDocs
 import csv
 
 #UDISE Data Import
@@ -69,46 +71,83 @@ def import_udise_data():
     print("✅ Data import completed successfully.")
 
 #LGD Data Import
-def import_lgd_odisha_data():
-    print("🔄 Deleting old data...")
-    LGDData.objects.all().delete()
+# def import_lgd_odisha_data():
+#     print("🔄 Deleting old data...")
+#     LGDData.objects.all().delete()
 
-    file_path = 'omsproject/lgd_odisha.csv'
-    BATCH_SIZE = 1000
-    lgd_list = []
+#     file_path = 'omsproject/lgd_odisha.csv'
+#     BATCH_SIZE = 1000
+#     lgd_list = []
 
-    # Get total lines for tqdm
-    with open(file_path, 'r', encoding='utf-8') as f:
-        total = sum(1 for _ in f) - 1  # minus header
+#     # Get total lines for tqdm
+#     with open(file_path, 'r', encoding='utf-8') as f:
+#         total = sum(1 for _ in f) - 1  # minus header
 
-    with open(file_path, newline='', encoding='utf-8') as csvfile:
-        reader = csv.DictReader(csvfile)
+#     with open(file_path, newline='', encoding='utf-8') as csvfile:
+#         reader = csv.DictReader(csvfile)
 
-        for row in tqdm(reader, total=total, desc="📦 Importing LGD Odisha Data"):
-            try:
-                obj = LGDData(
-                    state_code = row['state_code'],
-                    state_name_english = row['state_name_english'],
-                    district_code = row['district_code'] if row['district_code'] else None,
-                    district_name_english = row['district_name_english'],
-                    subdistrict_code = row['subdistrict_code'] if row['subdistrict_code'] else None,
-                    subdistrict_name_english = row['subdistrict_name_english'],
-                )
-                lgd_list.append(obj)
+#         for row in tqdm(reader, total=total, desc="📦 Importing LGD Odisha Data"):
+#             try:
+#                 obj = LGDData(
+#                     state_code = row['state_code'],
+#                     state_name_english = row['state_name_english'],
+#                     district_code = row['district_code'] if row['district_code'] else None,
+#                     district_name_english = row['district_name_english'],
+#                     subdistrict_code = row['subdistrict_code'] if row['subdistrict_code'] else None,
+#                     subdistrict_name_english = row['subdistrict_name_english'],
+#                 )
+#                 lgd_list.append(obj)
 
-                if len(lgd_list) >= BATCH_SIZE:
-                    LGDData.objects.bulk_create(lgd_list)
-                    lgd_list = []
+#                 if len(lgd_list) >= BATCH_SIZE:
+#                     LGDData.objects.bulk_create(lgd_list)
+#                     lgd_list = []
 
-            except Exception as e:
-                print(f"❌ Error processing row: {row}")
-                print(f"    Error: {e}")
+#             except Exception as e:
+#                 print(f"❌ Error processing row: {row}")
+#                 print(f"    Error: {e}")
 
-        # Insert remaining records
-        if lgd_list:
-            LGDData.objects.bulk_create(lgd_list)
+#         # Insert remaining records
+#         if lgd_list:
+#             LGDData.objects.bulk_create(lgd_list)
 
-    print("✅ Data import completed successfully.")
+#     print("✅ Data import completed successfully.")
+
+def create_user_directory():
+    print("🔄 Creating directory...")
+    userids = CustomUser.objects.filter(userType='1')
+    for userid in userids:
+        # fpo_directory_docs = os.path.join(settings.MEDIA_ROOT, 'fpodocs', str(userid.pk))
+        # print(f'🔄 Creating docs directory for {userid.last_name}')
+        # os.makedirs(fpo_directory_docs, exist_ok=True)
+
+        # fpo_directory_deliveryimg = os.path.join(settings.MEDIA_ROOT, 'deliveryimg', str(userid.pk))
+        # print(f'🔄 Creating delivery image directory for {userid.last_name}')
+        # os.makedirs(fpo_directory_deliveryimg, exist_ok=True)
+
+        # fpo_directory_invoice = os.path.join(settings.MEDIA_ROOT, 'uploads', str(userid.pk))
+        # print(f'🔄 Creating static directory for invoices for {userid.last_name}')
+        # os.makedirs(fpo_directory_invoice, exist_ok=True)
+
+
+        fpo_directory_static = os.path.join(settings.MEDIA_ROOT, 'static', str(userid.pk))
+        print(f'🔄 Creating static directory for items for {userid.last_name}')
+        os.makedirs(fpo_directory_static, exist_ok=True)
+
+        #now fetch the files and move
+        path = os.path.join(settings.MEDIA_ROOT)+'/'
+        print(f'main path is {path}')
+        #item
+        desitnationpath = fpo_directory_static+'/'
+        itemfiles = Item.objects.filter(userID_id=userid.pk)
+        for file in itemfiles:
+            sourcepath = path+str(file.itemImg)
+            print(f'source path is {sourcepath}')
+            if os.path.isfile(sourcepath):
+                print(f'file {os.path.basename(str(file.itemImg))} exists and ready to move')
+                print(f'destination path is {desitnationpath}')
+
+
+    print("✅ User Directory creation completed successfully.")
 
 if __name__ == '__main__':
-    import_lgd_odisha_data()
+    create_user_directory()

@@ -465,14 +465,3 @@ class UserMessage(Model):
     def __str__(self):
         return self.id
 #endregion
-
-# #region LGD data
-# class LGDData(Model):
-#     id = AutoField(primary_key=True)
-#     state_code = IntegerField()
-#     state_name_english = CharField(max_length=100, verbose_name='State')
-#     district_code = IntegerField()
-#     district_name_english = CharField(max_length=100, verbose_name='District')
-#     subdistrict_code = IntegerField()
-#     subdistrict_name_english = CharField(max_length=100, verbose_name='Sub-District/Block')
-# #endregion

@@ -9,18 +9,7 @@ urlpatterns = [
     path('shop/', views.marketplace, name='shop'),
     path('shop/details/<str:item_id>',views.item_details, name='shopdetails'),
     path('cart/',views.cart_view, name='cart'),
-    # path('fetch-district/<int:state_code>/',views.fetch_lgd_data_distrct, name='fetch-district'),
-    # path('fetch-subdistrict/<str:state_code>/<str:district_code>',views.fetch_lgd_data_subdistrict, name='fetch-subdistrict'),
 #endregion
-    # path('', views.landing_page, name='index'),
-    # path('home/', views.landing_page, name='index'),
-    # path('home/cat/<str:category>', views.landing_page, name='index'),
-    # path('shop', views.shop, name='shop'),
-    # path('shop/cat/<str:category>', views.shop, name='shop-cat'),
-    # path('shop/fpo/<str:fpo>', views.shop, name='shop-fpo'),
-    # path('shop/zip/<str:region>', views.shop, name='shop-zip'),
-    # path('shop/details/<str:item_id>',views.shop_details, name='shopdetails'),
-    # path('shoppingcart', views.shopping_cart, name='shoppingcart'),
     path('checkout', views.checkout, name='checkout'),
     path('invoices/<int:order_id>', views.order_invoices, name='invoices'),
 
