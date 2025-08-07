@@ -7,7 +7,7 @@
 
   <div class="grid md:grid-cols-3 gap-6">
     {% for item in featureItems_page_obj %}
-    <div class="bg-white shadow rounded overflow-hidden flex flex-col {% if item.itemInStock == False %}opacity-50 pointer-events-none{% endif %}">
+    <div data-item="{{item.itemID}}" class="itemDiv bg-white shadow rounded overflow-hidden flex flex-col cursor-pointer {% if item.itemInStock == False %}opacity-50 pointer-events-none{% endif %}">
       
       <!-- Item Image -->
       <img src="{{ item.itemImg.url }}" alt="{{ item.itemName }}" class="w-full h-48 object-cover">
@@ -68,4 +68,12 @@
     {% endif %}
   </div>
 </div>
+<script>
+  document.querySelectorAll('.itemDiv').forEach(function(item) {
+      item.addEventListener('click', function(event) {
+        const url = "{% url 'shopdetails' 0 %}".replace("0", this.dataset.item);
+        window.location.href=url;
+      });
+  });
+</script>
 {% endblock %}

@@ -2585,7 +2585,7 @@ def fpo_customers(request):
     fpo_id = request.user.pk
     qs_so_customers = SubOrder.objects.filter(vendorID_id=fpo_id)
     total_customers = qs_so_customers.values('customerID_id').distinct().count()
-    total_schools = qs_so_customers.filter(customerID_id__userType='3').distinct().count()
+    total_schools = qs_so_customers.values('customerID_id').filter(customerID_id__userType='3').distinct().count()
     total_others = total_customers - total_schools
     tab_so_customers = qs_so_customers.filter(orderStatus='Delivered').values('customerID','customerID_id__last_name','customerID_id__userType','customerID_id__phone').annotate(total_orders=Count('suborderID', distinct=True),order_amount=Sum('orderdetails__itemPricewithGST'))
     cust_contxt = {

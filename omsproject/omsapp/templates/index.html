@@ -43,7 +43,7 @@
     {% block bulk_buy_responses %}{% endblock %}
   </main>
  <!-- Footer -->
-  <footer class="bg-green-800 text-white py-6 mt-10">
+  <footer class="text-white py-6 mt-10" style="background-color: #047857;">
     {% if request.user.is_authenticated == False or request.path == '/' %}
       {% include 'footer.html' %}
     {% else %}

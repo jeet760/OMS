@@ -57,7 +57,7 @@
         }"
         x-init="setInterval(() => { 
           activeSlide = (activeSlide + 1) % slides.length 
-        }, 4000);
+        }, 5000);
           window.addEventListener('resize', () => {
             isMobile = window.innerWidth < 768;
         });"> <!-- Auto change every 4 seconds -->
@@ -88,8 +88,8 @@
         </button>
 
         <!-- Floating CTA Button -->
-        <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10">
-          <a href="/shop" class="bg-green-700 text-white px-6 py-2 rounded-full shadow-lg hover:bg-green-800 transition">
+        <div class="absolute bottom-1 left-1/2 transform -translate-x-1/2 z-10">
+          <a href="/shop" class="bg-[#FF9933] text-white px-6 py-2 rounded-full shadow-lg hover:bg-green-800 transition">
             Shop Now
           </a>
         </div>

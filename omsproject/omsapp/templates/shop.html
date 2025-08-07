@@ -61,60 +61,59 @@
         {% endif %}
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="items-container">
           {% for item in items %}
-              <div class="relative bg-white shadow rounded overflow-hidden flex flex-col {% if item.itemInStock == False %}opacity-50 pointer-events-none{% endif %}">
-              
-                <!-- Overlay badge -->
-                {% if item.stock == 0 %}
-                <div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded z-10 shadow">
-                    Out of Stock
-                </div>
-                {% endif %}
-
-                <!-- Item Image -->
-                <img src="{{ item.itemImg.url }}" alt="{{ item.itemName }}" class="w-full h-48 object-cover">
-
-                <!-- Item Info -->
-                <div class="p-4 flex-1">
-                    <h3 class="font-semibold text-lg mb-1">{{ item.itemName }}</h3>
-                    <p class="text-sm text-gray-600">₹{{ item.itemPrice }}/{{ item.itemUnit }} | {{ item.userID.userCity_name }}</p>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="flex justify-between items-center border-t px-4 py-2 bg-gray-50">
-                    <!-- View Details -->
-                    <a href="{% url 'shopdetails' item.itemID %}" class="text-green-700 hover:text-green-900 flex items-center space-x-1">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    <span class="text-sm">Details</span>
-                    </a>
-
-                    <!-- Add to Cart -->
-                    {% if item.itemInStock == True %}
-                    <form action="{% url 'add_to_cart' item.itemID %}?source=shop&qty=1" method="post">
-                      {% csrf_token %}
-                      <button type="submit" class="text-green-700 hover:text-green-900 flex items-center space-x-1">
-                          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.293 2.707a1 1 0 00.293 1.293L7 18h10a1 1 0 001-1l-1-2m-6 4a1 1 0 11-2 0 1 1 0 012 0z" />
-                          </svg>
-                          <span class="text-sm">Add</span>
-                      </button>
-                    </form>
-                    {% else %}
-                    <button disabled class="text-gray-400 cursor-not-allowed flex items-center space-x-1">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.293 2.707a1 1 0 00.293 1.293L7 18h10a1 1 0 001-1l-1-2m-6 4a1 1 0 11-2 0 1 1 0 012 0z" />
-                    </svg>
-                    <span class="text-sm">Add</span>
-                    </button>
-                    {% endif %}
-                </div>
+            <div data-item="{{item.itemID}}" class="itemDiv relative bg-white shadow rounded overflow-hidden flex flex-col cursor-pointer {% if item.itemInStock == False %}opacity-50 pointer-events-none{% endif %}">
+              <!-- Overlay badge -->
+              {% if item.stock == 0 %}
+              <div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded z-10 shadow">
+                  Out of Stock
               </div>
+              {% endif %}
+
+              <!-- Item Image -->
+              <img src="{{ item.itemImg.url }}" alt="{{ item.itemName }}" class="w-full h-48 object-cover">
+
+              <!-- Item Info -->
+              <div class="p-4 flex-1">
+                  <h3 class="font-semibold text-lg mb-1">{{ item.itemName }}</h3>
+                  <p class="text-sm text-gray-600">₹{{ item.itemPrice }}/{{ item.itemUnit }} | {{ item.userID.userCity_name }}</p>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex justify-between items-center border-t px-4 py-2 bg-gray-50">
+                  <!-- View Details -->
+                  <a href="{% url 'shopdetails' item.itemID %}" class="text-green-700 hover:text-green-900 flex items-center space-x-1">
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <span class="text-sm">Details</span>
+                  </a>
+
+                  <!-- Add to Cart -->
+                  {% if item.itemInStock == True %}
+                  <form action="{% url 'add_to_cart' item.itemID %}?source=shop&qty=1" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="text-green-700 hover:text-green-900 flex items-center space-x-1">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.293 2.707a1 1 0 00.293 1.293L7 18h10a1 1 0 001-1l-1-2m-6 4a1 1 0 11-2 0 1 1 0 012 0z" />
+                        </svg>
+                        <span class="text-sm">Add</span>
+                    </button>
+                  </form>
+                  {% else %}
+                  <button disabled class="text-gray-400 cursor-not-allowed flex items-center space-x-1">
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.293 2.707a1 1 0 00.293 1.293L7 18h10a1 1 0 001-1l-1-2m-6 4a1 1 0 11-2 0 1 1 0 012 0z" />
+                  </svg>
+                  <span class="text-sm">Add</span>
+                  </button>
+                  {% endif %}
+              </div>
+            </div>
           {% endfor %}
 
         </div>
@@ -135,6 +134,13 @@
     </div>
   
 <script>
+  document.querySelectorAll('.itemDiv').forEach(function(item) {
+      item.addEventListener('click', function(event) {
+        const url = "{% url 'shopdetails' 0 %}".replace("0", this.dataset.item);
+        window.location.href=url;
+      });
+  });
+
   document.addEventListener('DOMContentLoaded', function () {
     const loadMoreBtn = document.getElementById('load-more-btn');
     const itemsContainer = document.getElementById('items-container');
