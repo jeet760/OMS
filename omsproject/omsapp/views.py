@@ -30,7 +30,14 @@ import hashlib
 import random
 from django.core.files.base import ContentFile
 import base64
+from rest_framework import generics
+from .serializers import OrderSerializer
 
+#region API Calls from FarHa_AI
+class OrderListAPI(generics.ListAPIView):
+    queryset = OrderDetails.objects.all()
+    serializer_class = OrderSerializer
+#endregion
 
 #region New index page and shop page
 #Featured Products in the landing page

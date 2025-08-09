@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
+from .views import OrderListAPI
 
 urlpatterns = [
 #region new UI urls
@@ -116,4 +117,7 @@ urlpatterns = [
     #analytics
     path('analytics/<int:userID>/', views.user_analytics, name='analytics'),
     path('analytics/', views.user_analytics_items, name='analytics-items'),
+
+    #API Calls
+    path('api/orders/', OrderListAPI.as_view(), name='api-orders'),
 ]
