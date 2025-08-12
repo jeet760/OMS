@@ -15,7 +15,7 @@
       <!-- Item Details -->
       <div class="p-4 flex-1">
         <h3 class="font-semibold text-lg mb-1">{{ item.itemName }}</h3>
-        <p class="text-sm text-gray-600 mb-2">Price: ₹{{ item.itemPrice }}/{{ item.itemUnit }} | Location: {{ item.userID.userCity_name }}</p>
+        <p class="text-sm text-gray-600 mb-2">Price: ₹{{ item.itemPrice }}/{{ item.itemUnit }} | by {{ item.userID.last_name }} | {{ item.userID.userCity_name }}</p>
       </div>
 
       <!-- Action Buttons -->

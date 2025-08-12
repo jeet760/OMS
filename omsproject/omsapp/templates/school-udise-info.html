@@ -1,0 +1,199 @@
+{% extends 'admin-console.html' %}
+{% load static %}
+{% block school_udise_info %}
+<div class="bg-white p-4 shadow rounded border border-gray-300">
+  <h1 class="text-2xl font-bold mb-6 text-gray-800">School Information</h1>
+  <section id="basicdetails">
+    <form id="schoolForm" class="space-y-8" method="post" action="{% url 'school-info' %}">
+      {% csrf_token %}
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">UDISE Code</label>
+          {{ request.user.udise_code }}
+        </div>
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">School Type<span class="text-red-500">*</span></label>
+          {{ school_type }}
+        </div>
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">School Category<span class="text-red-500">*</span></label>
+          {{ school_cat }}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">Name<span class="text-red-500">*</span></label>
+          {{ school_name }}
+        </div>
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">From Class</label>
+          {{class_from}}
+        </div>
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">To Class</label>
+          {{class_to}}
+        </div>
+      </div>
+      <div class="flex justify-between pt-6">
+        <button type="button" id="myButton" class="px-6 py-2 text-white bg-yellow-600 hover:bg-yellow-700 rounded-md">
+          Edit
+        </button>
+      </div>
+      <hr class="my-6 border-gray-200">
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">Total Class Students<span class="text-red-500">*</span></label>
+          <span id="total_students_display">{{ total_students|default:0 }}</span>
+          <input type="hidden" id="total_students" name="total_students" value="{{ total_students|default:0 }}">
+        </div>
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">Total Students with Preprimary<span class="text-red-500">*</span></label>
+          <span id="total_students_with_preprimary_display">{{total_students_with_preprimary|default:0}}</span>
+          <input type="hidden" id="total_students_with_preprimary" name="total_students_with_preprimary" value="{{ total_students_with_preprimary|default:0 }}">
+        </div>
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">Pre Primary</label>
+          <input type="number" id="pre_primary" name="pre_primary" value="{{pre_primary|default:0}}" placeholder="pre_primary"
+                 class="mt-1 block h-10 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">Class I</label>
+          <input type="number" id="i_students" name="i_students" value="{{i_students|default:0}}" placeholder="Class I Students"
+                 class="mt-1 block h-10 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">Class II<span class="text-red-500">*</span></label>
+          <input type="number" id="ii_students" name="ii_students" value="{{ii_students|default:0}}" placeholder="Class II Students"
+                 class="mt-1 block h-10 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">Class III</label>
+          <input type="number" id="iii_students" name="iii_students" value="{{iii_students|default:0}}" placeholder="Class III Students"
+                 class="mt-1 block h-10 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">Class IV<span class="text-red-500">*</span></label>
+          <input type="number" id="iv_students" name="iv_students" value="{{iv_students|default:0}}" placeholder="Class IV Students"
+                 class="mt-1 block h-10 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">Class V<span class="text-red-500">*</span></label>
+          <input type="number" id="v_students" name="v_students" value="{{v_students|default:0}}" placeholder="Class V Students"
+                 class="mt-1 block h-10 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">Class VI<span class="text-red-500">*</span></label>
+          <input type="number" id="vi_students" name="vi_students" value="{{vi_students|default:0}}" placeholder="Class VI Students"
+                 class="mt-1 block h-10 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">Class VII<span class="text-red-500">*</span></label>
+          <input type="number" id="vii_students" name="vii_students" value="{{vii_students|default:0}}" placeholder="Class VII Students"
+                 class="mt-1 block h-10 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">Class VIII<span class="text-red-500">*</span></label>
+          <input type="number" id="viii_students" name="viii_students" value="{{viii_students|default:0}}" placeholder="Class VIII Students"
+                 class="mt-1 block h-10 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">Class IX<span class="text-red-500">*</span></label>
+          <input type="number" id="ix_students" name="ix_students" value="{{ix_students|default:0}}" placeholder="Class IX Students"
+                 class="mt-1 block h-10 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">Class X<span class="text-red-500">*</span></label>
+          <input type="number" id="x_students" name="x_students" value="{{x_students|default:0}}" placeholder="Class X Students"
+                 class="mt-1 block h-10 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">Class XI<span class="text-red-500">*</span></label>
+          <input type="number" id="xi_students" name="xi_students" value="{{xi_students|default:0}}" placeholder="Class XI Students"
+                 class="mt-1 block h-10 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+        <div>
+          <label class="block mb-1 font-medium text-sm text-gray-700">Class XII<span class="text-red-500">*</span></label>
+          <input type="number" id="xii_students" name="xii_students" value="{{xii_students|default:0}}" placeholder="Class XII Students"
+                 class="mt-1 block h-10 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+      </div>
+
+      <hr class="my-6 border-gray-200">
+
+      <div class="flex justify-between pt-6">
+        <button type="button" class="px-6 py-2 text-white bg-red-600 hover:bg-red-700 rounded-md">
+          Cancel
+        </button>
+        <button type="submit" class="px-6 py-2 text-white bg-green-600 hover:bg-green-700 rounded-md">
+          {% if user.is_authenticated %}Update{% else %}Register{% endif %}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>
+<script>
+  window.onload = function () {
+    document.getElementById('schoolForm').querySelectorAll('input[type="number"]').forEach(input => {
+      input.disabled = true; // Disable all number inputs initially
+    });
+  };
+
+  document.getElementById('myButton').addEventListener('click', function () {
+    console.log("Button clicked");
+    if(this.innerText === "Edit") {
+      document.getElementById('schoolForm').querySelectorAll('input[type="number"]').forEach(input => {
+        input.disabled = false;
+      });
+      this.innerText = "Cancel Edit";
+      this.classList.remove('bg-yellow-600');
+      this.classList.add('bg-red-600');
+    } else {
+      document.getElementById('schoolForm').querySelectorAll('input[type="number"]').forEach(input => {
+        input.disabled = true;
+      });
+      this.innerText = "Edit";
+      this.classList.remove('bg-red-600');
+      this.classList.add('bg-yellow-600');
+    }
+  });
+
+  document.querySelectorAll('input[type="number"]').forEach(input => {
+    input.addEventListener('input', function () {
+      if (this.value < 1) {
+        this.value = 0;
+      }
+
+      let total_students_with_preprimary = 0;
+      let total_class_students = 0;
+      document.querySelectorAll('input[type="number"]').forEach(inp => {
+        if (inp.id !== 'pre_primary') {
+          total_class_students += parseInt(inp.value) || 0;
+        }
+        total_students_with_preprimary = (parseInt(document.getElementById('pre_primary').value) || 0)+total_class_students;
+      });
+      // console.log("Total Students: " + total_students_with_preprimary);
+      // console.log("Total Students including Preprimary: " + total_students_with_preprimary);
+      // Optional: update a total display element
+      document.getElementById('total_students_display').innerText = total_class_students;
+      document.getElementById('total_students').value = total_class_students;
+      document.getElementById('total_students_with_preprimary_display').innerText = total_students_with_preprimary;
+      document.getElementById('total_students_with_preprimary').value = total_students_with_preprimary;
+    });
+  });
+
+</script>
+{% endblock %}

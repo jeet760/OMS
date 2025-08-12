@@ -342,7 +342,17 @@
             Settings
           </a>
         </nav>
-
+        {% elif user.userType == '3'%}
+        <nav class="p-4 space-y-2">
+          <a href="{% url 'user-form' %}"
+            class="block p-2 rounded {% if request.resolver_match.url_name == 'user-form' %}bg-green-100 text-2xl font-bold{% endif %} hover:bg-green-100">
+            Settings
+          </a>
+          <a href="{% url 'school-info' %}" 
+            class="block p-2 rounded {% if request.resolver_match.url_name == 'school-info' %}bg-green-100 text-2xl font-bold{% endif %} hover:bg-green-100">
+            School Info
+          </a>
+        </nav>
         {% elif user.userType == '0'%}
         <nav class="p-4 space-y-2">
           <a href="{% url 'user-form' %}" class="block p-2 hover:bg-green-100 rounded">Settings</a>
@@ -433,6 +443,7 @@
             {% block user_form %}{% endblock %}
             {% block reset_password %}{% endblock %}
             {% block fpoauth %}{% endblock %}
+            {% block school_udise_info %}{% endblock %}
           </section>
 
           <!-- Notifications -->

@@ -88,6 +88,31 @@
            {{ form.itemDesc }}
        </div>
 
+       <!-- Pincode -->
+        <div class="mb-6">
+            <label for="servingPincode" class="block text-sm font-medium text-gray-700">Select Pincodes</label>
+            <div class="flex flex-wrap gap-4">
+                {% if is_edit %}
+                    {% for p in pincodes_with_status %}
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" name="servingPincode" value="{{ p.code }}"
+                                {% if p.checked %}checked{% endif %}
+                                class="h-4 w-4 text-green-600 rounded">
+                            <span>{{ p.code }}</span>
+                        </label>
+                    {% endfor %}
+                {% else %}
+                    {% for pincode in serving_pincodes %}
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" name="servingPincode" value="{{ pincode.pinCode1 }}"
+                                class="h-4 w-4 text-green-600 rounded">
+                            <span>{{ pincode.pinCode1 }}</span>
+                        </label>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        
        <!-- Buttons -->
        <div class="flex justify-between">
            <!-- <a href="{% url 'item_list' %}" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">

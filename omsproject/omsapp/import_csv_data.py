@@ -52,7 +52,23 @@ def import_udise_data():
                     school_type = row['school_type'],
                     loc_lat = float(row['latitude']) if row['latitude'] else 0.0,
                     loc_long = float(row['longitude']) if row['longitude'] else 0.0,
-                    total_students = int(row['class_students']) if row['class_students'] else 0
+                    total_students = int(row['class_students']) if row['class_students'] else 0,
+                    class_from = int(row['class_from']) if row['class_from'] else 0,
+                    class_to = int(row['class_to']) if row['class_to'] else 0,
+                    pre_primary_students = int(row['pre_primary_students']) if row['pre_primary_students'] else 0,
+                    i_students = int(row['i_students']) if row['i_students'] else 0,
+                    ii_students = int(row['ii_students']) if row['ii_students'] else 0,
+                    iii_students = int(row['iii_students']) if row['iii_students'] else 0,
+                    iv_students = int(row['iv_students']) if row['iv_students'] else 0,
+                    v_students = int(row['v_students']) if row['v_students'] else 0,
+                    vi_students = int(row['vi_students']) if row['vi_students'] else 0,
+                    vii_students = int(row['vii_students']) if row['vii_students'] else 0,
+                    viii_students = int(row['viii_students']) if row['viii_students'] else 0,
+                    ix_students = int(row['ix_students']) if row['ix_students'] else 0,
+                    x_students = int(row['x_students']) if row['x_students'] else 0,
+                    xi_students = int(row['xi_students']) if row['xi_students'] else 0,
+                    xii_students = int(row['xii_students']) if row['xii_students'] else 0,
+                    total_students_with_preprimary = int(row['class_with_pre_primary_students']) if row['class_with_pre_primary_students'] else 0
                 )
                 school_list.append(obj)
 
@@ -150,4 +166,4 @@ def create_user_directory():
     print("✅ User Directory creation completed successfully.")
 
 if __name__ == '__main__':
-    create_user_directory()
+    import_udise_data()

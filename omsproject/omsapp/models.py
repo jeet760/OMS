@@ -137,6 +137,22 @@ class SchoolUDISE(Model):
     school_type = CharField(max_length=20)
     loc_lat = FloatField()
     loc_long = FloatField()
+    class_from = IntegerField(null=True, blank=True)
+    class_to = IntegerField(null=True, blank=True)
+    pre_primary_students = IntegerField(default=0)
+    i_students = IntegerField(default=0)
+    ii_students = IntegerField(default=0)
+    iii_students = IntegerField(default=0)
+    iv_students = IntegerField(default=0)
+    v_students = IntegerField(default=0)
+    vi_students = IntegerField(default=0)
+    vii_students = IntegerField(default=0)
+    viii_students = IntegerField(default=0)
+    ix_students = IntegerField(default=0)
+    x_students = IntegerField(default=0)
+    xi_students = IntegerField(default=0)
+    xii_students = IntegerField(default=0)
+    total_students_with_preprimary = IntegerField(default=0)
     def __str__(self):
         return f"{self.id}"
 
@@ -276,6 +292,28 @@ class Item(Model):
 
     def __str__(self):
         return self.itemID
+#endregion
+
+#regigion Item Pincode Map
+class ItemPincodeMap(Model):
+    id = AutoField(primary_key=True)
+    itemID = ForeignKey(Item, on_delete=CASCADE, related_name='item_pincode_map')
+    pincode = CharField(max_length=6)
+    isActive = BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.itemID} - {self.pincode}"
+#endregion
+
+#region Item Category
+class ItemCategory(Model):
+    id = AutoField(primary_key=True)
+    categoryCode = CharField(max_length=2, unique=True)
+    categoryName = CharField(max_length=100, unique=True)
+    categoryDesc = CharField(max_length=200, null=True, blank=True)
+
+    def __str__(self):
+        return self.categoryName
 #endregion
 
 #region Item Stock

@@ -8,7 +8,7 @@ urlpatterns = [
 #region new UI urls
     path('', views.featured_product, name='index'),
     path('shop/', views.marketplace, name='shop'),
-    path('shop/details/<str:item_id>',views.item_details, name='shopdetails'),
+    path('shop/details/<str:item_id>',views.shop_item_details, name='shopdetails'),
     path('cart/',views.cart_view, name='cart'),
 #endregion
     path('checkout', views.checkout, name='checkout'),
@@ -53,6 +53,7 @@ urlpatterns = [
     path('track-coordinate/', views.show_fpo_customers_in_map, name='track-coordinate'),
     path('change-phone/<str:new_phone>', views.change_mobile_number, name='change-phone'),
 
+    path('school-info/', views.fetch_school_info, name='school-info'),
     path('user-form/', views.profile_view, name='user-form'),
     path('add-address/', views.add_address, name='add-address'),
     path('fetch-address/<int:id>', views.fetch_address, name='fetch-address'),
@@ -62,8 +63,8 @@ urlpatterns = [
     path('update-address/serving/<int:id>', views.update_serving_address, name='update-serving'),
     path('update-address/default/<int:id>', views.set_default_address, name='update-default-address'),
     path('update-serving-address/<int:id>', views.change_status_serving_address, name='update-serving-address'),
-
     path('accounts/login/', views.login_required, name='login'),
+
     path('items/', views.item_list, name='item_list'),
     path('item/entry/', views.item_entry, name='item_entry'),
     path('item/create/', views.create_item, name='create_item'),

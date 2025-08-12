@@ -1,25 +1,7 @@
+{% extends 'index.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>{{ item.itemName }} | FarmerHarvest</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
-
-  <style>
-    body { font-family: 'Poppins', sans-serif; }
-  </style>
-</head>
-<body class="bg-gray-50 text-gray-800">
-<!-- Header -->
-  <header class="text-white p-4" style="background-color: #047857;">
-    {% include 'header.html' %}
-  </header>
-
+{% block shop_item_details %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
   <!-- Page Wrapper -->
   <div class="max-w-5xl mx-auto px-4 py-8">
     <div class="grid md:grid-cols-2 gap-8 bg-white shadow rounded-lg overflow-hidden">
@@ -66,7 +48,7 @@
                     class="w-16 text-center border-l border-r border-gray-300 focus:outline-none" />
                 <button type="button" onclick="increaseQty(100)" class="bg-gray-200 px-3 py-2 text-lg font-semibold">+</button>
             </div>
-
+            {{ item.itemUnit }}
             <!-- Add to Cart Button -->
             <button type="submit"
                     class="bg-green-700 text-white px-6 py-2 rounded hover:bg-green-800 w-full sm:w-auto">
@@ -95,26 +77,26 @@
             <div class="swiper-wrapper">
                 {% for rel in related_items %}
                 <div class="swiper-slide">
-                <div class="bg-white shadow rounded overflow-hidden flex flex-col">
-                    <img src="{{ rel.itemImg.url }}" alt="{{ rel.itemName }}" class="w-full h-40 object-cover">
+                  <div data-item="{{rel.itemID}}" class="itemDiv bg-white shadow rounded overflow-hidden flex flex-col cursor-pointer {% if rel.itemInStock == False %}opacity-50 pointer-events-none{% endif %}">
+                      <img src="{{ rel.itemImg.url }}" alt="{{ rel.itemName }}" class="w-full h-40 object-cover">
 
-                    <div class="p-4 flex-1">
-                    <h3 class="font-semibold text-lg mb-1">{{ rel.itemName }}</h3>
-                    <p class="text-sm text-gray-600">₹{{ rel.itemPrice }}/{{ rel.itemUnit }} | {{ rel.userID.userCity_name }}</p>
-                    </div>
+                      <div class="p-4 flex-1">
+                      <h3 class="font-semibold text-lg mb-1">{{ rel.itemName }}</h3>
+                      <p class="text-sm text-gray-600">₹{{ rel.itemPrice }}/{{ rel.itemUnit }} | by {{ rel.userID.last_name }} | {{ rel.userID.userCity_name }}</p>
+                      </div>
 
-                    <div class="flex justify-between items-center border-t px-4 py-2 bg-gray-50">
-                    <a href="{% url 'shopdetails' rel.itemID %}" class="text-green-700 hover:text-green-900 text-sm font-medium">Details</a>
-                    {% if rel.itemInStock == True %}
-                    <form method="post" action="{% url 'add_to_cart' rel.itemID %}">
-                        {% csrf_token %}
-                        <button type="submit" class="text-green-700 hover:text-green-900 text-sm font-medium">Add</button>
-                    </form>
-                    {% else %}
-                    <span class="text-sm text-gray-400">Out of Stock</span>
-                    {% endif %}
-                    </div>
-                </div>
+                      <div class="flex justify-between items-center border-t px-4 py-2 bg-gray-50">
+                      <a href="{% url 'shopdetails' rel.itemID %}" class="text-green-700 hover:text-green-900 text-sm font-medium">Details</a>
+                      {% if rel.itemInStock == True %}
+                      <form method="post" action="{% url 'add_to_cart' rel.itemID %}">
+                          {% csrf_token %}
+                          <button type="submit" class="text-green-700 hover:text-green-900 text-sm font-medium">Add</button>
+                      </form>
+                      {% else %}
+                      <span class="text-sm text-gray-400">Out of Stock</span>
+                      {% endif %}
+                      </div>
+                  </div>
                 </div>
                 {% endfor %}
             </div>
@@ -131,15 +113,17 @@
 
 
   </div>
-  <!-- Footer -->
-  <footer class="bg-green-800 text-white py-6 mt-10">
-    {% include 'footer.html' %}
-  </footer>
   <!-- SwiperJS JS -->
-<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
 
-</body>
 <script>
+  document.querySelectorAll('.itemDiv').forEach(function(item) {
+      item.addEventListener('click', function(event) {
+        const url = "{% url 'shopdetails' 0 %}".replace("0", this.dataset.item);
+        window.location.href=url;
+      });
+  });
+
   function increaseQty(maxStock) {
     console.log('increase');
     const input = document.getElementById('quantity');
@@ -175,5 +159,4 @@
     },
   });
 </script>
-
-</html>
+{% endblock %}

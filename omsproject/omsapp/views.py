@@ -14,7 +14,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
 from datetime import datetime
-from .models import CustomUser, UserShippingAddresses, UserBillingAddresses, FPOServingAddresses, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, OrderInvoice, OrderDelivery, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder, FPOAuthorisationDocs, UserMessage, SchoolUDISE #LGDData
+from .models import CustomUser, UserShippingAddresses, UserBillingAddresses, FPOServingAddresses, ItemPincodeMap, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, OrderInvoice, OrderDelivery, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder, FPOAuthorisationDocs, UserMessage, SchoolUDISE #LGDData
 from .models import LIST_STATES, USERTYPES, GST_TREATMENT
 from .forms import ItemForm, UserRegistrationForm, UserLoginForm, OrderForm, OrderDetailsForm, InvoiceForm, FPOAuthrisationForm, ItemImportExcelForm
 import json
@@ -64,7 +64,8 @@ def featured_product(request):
     featureItems = Item.objects.filter(featureItem=True, userID_id__isActive=True, itemActive=True).order_by('-itemInStock')#featured items whose owner/seller is active and is in stock from seller's side
     #irrespective of the login status, the explicitly entered pincode will prevails
     if pincode:
-        featureItems = featureItems.exclude(userID_id = request.user.pk).filter(userID_id__pinCode=pincode)
+        featureItems = featureItems.exclude(userID_id = request.user.pk).filter(item_pincode_map__pincode=pincode, item_pincode_map__isActive=True).distinct()#exclude the logged in user and filter by pincode 
+        #featureItems = featureItems.exclude(userID_id = request.user.pk).filter(userID_id__pinCode=pincode)
 
     #pagination in featured items
     paginator = Paginator(featureItems,12)
@@ -77,16 +78,16 @@ def featured_product(request):
 
     if pincode:
         #to display in the stats section
-        veg_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Vegetables', userID_id__pinCode=pincode).__len__()
-        fru_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Fruits', userID_id__pinCode=pincode).__len__()
-        dai_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Dairy', userID_id__pinCode=pincode).__len__()
-        spi_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Spices', userID_id__pinCode=pincode).__len__()
-        cer_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Cereals', userID_id__pinCode=pincode).__len__()
-        pul_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Pulses', userID_id__pinCode=pincode).__len__()
-        ani_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Animal Sourced', userID_id__pinCode=pincode).__len__()
-        for_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Forest Produces', userID_id__pinCode=pincode).__len__()
-        pac_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Packaged Foods', userID_id__pinCode=pincode).__len__()
-        oth_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Others', userID_id__pinCode=pincode).__len__()
+        veg_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Vegetables', item_pincode_map__pincode=pincode).__len__()
+        fru_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Fruits', item_pincode_map__pincode=pincode).__len__()
+        dai_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Dairy', item_pincode_map__pincode=pincode).__len__()
+        spi_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Spices', item_pincode_map__pincode=pincode).__len__()
+        cer_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Cereals', item_pincode_map__pincode=pincode).__len__()
+        pul_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Pulses', item_pincode_map__pincode=pincode).__len__()
+        ani_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Animal Sourced', item_pincode_map__pincode=pincode).__len__()
+        for_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Forest Produces', item_pincode_map__pincode=pincode).__len__()
+        pac_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Packaged Foods', item_pincode_map__pincode=pincode).__len__()
+        oth_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Others', item_pincode_map__pincode=pincode).__len__()
     else:
         #to display in the stats section
         veg_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Vegetables').__len__()
@@ -149,7 +150,8 @@ def marketplace(request):
     items = Item.objects.filter(userID_id__isActive=True, itemActive=True).order_by('-itemInStock')
     #irrespective the login status, the explicitly entered picode will previal    
     if pincode:
-        items = items.exclude(userID_id = request.user.pk).filter(userID_id__pinCode=pincode)
+        items = items.exclude(userID_id = request.user.pk).filter(item_pincode_map__pincode=pincode, item_pincode_map__isActive=True).distinct()#exclude the logged in user and filter by pincode
+        #items = items.exclude(userID_id = request.user.pk).filter(userID_id__pinCode=pincode)
 
     if request.GET.__len__() > 0:
         #data received from filter or from search box
@@ -190,23 +192,33 @@ def marketplace(request):
     return render(request, 'shop.html', context=shop_context)
 
 #item details while shopping
-def item_details(request, item_id):
-    user_type = ''
-    user_name = 'Guest!'#display the username
-    user_approved=''
-    pincode = 'Pincode'
-    if request.session.get('pincode') != '' and request.session.get('pincode') != None:
-        pincode = request.session.get('pincode')
+def shop_item_details(request, item_id):
+    entered_pincode = request.GET.get('pincode')
+    session_pincode = request.session.get('pincode')
+    pincode = None
+
+    if entered_pincode:
+        pincode = entered_pincode
+    elif session_pincode:
+        pincode = session_pincode
+
+    if pincode:
+        request.session['pincode'] = pincode
+    else:
+        pincode = None
+
+    if request.user.is_authenticated:
+        if not pincode:
+            pincode = request.user.pinCode
+            request.session['pincode'] = pincode
 
     item = get_object_or_404(Item, pk=item_id)
-    pincode = item.userID.pinCode
-    related_items = Item.objects.filter(itemCat = item.itemCat).filter(userID_id__pinCode=pincode).exclude(pk=item_id)
-    counter = related_items.count()
+    related_items = Item.objects.filter(itemCat = item.itemCat).filter(item_pincode_map__pincode=pincode, item_pincode_map__isActive=True).exclude(pk=item_id)
     item_details_context = {
         'item':item,
         'related_items':related_items
     }
-    return render(request, 'item-details.html', context = item_details_context)
+    return render(request, 'shop-item-details.html', context = item_details_context)
 
 #system checks whether the system is online or not
 def is_online(host='api.postalpincode.in', port=443, timeout=3):
@@ -235,44 +247,6 @@ def PinCodeAPI(request, pincode):
         return postalData_response
     else:
         messages.error(request, 'Failed to connect to internet!')
-
-def shop_details(request, item_id):
-    item = get_object_or_404(Item,pk=item_id)
-    cart = Cart(request)
-    total_cart_qty = cart.__len__()#display total number quantities added in the basket
-    total_cart_price = cart.get_total_price()
-    if request.user.is_authenticated:
-        user_name=request.user.last_name
-        pincode = request.session.get('pincode') #get the logged in user's pincode
-        related_items = Item.objects.filter(itemCat = item.itemCat).filter(userID_id__pinCode=pincode)
-    else:
-        related_items = Item.objects.filter(itemCat = item.itemCat)
-    related_items = related_items.exclude(userID_id=request.user.pk).order_by('itemID')
-
-    #pagination in the landing page
-    paginator = Paginator(related_items,12)
-    page_number = request.GET.get('page')
-    relatedItems_page_obj = paginator.get_page(page_number)
-
-    user_name = 'Guest!'#display the username
-    user_type = ''
-    pincode='Pincode'
-    if request.user.is_authenticated:
-        user_name=request.user.last_name
-        pincode = request.session.get('pincode')
-        user_type=request.user.userType
-    shop_details_context = {
-        'item':item,
-        #'related_items':related_items,
-        'relatedItems_page_obj':relatedItems_page_obj,
-        'login_user':user_name,
-        'user_type':user_type,
-        'pincode':pincode,
-        'clicked':'Shop',
-        'total_cart_qty':total_cart_qty,
-        'total_cart_price':total_cart_price
-    }
-    return render(request, 'shop-details.html', shop_details_context)
 
 def contact(request):
     qs = request.GET.get('q')
@@ -499,6 +473,99 @@ def fetch_school(request, udise):
         'village_name':village_name
     }
     return JsonResponse(json_response)
+
+def fetch_school_info(request):
+    if request.user.is_authenticated:
+        if request.user.userType == '3':
+            school = get_object_or_404(SchoolUDISE, udise_code=request.user.udise_code)
+            school_name = school.school_name
+            total_students = school.total_students
+            school_cat = school.school_cat
+            school_type = school.school_type
+            total_students = school.total_students
+            total_students_with_preprimary = school.total_students_with_preprimary
+            class_from = school.class_from
+            class_to = school.class_to
+            pre_primary = school.pre_primary_students
+            i_students = school.i_students
+            ii_students = school.ii_students
+            iii_students = school.iii_students
+            iv_students = school.iv_students
+            v_students = school.v_students
+            vi_students = school.vi_students
+            vii_students = school.vii_students
+            viii_students = school.viii_students
+            ix_students = school.ix_students
+            x_students = school.x_students
+            xi_students = school.xi_students
+            xii_students = school.xii_students
+            if request.method == 'POST':
+                #update the school details
+                pre_primary = request.POST.get('pre_primary')
+                i_students = request.POST.get('i_students')
+                ii_students = request.POST.get('ii_students')
+                iii_students = request.POST.get('iii_students')
+                iv_students = request.POST.get('iv_students')
+                v_students = request.POST.get('v_students')
+                vi_students = request.POST.get('vi_students')
+                vii_students = request.POST.get('vii_students')
+                viii_students = request.POST.get('viii_students')
+                ix_students = request.POST.get('ix_students')
+                x_students = request.POST.get('x_students')
+                xi_students = request.POST.get('xi_students')
+                xii_students = request.POST.get('xii_students')
+                total_students = request.POST.get('total_students')
+                total_students_with_preprimary = request.POST.get('total_students_with_preprimary')
+                #update the local udise data
+                SchoolUDISE.objects.filter(udise_code=request.user.udise_code).update(
+                    pre_primary_students=pre_primary,
+                    i_students=i_students,
+                    ii_students=ii_students,
+                    iii_students=iii_students,
+                    iv_students=iv_students,
+                    v_students=v_students,
+                    vi_students=vi_students,
+                    vii_students=vii_students,
+                    viii_students=viii_students,
+                    ix_students=ix_students,
+                    x_students=x_students,
+                    xi_students=xi_students,
+                    xii_students=xii_students,
+                    total_students=total_students,
+                    total_students_with_preprimary=total_students_with_preprimary
+                )
+                messages.success(request, 'School details updated successfully!')
+        else:
+            messages.error(request, 'You are not authorized to view this page!')
+            return redirect('index')
+    else:
+        messages.error(request, 'You need to login to view this page!')
+        return redirect('login')    
+
+    return_context = {
+        'login_user':request.user.last_name,
+        'school_name': school_name,
+        'total_students': total_students,
+        'school_cat': school_cat,
+        'school_type': school_type,
+        'total_students_with_preprimary': total_students_with_preprimary,
+        'class_from': class_from,
+        'class_to': class_to,
+        'pre_primary':pre_primary,
+        'i_students': i_students,
+        'ii_students': ii_students,
+        'iii_students': iii_students,
+        'iv_students': iv_students,
+        'v_students': v_students,
+        'vi_students': vi_students,
+        'vii_students': vii_students,
+        'viii_students': viii_students,
+        'ix_students': ix_students,
+        'x_students': x_students,
+        'xi_students': xi_students,
+        'xii_students': xii_students,
+    }
+    return render(request, 'school-udise-info.html', context=return_context)
 
 def registration_form(request):
     form = UserRegistrationForm()#new register point: opening the registratino page without login
@@ -1434,9 +1501,18 @@ def item_import(request):
 
 @login_required
 def item_entry(request):
-    itemform = ItemForm()
-    user_name = request.user.last_name
-    return render(request, 'item_entry.html', {'form':itemform, 'login_user':user_name})
+    if request.user.is_authenticated:
+        itemform = ItemForm()
+        user_name = request.user.last_name
+        serving_pincodes = FPOServingAddresses.objects.filter(userID_id=request.user.pk).values('pinCode1').distinct()
+        return_context = {
+            'form':itemform, 
+            'login_user':user_name, 
+            'serving_pincodes':serving_pincodes
+        }
+        return render(request, 'item_entry.html', context=return_context)
+    else:
+        return redirect('login')
     #return render(request, 'admin-console.html', {'form':itemform, 'login_user':user_name})
 
 @login_required
@@ -1447,10 +1523,13 @@ def create_item(request):
         if form.is_valid():
             usertype = request.user.userType
             if usertype == '1':#usertype 1 means it is an FPC
+                selected_pincodes = request.POST.getlist('servingPincode')
                 form.save(userid=request.user.pk)
                 item_ID = Item.objects.all().latest('itemID').itemID
                 stockEntry = ItemStock(itemID_id=item_ID,stockValue=itemStock)
                 stockEntry.save()
+                for selected_pincode in selected_pincodes:
+                    picodeMapEntry = ItemPincodeMap.objects.create(itemID_id=item_ID, pincode=selected_pincode, isActive=True)
                 return redirect('item_list')#JsonResponse({'success': True})
                 #return redirect('admin-console')#JsonResponse({'success': True})
             else:
@@ -1465,7 +1544,12 @@ def edit_item(request, item_id):
     if request.method == 'POST':
         form = ItemForm(request.POST, request.FILES, instance=item)
         if form.is_valid():
+            selected_pincodes = request.POST.getlist('servingPincode')
             form.save(userid=request.user.pk)
+            pincode_map_update = ItemPincodeMap.objects.filter(itemID_id=item_id).update(isActive=False)  # Clear existing mappings
+            for selected_pincode in selected_pincodes:
+                picodeMapEntry = ItemPincodeMap.objects.update_or_create(itemID_id=item_id, pincode=selected_pincode)
+                pincode_map_update = ItemPincodeMap.objects.filter(itemID_id=item_id, pincode=selected_pincode).update(isActive=True)
             messages.success(request, 'Item updated successfully.')
             return redirect('item_list')
             # return redirect('admin-console')#JsonResponse({'success': True})
@@ -1474,7 +1558,14 @@ def edit_item(request, item_id):
     else:
         form = ItemForm(instance=item)
     user_name = request.user.last_name
-    return render(request, 'item_entry.html', {'form': form, 'is_edit': True, 'login_user':user_name})
+    serving_pincodes = FPOServingAddresses.objects.filter(userID_id=request.user.pk).values_list('pinCode1', flat=True).distinct()
+    mapped_pincodes = ItemPincodeMap.objects.filter(itemID_id=item_id, isActive=True).values_list('pincode', flat=True)
+    # Prepare list with a 'checked' flag
+    pincodes_with_status = [
+        {'code': pincode, 'checked': pincode in mapped_pincodes}
+        for pincode in serving_pincodes
+    ]
+    return render(request, 'item_entry.html', {'form': form, 'is_edit': True, 'login_user':user_name, 'serving_pincodes':serving_pincodes, 'mapped_pincodes':mapped_pincodes, 'pincodes_with_status':pincodes_with_status})
 
 @login_required
 def change_item_status(request, item_id):
