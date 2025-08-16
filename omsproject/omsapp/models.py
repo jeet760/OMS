@@ -308,7 +308,7 @@ class ItemPincodeMap(Model):
 #region Item Category
 class ItemCategory(Model):
     id = AutoField(primary_key=True)
-    categoryCode = CharField(max_length=2, unique=True)
+    categoryCode = CharField(max_length=3, unique=True)
     categoryName = CharField(max_length=100, unique=True)
     categoryDesc = CharField(max_length=200, null=True, blank=True)
 

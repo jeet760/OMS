@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.contrib import messages
 from django.db import connection, transaction
-from django.db.models import Q, Max, Min, Sum, Count, OuterRef, Subquery, F, Value
+from django.db.models import Q, Max, Min, Sum, Count, OuterRef, Subquery, F, Value, Prefetch
 from django.db.models.functions import Concat
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
@@ -35,8 +35,38 @@ from .serializers import OrderSerializer
 
 #region API Calls from FarHa_AI
 class OrderListAPI(generics.ListAPIView):
-    queryset = OrderDetails.objects.all()
     serializer_class = OrderSerializer
+
+    def get_queryset(self):
+        qs = CustomUser.objects.filter(userType="3")
+
+        # Build a dict {udise_code: [schools]}
+        school_map = {}
+        for school in SchoolUDISE.objects.all():
+            school_map.setdefault(school.udise_code, []).append(school)
+        self.school_map = school_map
+
+        # Build a dict {customer_id: [orders]}
+        orders_map = {}
+        orders = OrderDetails.objects.select_related("itemID", "suborderID__customerID")
+        for order in orders:
+            cid = order.suborderID.customerID_id
+            orders_map.setdefault(cid, []).append(order)
+        self.orders_map = orders_map
+
+        return qs
+
+    def get_serializer_context(self):
+        ctx = super().get_serializer_context()
+        ctx.update({
+            "school_map": self.school_map,
+            "orders_map": self.orders_map
+        })
+        return ctx
+
+# class SchoolDetailsAPI(generics.ListAPIView):
+#     queryset = SchoolUDISE.objects.all()
+#     serializer_class = OrderingSchoolSerializer
 #endregion
 
 #region New index page and shop page
