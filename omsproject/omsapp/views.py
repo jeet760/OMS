@@ -31,38 +31,30 @@ import random
 from django.core.files.base import ContentFile
 import base64
 from rest_framework import generics
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.generics import ListAPIView
 from .serializers import OrderSerializer
 
 #region API Calls from FarHa_AI
+class OrderPagination(PageNumberPagination):
+    page_size = 20  # number of users per page
+    page_size_query_param = "page_size"
+    max_page_size = 1000
+
 class OrderListAPI(generics.ListAPIView):
     serializer_class = OrderSerializer
-
+    pagination_class = OrderPagination
+    
     def get_queryset(self):
-        qs = CustomUser.objects.filter(userType="3")
+        # Only fetch a page of CustomUser at a time
+        return CustomUser.objects.filter(userType="3").select_related(
+        ).prefetch_related(
+            Prefetch(
+                "customer_orders__orderdetails",
+                queryset=OrderDetails.objects.select_related("itemID")
+            )
+        )
 
-        # Build a dict {udise_code: [schools]}
-        school_map = {}
-        for school in SchoolUDISE.objects.all():
-            school_map.setdefault(school.udise_code, []).append(school)
-        self.school_map = school_map
-
-        # Build a dict {customer_id: [orders]}
-        orders_map = {}
-        orders = OrderDetails.objects.select_related("itemID", "suborderID__customerID")
-        for order in orders:
-            cid = order.suborderID.customerID_id
-            orders_map.setdefault(cid, []).append(order)
-        self.orders_map = orders_map
-
-        return qs
-
-    def get_serializer_context(self):
-        ctx = super().get_serializer_context()
-        ctx.update({
-            "school_map": self.school_map,
-            "orders_map": self.orders_map
-        })
-        return ctx
 
 # class SchoolDetailsAPI(generics.ListAPIView):
 #     queryset = SchoolUDISE.objects.all()

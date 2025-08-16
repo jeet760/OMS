@@ -23,22 +23,20 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    school_info = serializers.SerializerMethodField()
+    school_info = SchoolInfoSerializer(source="school", read_only=True)
     order_details = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ["id", "userType", "last_name", "udise_code", "school_info", "order_details"]
-
-    def get_school_info(self, obj):
-        school_map = self.context.get("school_map", {})
-        schools = school_map.get(obj.udise_code, [])
-        if not schools:
-            return None
-        # return the first match OR all matches
-        return SchoolInfoSerializer(schools, many=True).data
+        fields = ["id", "userType", "first_name", "school_info", "order_details"]
 
     def get_order_details(self, obj):
-        orders_map = self.context.get("orders_map", {})
-        orders = orders_map.get(obj.id, [])
+        orders = []
+        for suborder in obj.customer_orders.all():  # use related_name
+            orders.extend(suborder.orderdetails.all())  # use related_name
         return OrderDetailSerializer(orders, many=True).data
+
+    def get_school_info(self, obj):
+        if obj.school:
+            return SchoolInfoSerializer(obj.school).data
+        return None

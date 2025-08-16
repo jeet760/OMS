@@ -7,6 +7,41 @@ from django.conf import settings
 
 
 #region Registration
+class SchoolUDISE(Model):
+    id=AutoField(primary_key=True)
+    state_name = CharField(max_length=50)
+    state_code = IntegerField(null=True)
+    district_name = CharField(max_length=50)
+    district_code = IntegerField(null=True)
+    sub_dist_name=CharField(max_length=50)
+    sub_dist_code = IntegerField(null=True)
+    village_name = CharField(max_length=50)
+    udise_code = CharField(max_length=11)
+    school_name = CharField(max_length=50)
+    total_students = IntegerField(default=0)
+    school_cat = CharField(max_length=20)
+    school_type = CharField(max_length=20)
+    loc_lat = FloatField()
+    loc_long = FloatField()
+    class_from = IntegerField(null=True, blank=True)
+    class_to = IntegerField(null=True, blank=True)
+    pre_primary_students = IntegerField(default=0)
+    i_students = IntegerField(default=0)
+    ii_students = IntegerField(default=0)
+    iii_students = IntegerField(default=0)
+    iv_students = IntegerField(default=0)
+    v_students = IntegerField(default=0)
+    vi_students = IntegerField(default=0)
+    vii_students = IntegerField(default=0)
+    viii_students = IntegerField(default=0)
+    ix_students = IntegerField(default=0)
+    x_students = IntegerField(default=0)
+    xi_students = IntegerField(default=0)
+    xii_students = IntegerField(default=0)
+    total_students_with_preprimary = IntegerField(default=0)
+    def __str__(self):
+        return f"{self.id}"
+
 USERTYPES = [
     ('', 'Select Usertype'),
     ('1', 'FPO'),
@@ -67,6 +102,7 @@ class CustomUser(AbstractUser):
     #""""Basic details"""
     userType = CharField(max_length=20, choices=USERTYPES)
     udise_code = CharField(max_length=11, default='00000000000', blank=True)#only for the school
+    school = ForeignKey(SchoolUDISE, on_delete=models.SET_NULL, null=True, blank=True, related_name="schools")
     first_name = CharField(max_length=50)#name
     last_name = CharField(max_length=50)#displayname
     org_name=CharField(max_length=50, default='', blank=True)#business name
@@ -121,40 +157,6 @@ class Login(Model):
     def __str__(self):
         return self.id
 
-class SchoolUDISE(Model):
-    id=AutoField(primary_key=True)
-    state_name = CharField(max_length=50)
-    state_code = IntegerField(null=True)
-    district_name = CharField(max_length=50)
-    district_code = IntegerField(null=True)
-    sub_dist_name=CharField(max_length=50)
-    sub_dist_code = IntegerField(null=True)
-    village_name = CharField(max_length=50)
-    udise_code = CharField(max_length=11)
-    school_name = CharField(max_length=50)
-    total_students = IntegerField(default=0)
-    school_cat = CharField(max_length=20)
-    school_type = CharField(max_length=20)
-    loc_lat = FloatField()
-    loc_long = FloatField()
-    class_from = IntegerField(null=True, blank=True)
-    class_to = IntegerField(null=True, blank=True)
-    pre_primary_students = IntegerField(default=0)
-    i_students = IntegerField(default=0)
-    ii_students = IntegerField(default=0)
-    iii_students = IntegerField(default=0)
-    iv_students = IntegerField(default=0)
-    v_students = IntegerField(default=0)
-    vi_students = IntegerField(default=0)
-    vii_students = IntegerField(default=0)
-    viii_students = IntegerField(default=0)
-    ix_students = IntegerField(default=0)
-    x_students = IntegerField(default=0)
-    xi_students = IntegerField(default=0)
-    xii_students = IntegerField(default=0)
-    total_students_with_preprimary = IntegerField(default=0)
-    def __str__(self):
-        return f"{self.id}"
 
 #Addresses of all users
 class UserShippingAddresses(Model):
