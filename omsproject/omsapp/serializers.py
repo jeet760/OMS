@@ -32,7 +32,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def get_order_details(self, obj):
         orders = []
-        for suborder in obj.customer_orders.all():  # use related_name
+        for suborder in obj.customer_orders.filter(orderStatus='Delivered'):  # use related_name
             orders.extend(suborder.orderdetails.all())  # use related_name
         return OrderDetailSerializer(orders, many=True).data
 
