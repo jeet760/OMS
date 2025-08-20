@@ -38,6 +38,7 @@ urlpatterns = [
     path('bulk-buy-response/<int:bbr_id>/', views.bulk_buy_response_details, name='bulk-buy-response-details'),
     path('bulk-buy/response/accept/<int:bulkBuyID>/<int:response_userID>', views.bulk_buy_response_accept, name='bulk-buy-response-accept'),
 
+    path('check-phone/', views.check_phone_number, name='check-phone'),
     path('register/', views.registration_form, name='register'),
     path('register/user', views.register, name='register-user'),
     path('login/', views.login_view, name='login'),

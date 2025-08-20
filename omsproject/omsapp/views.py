@@ -606,6 +606,13 @@ def registration_form(request):
     }
     return render(request, 'register.html', context=register_context)
 
+def check_phone_number(request):
+    phone = request.GET.get('phone')
+    check = CustomUser.objects.filter(phone=phone).first()
+    if check:
+        check = check.phone
+    return JsonResponse({'phone':check})
+
 def create_fpo_regn_id(state_code,district_code,subdist_code):
     num = random.randint(1,99)
     regn_id = ''
