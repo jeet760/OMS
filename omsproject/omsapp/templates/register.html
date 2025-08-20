@@ -1,499 +1,529 @@
 {% extends 'index.html' %}
 {% load static %}
 {% block register %}
-    <section class="py-12 bg-gray-50">
-      <div class="max-w-6xl mx-auto px-4">
-        <div class="bg-white shadow-md rounded-lg p-8">
-          <h2 class="text-2xl font-semibold text-gray-800 mb-6">User Details</h2>
+  <section class="py-12 bg-gray-50">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="bg-white shadow-md rounded-lg p-8">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6">User Details</h2>
 
-          <form method="POST" id="formRegister" class="formRegister space-y-6" action="{% url 'register-user' %}">
-            {% csrf_token %}
-            {% if messages %}
-              {% for message in messages %}
-                <script>alert("{{ message|escapejs }}");</script>
-              {% endfor %}
-            {% endif %}
+        <form method="POST" id="formRegister" class="formRegister space-y-6" action="{% url 'register-user' %}">
+          {% csrf_token %}
+          {% if messages %}
+            {% for message in messages %}
+              <script>alert("{{ message|escapejs }}");</script>
+            {% endfor %}
+          {% endif %}
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label class="block mb-1 font-medium text-sm text-gray-700">User Type<span class="text-red-500">*</span></label>
-                {{ userform.userType }}
-              </div>
-              <div>
-                <label class="block mb-1 font-medium text-sm text-gray-700">UDISE <span class="text-gray-400 text-xs">(if School)</span></label>
-                {{ userform.udise_code }}
-              </div>
-              <div>
-                <label class="block mb-1 font-medium text-sm text-gray-700">Name<span class="text-red-500">*</span></label>
-                {{ userform.first_name }}
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block mb-1 font-medium text-sm text-gray-700">Display Name<span class="text-red-500">*</span></label>
-                {{ userform.last_name }}
-              </div>
-              <div>
-                <label class="block mb-1 font-medium text-sm text-gray-700">Business Name</label>
-                {{ userform.org_name }}
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label class="block mb-1 font-medium text-sm text-gray-700">Email</label>
-                {{ userform.email }}
-              </div>
-              <div>
-                <label class="block mb-1 font-medium text-sm text-gray-700">Phone Number<span class="text-red-500">*</span></label>
-                {{ userform.phone }}
-              </div>
-              <div>
-                <label class="block mb-1 font-medium text-sm text-gray-700">Alternate Phone No.</label>
-                {{ userform.phone1 }}
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block mb-1 font-medium text-sm text-gray-700">Place of Supply<span class="text-red-500">*</span></label>
-                {{ userform.supply_place }}
-              </div>
-              <div>
-                <label class="block mb-1 font-medium text-sm text-gray-700">GST Treatment<span class="text-red-500">*</span></label>
-                {{ userform.gst_tmt }}
-              </div>
-            </div>
-
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label class="block mb-1 font-medium text-sm text-gray-700">GSTIN <span class="text-gray-400 text-xs">[If Registered Business (Regular/Composition)]</span></label>
-              {{ userform.gstin }}
+              <label class="block mb-1 font-medium text-sm text-gray-700">User Type<span class="text-red-500">*</span></label>
+              {{ userform.userType }}
             </div>
-
-            <hr class="my-6 border-gray-200">
-
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Registered Address</h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block mb-1 font-medium text-sm text-gray-700">PIN Code / ZIP<span class="text-red-500">*</span></label>
-                {{ userform.pinCode }}
-              </div>
-              <div>
-                <label class="block mb-1 font-medium text-sm text-gray-700">State<span class="text-red-500">*</span></label>
-                {{ userform.userState }}
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block mb-1 font-medium text-sm text-gray-700">District<span class="text-red-500">*</span></label>
-                {{ userform.userDistrict }}
-              </div>
-              <div>
-                <label class="block mb-1 font-medium text-sm text-gray-700">Block / Sub District<span class="text-red-500">*</span></label>
-                {{ userform.userCity }}
-              </div>
-            </div>
-
             <div>
-              <label class="block mb-1 font-medium text-sm text-gray-700">Address<span class="text-red-500">*</span></label>
-              {{ userform.userAddress }}
+              <label class="block mb-1 font-medium text-sm text-gray-700">UDISE <span class="text-gray-400 text-xs">(if School)</span></label>
+              {{ userform.udise_code }}
             </div>
+            <div>
+              <label class="block mb-1 font-medium text-sm text-gray-700">Name<span class="text-red-500">*</span></label>
+              {{ userform.first_name }}
+            </div>
+          </div>
 
-            <div class="flex justify-between pt-6">
-              <button type="button" class="px-6 py-2 text-white bg-red-600 hover:bg-red-700 rounded-md">
-                Cancel
-              </button>
-              <button type="submit" class="px-6 py-2 text-white bg-green-600 hover:bg-green-700 rounded-md">
-                {% if user.is_authenticated %}Update{% else %}Register{% endif %}
-              </button>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block mb-1 font-medium text-sm text-gray-700">Display Name<span class="text-red-500">*</span></label>
+              {{ userform.last_name }}
             </div>
-          </form>
-        </div>
+            <div>
+              <label class="block mb-1 font-medium text-sm text-gray-700">Business Name</label>
+              {{ userform.org_name }}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block mb-1 font-medium text-sm text-gray-700">Email</label>
+              {{ userform.email }}
+            </div>
+            <div>
+              <label class="block mb-1 font-medium text-sm text-gray-700">Phone Number<span class="text-red-500">*</span></label>
+              {{ userform.phone }}
+            </div>
+            <div>
+              <label class="block mb-1 font-medium text-sm text-gray-700">Alternate Phone No.</label>
+              {{ userform.phone1 }}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block mb-1 font-medium text-sm text-gray-700">Place of Supply<span class="text-red-500">*</span></label>
+              {{ userform.supply_place }}
+            </div>
+            <div>
+              <label class="block mb-1 font-medium text-sm text-gray-700">GST Treatment<span class="text-red-500">*</span></label>
+              {{ userform.gst_tmt }}
+            </div>
+          </div>
+
+          <div>
+            <label class="block mb-1 font-medium text-sm text-gray-700">GSTIN <span class="text-gray-400 text-xs">[If Registered Business (Regular/Composition)]</span></label>
+            {{ userform.gstin }}
+          </div>
+
+          <hr class="my-6 border-gray-200">
+
+          <h2 class="text-xl font-semibold text-gray-800 mb-4">Registered Address</h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block mb-1 font-medium text-sm text-gray-700">PIN Code / ZIP<span class="text-red-500">*</span></label>
+              {{ userform.pinCode }}
+            </div>
+            <div>
+              <label class="block mb-1 font-medium text-sm text-gray-700">State<span class="text-red-500">*</span></label>
+              {{ userform.userState }}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block mb-1 font-medium text-sm text-gray-700">District<span class="text-red-500">*</span></label>
+              {{ userform.userDistrict }}
+            </div>
+            <div>
+              <label class="block mb-1 font-medium text-sm text-gray-700">Block / Sub District<span class="text-red-500">*</span></label>
+              {{ userform.userCity }}
+            </div>
+          </div>
+
+          <div>
+            <label class="block mb-1 font-medium text-sm text-gray-700">Address<span class="text-red-500">*</span></label>
+            {{ userform.userAddress }}
+          </div>
+
+          <div class="flex justify-between pt-6">
+            <button type="button" class="px-6 py-2 text-white bg-red-600 hover:bg-red-700 rounded-md">
+              Cancel
+            </button>
+            <button type="submit" class="px-6 py-2 text-white bg-green-600 hover:bg-green-700 rounded-md">
+              {% if user.is_authenticated %}Update{% else %}Register{% endif %}
+            </button>
+          </div>
+        </form>
       </div>
-    </section>
-    <script>
-        window.onload = function () {
-        document.getElementById('udise_code').disabled = true;
-        };
-        document.getElementById("first_name").addEventListener("keydown", function() {
-          document.getElementById("last_name").value = document.getElementById("first_name").value;
-        });
-        document.getElementById('userType').addEventListener("change", function(){
-            if(this.value == "3"){
-                document.getElementById('udise_code').disabled = false;
+    </div>
+  </section>
+  <script>
+    window.onload = function () {
+    document.getElementById('udise_code').disabled = true;
+    };
+    document.getElementById("first_name").addEventListener("keydown", function() {
+      document.getElementById("last_name").value = document.getElementById("first_name").value;
+    });
+    document.getElementById('userType').addEventListener("change", function(){
+        if(this.value == "3"){
+            document.getElementById('udise_code').disabled = false;
+        }
+        else{
+            document.getElementById('udise_code').disabled = true;
+        }
+    });
+
+    document.getElementById("userType").addEventListener("blur", function(event){
+        if(this.value == 1){
+            document.getElementById("gst_tmt").value = 1;
+        }
+        else if(this.value == 3){
+            document.getElementById("gst_tmt").value = 3;
+        }
+        else if(this.value == 5){
+            document.getElementById("gst_tmt").value = 4;
+        }
+    });
+
+    document.getElementById("udise_code").addEventListener("blur", function(event) {
+        const form = event.target.closest(".formRegister");
+        checkUserType(form);
+    });
+    function checkUserType(form){
+        const userType=document.getElementById('userType').value;
+        if(userType == 1){
+            document.getElementById('gst_tmt').value = 1;
+        }
+        if(userType == 3){
+            const udise_code=document.getElementById('udise_code').value;
+            var udise_len = document.getElementById('udise_code').value.length;
+            if(udise_len < 11){
+                alert('Please enter valid UDISE Code!');
             }
             else{
-                document.getElementById('udise_code').disabled = true;
-            }
-        });
-
-        document.getElementById("userType").addEventListener("blur", function(event){
-            if(this.value == 1){
-                document.getElementById("gst_tmt").value = 1;
-            }
-            else if(this.value == 3){
-                document.getElementById("gst_tmt").value = 3;
-            }
-            else if(this.value == 5){
-                document.getElementById("gst_tmt").value = 4;
-            }
-        });
-
-        document.getElementById("udise_code").addEventListener("blur", function(event) {
-            const form = event.target.closest(".formRegister");
-            checkUserType(form);
-        });
-        function checkUserType(form){
-            const userType=document.getElementById('userType').value;
-            if(userType == 1){
-                document.getElementById('gst_tmt').value = 1;
-            }
-            if(userType == 3){
-                const udise_code=document.getElementById('udise_code').value;
-                var udise_len = document.getElementById('udise_code').value.length;
-                if(udise_len < 11){
-                    alert('Please enter valid UDISE Code!');
-                }
-                else{
-                    let url = "{% url 'fetch-school' 0 %}".replace('0', udise_code);
-                    fetch(url)  // Replace with your actual Django view URL
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();  // Parse JSON data
-                    })
-                    .then(data => {
-                        document.getElementById('first_name').value = JSON.stringify(data['school_name']).replace('"','').replace('"','').trim();
-                        document.getElementById('last_name').value = JSON.stringify(data['school_name']).replace('"','').replace('"','').trim();
-                        document.getElementById('org_name').value = JSON.stringify(data['school_name']).replace('"','').replace('"','').trim();
-                        document.getElementById('supply_place').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
-                        document.getElementById('userState').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
-                        let district = JSON.stringify(data['district_name']).replace('"','').replace('"','').trim();
-                        let sub_district = JSON.stringify(data['sub_dist_name']).replace('"','').replace('"','');
-                        fetch_lgd_district(document.getElementById('userState').value,district,sub_district, form);
-                        document.getElementById('userCity').value = JSON.stringify(data['sub_dist_name']).replace('"','').replace('"','');
-                        document.getElementById('userAddress').value = JSON.stringify(data['village_name']).replace('"','').replace('"','').trim();
-                    })
-                    .catch(error => {
-                        console.error(error);
-                        alert(JSON.stringify("Invalid UDISE Code"));
-                        //console.error('Error fetching data:', error);
-                    });
-                }
+                let url = "{% url 'fetch-school' 0 %}".replace('0', udise_code);
+                fetch(url)  // Replace with your actual Django view URL
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();  // Parse JSON data
+                })
+                .then(data => {
+                    document.getElementById('first_name').value = JSON.stringify(data['school_name']).replace('"','').replace('"','').trim();
+                    document.getElementById('last_name').value = JSON.stringify(data['school_name']).replace('"','').replace('"','').trim();
+                    document.getElementById('org_name').value = JSON.stringify(data['school_name']).replace('"','').replace('"','').trim();
+                    document.getElementById('supply_place').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
+                    document.getElementById('userState').value = JSON.stringify(data['state_name']).replace('"','').replace('"','').trim();
+                    let district = JSON.stringify(data['district_name']).replace('"','').replace('"','').trim();
+                    let sub_district = JSON.stringify(data['sub_dist_name']).replace('"','').replace('"','');
+                    fetch_lgd_district(document.getElementById('userState').value,district,sub_district, form);
+                    document.getElementById('userCity').value = JSON.stringify(data['sub_dist_name']).replace('"','').replace('"','');
+                    document.getElementById('userAddress').value = JSON.stringify(data['village_name']).replace('"','').replace('"','').trim();
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert(JSON.stringify("Invalid UDISE Code"));
+                    //console.error('Error fetching data:', error);
+                });
             }
         }
-        document.getElementById("gstin").addEventListener("blur", function() {
-            check_gstin();
-        });
-        function check_gstin(){
-            const gst_tmt = document.getElementById('gst_tmt').value;
-            if(gst_tmt == 1 || gst_tmt == 2){
-                const gstin = document.getElementById('gstin').value;
-                const gstin_length = document.getElementById('gstin').value.length;
-                if(gstin_length < 15 || gstin_length > 15){
-                    alert('Please, enter valid GSTIN!');
-                }
+    }
+    document.getElementById("gstin").addEventListener("blur", function() {
+        check_gstin();
+    });
+    function check_gstin(){
+        const gst_tmt = document.getElementById('gst_tmt').value;
+        if(gst_tmt == 1 || gst_tmt == 2){
+            const gstin = document.getElementById('gstin').value;
+            const gstin_length = document.getElementById('gstin').value.length;
+            if(gstin_length < 15 || gstin_length > 15){
+                alert('Please, enter valid GSTIN!');
             }
         }
+    }
 
-        document.querySelectorAll(".pinCode").forEach(function (input) {
-      input.addEventListener("blur", function (event) {
+    document.querySelectorAll(".pinCode").forEach(function (input) {
+  input.addEventListener("blur", function (event) {
+      const form = event.target.closest(".formRegister");
+      if (form) {
+          // Now 'form' refers to the specific form this input is in
+          const pincode = event.target.value;
+          // You can now call:
           const form = event.target.closest(".formRegister");
-          if (form) {
-              // Now 'form' refers to the specific form this input is in
-              const pincode = event.target.value;
-              // You can now call:
-              const form = event.target.closest(".formRegister");
-              //var pincode = document.getElementById('pinCode').value;
-              var postal_api = "https://api.postalpincode.in/pincode/"+pincode;
-              fetch(postal_api)
-              .then(response => response.json())
-              .then(data => {
-                  const select_userstate = form.querySelector('.userState');//document.getElementById("userState");
+          //var pincode = document.getElementById('pinCode').value;
+          var postal_api = "https://api.postalpincode.in/pincode/"+pincode;
+          fetch(postal_api)
+          .then(response => response.json())
+          .then(data => {
+              const select_userstate = form.querySelector('.userState');//document.getElementById("userState");
 
-                  var postal_data = data;
-                  if (postal_data[0]['Status'] == "Error"){
-                      alert('Pin Code not found!');
-                      return;
-                  }
-                  else{
-                      var state = postal_data[0]['PostOffice'][0]['Circle'];
-                      for (let i = 0; i < select_userstate.options.length; i++) {
-                          if (select_userstate.options[i].text === state) {
-                              select_userstate.selectedIndex = i;
-                              break;
-                          }
+              var postal_data = data;
+              if (postal_data[0]['Status'] == "Error"){
+                  alert('Pin Code not found!');
+                  return;
+              }
+              else{
+                  var state = postal_data[0]['PostOffice'][0]['Circle'];
+                  for (let i = 0; i < select_userstate.options.length; i++) {
+                      if (select_userstate.options[i].text === state) {
+                          select_userstate.selectedIndex = i;
+                          break;
                       }
                   }
-
-                  var statecode = form.querySelector('.userState').value;
-                  var district = postal_data[0]['PostOffice'][0]['District'];
-                  var sub_district = postal_data[0]['PostOffice'][0]['Block'];
-
-                  fetch_lgd_district(statecode, district, sub_district,form);
-              })
-              .catch(error => {
-                  console.log(error);
-              })
-          }
-      });
-  });
-
-  document.querySelectorAll(".userState").forEach(function (input){
-    input.addEventListener("change", function(event){
-      const selectedValue = event.target.value;
-      const form = event.target.closest(".formRegister");
-      if(form){
-        var statecode = form.querySelector('.userState').value
-        fetch_lgd_district_onchange(statecode);
-      }
-    });
-  });
-
-  function fetch_lgd_district_onchange(statecode){
-    const form = event.target.closest(".formRegister");
-    const userDistrict = form.querySelector('.userDistrict');
-    const userCity = form.querySelector(".userCity");
-    // Clear the select and then load
-    userDistrict.options.length = 0;
-    userCity.options.length = 0;
-
-    const defaultOption = document.createElement('option');
-    defaultOption.value = '';
-    defaultOption.text = 'Select District';
-    userDistrict.appendChild(defaultOption);
-
-    const api = `https://api.data.gov.in/resource/37231365-78ba-44d5-ac22-3deec40b9197?api-key=579b464db66ec23bdd0000011c8e390297d348f14342ed5a091d6a99&format=json&limit=1000&filters%5Bstate_code%5D=${statecode}`;
-    
-    fetch(api)
-      .then(response => response.json())
-      .then(data => {
-          if(data.status === "error"){
-              alert('Error in fetching data from API! Code:001');
-          }
-          
-          if (Array.isArray(data.records)) {
-              data.records.sort((a, b) => a.district_name_english.localeCompare(b.district_name_english));
-              for (const record of data.records) {
-                  const option = document.createElement('option');
-                  option.value = record.district_code;
-                  option.text = record.district_name_english;
-                  userDistrict.appendChild(option);
               }
-            } else {
-                console.error("Expected 'records' to be an array.");
-            }
-      })
-      .catch(error => {
-          console.error('Error fetching district data:', error);
-      });
-                
-  }
 
-  document.querySelectorAll(".userDistrict").forEach(function (input){
-    input.addEventListener("change", function(event){
-      const selectedValue = event.target.value;
-      const form = event.target.closest(".formRegister");
-      if(form){
-        var statecode = form.querySelector('.userState').value;
-        var districtcode = form.querySelector('.userDistrict').value;
-        fetch_lgd_subdistrict_onchange(statecode, districtcode);
+              var statecode = form.querySelector('.userState').value;
+              var district = postal_data[0]['PostOffice'][0]['District'];
+              var sub_district = postal_data[0]['PostOffice'][0]['Block'];
+
+              fetch_lgd_district(statecode, district, sub_district,form);
+          })
+          .catch(error => {
+              console.log(error);
+          })
       }
-    });
   });
+});
 
-  function fetch_lgd_subdistrict_onchange(statecode,districtcode){
-    const form = event.target.closest(".formRegister");
-    const userCity = form.querySelector(".userCity");
-    // Clear existing options
-    userCity.options.length = 0;
+    document.querySelectorAll(".userState").forEach(function (input){
+      input.addEventListener("change", function(event){
+        const selectedValue = event.target.value;
+        const form = event.target.closest(".formRegister");
+        if(form){
+          var statecode = form.querySelector('.userState').value
+          fetch_lgd_district_onchange(statecode);
+        }
+      });
+    });
 
-    const defaultOption = document.createElement('option');
-    defaultOption.value = '';
-    defaultOption.text = 'Select Block/Sub-District';
-    userCity.appendChild(defaultOption);
+    function fetch_lgd_district_onchange(statecode){
+      const form = event.target.closest(".formRegister");
+      const userDistrict = form.querySelector('.userDistrict');
+      const userCity = form.querySelector(".userCity");
+      // Clear the select and then load
+      userDistrict.options.length = 0;
+      userCity.options.length = 0;
 
-    const api = `https://api.data.gov.in/resource/6be51a29-876a-403a-a6da-42fde795e751?api-key=579b464db66ec23bdd0000011c8e390297d348f14342ed5a091d6a99&format=json&limit=1000&filters%5Bstate_code%5D=${statecode}&filters%5Bdistrict_code%5D=${districtcode}`;
+      const defaultOption = document.createElement('option');
+      defaultOption.value = '';
+      defaultOption.text = 'Select District';
+      userDistrict.appendChild(defaultOption);
 
-    fetch(api)
+      const api = `https://api.data.gov.in/resource/37231365-78ba-44d5-ac22-3deec40b9197?api-key=579b464db66ec23bdd0000011c8e390297d348f14342ed5a091d6a99&format=json&limit=1000&filters%5Bstate_code%5D=${statecode}`;
+      
+      fetch(api)
         .then(response => response.json())
         .then(data => {
-            data.records.sort((a, b) => a.subdistrict_name_english.localeCompare(b.subdistrict_name_english));
-
+            if(data.status === "error"){
+                alert('Error in fetching data from API! Code:001');
+            }
+            
             if (Array.isArray(data.records)) {
+                data.records.sort((a, b) => a.district_name_english.localeCompare(b.district_name_english));
                 for (const record of data.records) {
                     const option = document.createElement('option');
-                    option.value = record.subdistrict_code;
-                    option.text = record.subdistrict_name_english;
-                    userCity.appendChild(option);
+                    option.value = record.district_code;
+                    option.text = record.district_name_english;
+                    userDistrict.appendChild(option);
                 }
-            } else {
-                console.error("Expected 'records' to be an array.");
-            }
+              } else {
+                  console.error("Expected 'records' to be an array.");
+              }
         })
         .catch(error => {
-            console.error("Error fetching subdistrict data:", error);
+            console.error('Error fetching district data:', error);
         });
-  }
-
-  function fetch_lgd_district(statecode, district, sub_district, form) {
-    const userDistrict = form.querySelector('.userDistrict');
-    // Clear the select and then load
-        userDistrict.options.length = 0;
-
-        const defaultOption = document.createElement('option');
-        defaultOption.value = '';
-        defaultOption.text = 'Select District';
-        userDistrict.appendChild(defaultOption);
-
-        const api = `https://api.data.gov.in/resource/37231365-78ba-44d5-ac22-3deec40b9197?api-key=579b464db66ec23bdd0000011c8e390297d348f14342ed5a091d6a99&format=json&limit=1000&filters%5Bstate_code%5D=${statecode}`;
-        
-        fetch(api)
-            .then(response => response.json())
-            .then(data => {
-                if(data.status === "error"){
-                    alert('Error in fetching data from API! Code:001');
-                }
-                
-                if (Array.isArray(data.records)) {
-                    data.records.sort((a, b) => a.district_name_english.localeCompare(b.district_name_english));
-                    console.log(statecode);
-                    for (const record of data.records) {
-                        const option = document.createElement('option');
-                        option.value = record.district_code;
-                        option.text = record.district_name_english;
-                        userDistrict.appendChild(option);
-                    }
-                    
-                    if(!isNaN(district)){
-                        userDistrict.value = district;
-                    }
-                    else{
-                        let arr_districts = [];
-                        for (let i = 0; i < userDistrict.options.length; i++) {
-                            arr_districts.push(userDistrict.options[i].text);
-                        }
-                        
-                        const matchedDistrict = fuzzySearch(district, arr_districts);
-                        for (let i = 0; i < userDistrict.options.length; i++) {
-                            if (userDistrict.options[i].text === matchedDistrict[0]) {
-                                userDistrict.selectedIndex = i;
-                                break;
-                            }
-                        }
-                    }
-
-                    const selectedStateCode = form.querySelector('.userState')?.value;
-                    const selectedDistrictCode = userDistrict.value;
-
-                    fetch_lgd_subdistrict(selectedStateCode, selectedDistrictCode, sub_district, form);
-                } else {
-                    console.error("Expected 'records' to be an array.");
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching district data:', error);
-            });
-  }
-
-  function fetch_lgd_subdistrict(statecode, districtcode, sub_district, form){
-    const userCity = form.querySelector(".userCity");
-    // Clear existing options
-        userCity.options.length = 0;
-
-        const defaultOption = document.createElement('option');
-        defaultOption.value = '';
-        defaultOption.text = 'Select Block/Sub-District';
-        userCity.appendChild(defaultOption);
-
-        const api = `https://api.data.gov.in/resource/6be51a29-876a-403a-a6da-42fde795e751?api-key=579b464db66ec23bdd0000011c8e390297d348f14342ed5a091d6a99&format=json&limit=1000&filters%5Bstate_code%5D=${statecode}&filters%5Bdistrict_code%5D=${districtcode}`;
-
-        fetch(api)
-            .then(response => response.json())
-            .then(data => {
-                data.records.sort((a, b) => a.subdistrict_name_english.localeCompare(b.subdistrict_name_english));
-
-                if (Array.isArray(data.records)) {
-                    for (const record of data.records) {
-                        const option = document.createElement('option');
-                        option.value = record.subdistrict_code;
-                        option.text = record.subdistrict_name_english;
-                        userCity.appendChild(option);
-                    }
-
-                    if(!isNaN(sub_district)){
-                        userCity.value = sub_district;
-                    }
-                    else{
-                        const arr_subdistricts = [];
-                        for (let i = 0; i < userCity.options.length; i++) {
-                            arr_subdistricts.push(userCity.options[i].text);
-                        }
-
-                        const matchedSubdistrict = fuzzySearch(sub_district, arr_subdistricts);
-                        for (let i = 0; i < userCity.options.length; i++) {
-                            if (userCity.options[i].text === matchedSubdistrict[0]) {
-                                userCity.selectedIndex = i;
-                                break;
-                            }
-                        }
-                    }
-                } else {
-                    console.error("Expected 'records' to be an array.");
-                }
-            })
-            .catch(error => {
-                console.error("Error fetching subdistrict data:", error);
-            });
-  }
-
-  function levenshteinDistance(a, b) {
-    const matrix = Array.from({ length: b.length + 1 }, (_, i) => [i]);
-
-    for (let j = 0; j <= a.length; j++) {
-      matrix[0][j] = j;
+                  
     }
 
-    for (let i = 1; i <= b.length; i++) {
-      for (let j = 1; j <= a.length; j++) {
-        const cost = b[i - 1] === a[j - 1] ? 0 : 1;
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j] + 1,     // Deletion
-          matrix[i][j - 1] + 1,     // Insertion
-          matrix[i - 1][j - 1] + cost // Substitution
-        );
+    document.querySelectorAll(".userDistrict").forEach(function (input){
+      input.addEventListener("change", function(event){
+        const selectedValue = event.target.value;
+        const form = event.target.closest(".formRegister");
+        if(form){
+          var statecode = form.querySelector('.userState').value;
+          var districtcode = form.querySelector('.userDistrict').value;
+          fetch_lgd_subdistrict_onchange(statecode, districtcode);
+        }
+      });
+    });
+
+    function fetch_lgd_subdistrict_onchange(statecode,districtcode){
+      const form = event.target.closest(".formRegister");
+      const userCity = form.querySelector(".userCity");
+      // Clear existing options
+      userCity.options.length = 0;
+
+      const defaultOption = document.createElement('option');
+      defaultOption.value = '';
+      defaultOption.text = 'Select Block/Sub-District';
+      userCity.appendChild(defaultOption);
+
+      const api = `https://api.data.gov.in/resource/6be51a29-876a-403a-a6da-42fde795e751?api-key=579b464db66ec23bdd0000011c8e390297d348f14342ed5a091d6a99&format=json&limit=1000&filters%5Bstate_code%5D=${statecode}&filters%5Bdistrict_code%5D=${districtcode}`;
+
+      fetch(api)
+          .then(response => response.json())
+          .then(data => {
+              data.records.sort((a, b) => a.subdistrict_name_english.localeCompare(b.subdistrict_name_english));
+
+              if (Array.isArray(data.records)) {
+                  for (const record of data.records) {
+                      const option = document.createElement('option');
+                      option.value = record.subdistrict_code;
+                      option.text = record.subdistrict_name_english;
+                      userCity.appendChild(option);
+                  }
+              } else {
+                  console.error("Expected 'records' to be an array.");
+              }
+          })
+          .catch(error => {
+              console.error("Error fetching subdistrict data:", error);
+          });
+    }
+
+    function fetch_lgd_district(statecode, district, sub_district, form) {
+      const userDistrict = form.querySelector('.userDistrict');
+      // Clear the select and then load
+          userDistrict.options.length = 0;
+
+          const defaultOption = document.createElement('option');
+          defaultOption.value = '';
+          defaultOption.text = 'Select District';
+          userDistrict.appendChild(defaultOption);
+
+          const api = `https://api.data.gov.in/resource/37231365-78ba-44d5-ac22-3deec40b9197?api-key=579b464db66ec23bdd0000011c8e390297d348f14342ed5a091d6a99&format=json&limit=1000&filters%5Bstate_code%5D=${statecode}`;
+          
+          fetch(api)
+              .then(response => response.json())
+              .then(data => {
+                  if(data.status === "error"){
+                      alert('Error in fetching data from API! Code:001');
+                  }
+                  
+                  if (Array.isArray(data.records)) {
+                      data.records.sort((a, b) => a.district_name_english.localeCompare(b.district_name_english));
+                      console.log(statecode);
+                      for (const record of data.records) {
+                          const option = document.createElement('option');
+                          option.value = record.district_code;
+                          option.text = record.district_name_english;
+                          userDistrict.appendChild(option);
+                      }
+                      
+                      if(!isNaN(district)){
+                          userDistrict.value = district;
+                      }
+                      else{
+                          let arr_districts = [];
+                          for (let i = 0; i < userDistrict.options.length; i++) {
+                              arr_districts.push(userDistrict.options[i].text);
+                          }
+                          
+                          const matchedDistrict = fuzzySearch(district, arr_districts);
+                          for (let i = 0; i < userDistrict.options.length; i++) {
+                              if (userDistrict.options[i].text === matchedDistrict[0]) {
+                                  userDistrict.selectedIndex = i;
+                                  break;
+                              }
+                          }
+                      }
+
+                      const selectedStateCode = form.querySelector('.userState')?.value;
+                      const selectedDistrictCode = userDistrict.value;
+
+                      fetch_lgd_subdistrict(selectedStateCode, selectedDistrictCode, sub_district, form);
+                  } else {
+                      console.error("Expected 'records' to be an array.");
+                  }
+              })
+              .catch(error => {
+                  console.error('Error fetching district data:', error);
+              });
+    }
+
+    function fetch_lgd_subdistrict(statecode, districtcode, sub_district, form){
+      const userCity = form.querySelector(".userCity");
+      // Clear existing options
+          userCity.options.length = 0;
+
+          const defaultOption = document.createElement('option');
+          defaultOption.value = '';
+          defaultOption.text = 'Select Block/Sub-District';
+          userCity.appendChild(defaultOption);
+
+          const api = `https://api.data.gov.in/resource/6be51a29-876a-403a-a6da-42fde795e751?api-key=579b464db66ec23bdd0000011c8e390297d348f14342ed5a091d6a99&format=json&limit=1000&filters%5Bstate_code%5D=${statecode}&filters%5Bdistrict_code%5D=${districtcode}`;
+
+          fetch(api)
+              .then(response => response.json())
+              .then(data => {
+                  data.records.sort((a, b) => a.subdistrict_name_english.localeCompare(b.subdistrict_name_english));
+
+                  if (Array.isArray(data.records)) {
+                      for (const record of data.records) {
+                          const option = document.createElement('option');
+                          option.value = record.subdistrict_code;
+                          option.text = record.subdistrict_name_english;
+                          userCity.appendChild(option);
+                      }
+
+                      if(!isNaN(sub_district)){
+                          userCity.value = sub_district;
+                      }
+                      else{
+                          const arr_subdistricts = [];
+                          for (let i = 0; i < userCity.options.length; i++) {
+                              arr_subdistricts.push(userCity.options[i].text);
+                          }
+
+                          const matchedSubdistrict = fuzzySearch(sub_district, arr_subdistricts);
+                          for (let i = 0; i < userCity.options.length; i++) {
+                              if (userCity.options[i].text === matchedSubdistrict[0]) {
+                                  userCity.selectedIndex = i;
+                                  break;
+                              }
+                          }
+                      }
+                  } else {
+                      console.error("Expected 'records' to be an array.");
+                  }
+              })
+              .catch(error => {
+                  console.error("Error fetching subdistrict data:", error);
+              });
+    }
+
+    function levenshteinDistance(a, b) {
+      const matrix = Array.from({ length: b.length + 1 }, (_, i) => [i]);
+
+      for (let j = 0; j <= a.length; j++) {
+        matrix[0][j] = j;
       }
-    }
 
-    return matrix[b.length][a.length];
-  }
-
-  function fuzzySearch(query, items, threshold = 70) {
-    query = query.toLowerCase();
-    const results = [];
-
-    for (const item of items) {
-      const itemLower = item.toLowerCase();
-      const distance = levenshteinDistance(query, itemLower);
-      const maxLen = Math.max(query.length, itemLower.length);
-      const similarity = ((maxLen - distance) / maxLen) * 100;
-
-      if (similarity >= threshold) {
-        results.push(item);
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          const cost = b[i - 1] === a[j - 1] ? 0 : 1;
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j] + 1,     // Deletion
+            matrix[i][j - 1] + 1,     // Insertion
+            matrix[i - 1][j - 1] + cost // Substitution
+          );
+        }
       }
+
+      return matrix[b.length][a.length];
     }
 
-    if (results.length === 0 && threshold > 50) {
-      return fuzzySearch(query, items, 50); // recursive fallback
+    function fuzzySearch(query, items, threshold = 70) {
+      query = query.toLowerCase();
+      const results = [];
+
+      for (const item of items) {
+        const itemLower = item.toLowerCase();
+        const distance = levenshteinDistance(query, itemLower);
+        const maxLen = Math.max(query.length, itemLower.length);
+        const similarity = ((maxLen - distance) / maxLen) * 100;
+
+        if (similarity >= threshold) {
+          results.push(item);
+        }
+      }
+
+      if (results.length === 0 && threshold > 50) {
+        return fuzzySearch(query, items, 50); // recursive fallback
+      }
+
+      return results;
     }
 
-    return results;
-  }
-
-        
-    </script>
+    document.querySelectorAll("#phone").forEach(function (input){
+      input.addEventListener("blur", function(event){
+        var phone = this.value;
+        if(phone.length < 10 && phone.length != 0){
+          alert('Please enter valid mobile number.');
+          this.value = "";
+          this.focus();
+        }
+        else{
+          const url = "{% url 'check-phone' %}?phone="+phone;
+          fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            if(data.status === "error"){
+                alert('Error in fetching phone number!');
+            }
+            else{
+              var fetched = data.phone;
+              if(fetched){
+                alert('Phone number is already registered!\nPlease change the phone number.');
+                this.value = "";
+                this.focus();
+              }
+            }
+          })
+          .catch(error => {
+            alert('Error occured while searching phone number!');
+          });
+        }
+      })
+    });       
+  </script>
 {% endblock %}
