@@ -38,10 +38,15 @@ urlpatterns = [
     path('bulk-buy-response/<int:bbr_id>/', views.bulk_buy_response_details, name='bulk-buy-response-details'),
     path('bulk-buy/response/accept/<int:bulkBuyID>/<int:response_userID>', views.bulk_buy_response_accept, name='bulk-buy-response-accept'),
 
+
+    path('email-comm',views.send_activation_mail, name='email-comm'),
+    path('activate/',views.activate_account_from_email, name='activate-account'),
     path('check-phone/', views.check_phone_number, name='check-phone'),
     path('register/', views.registration_form, name='register'),
     path('register/user', views.register, name='register-user'),
+    path('accounts/login/', views.login_required, name='login'),
     path('login/', views.login_view, name='login'),
+    path('login-otp/', views.login_with_otp, name='login-otp'),
     path('logout/', views.logout_view, name='logout'),
     path('resetpassword/', views.reset_password_form, name='resetpasswordform'),
     path('resetpassword/forget', views.reset_password_form, name='forgetpassword'),
@@ -64,7 +69,6 @@ urlpatterns = [
     path('update-address/serving/<int:id>', views.update_serving_address, name='update-serving'),
     path('update-address/default/<int:id>', views.set_default_address, name='update-default-address'),
     path('update-serving-address/<int:id>', views.change_status_serving_address, name='update-serving-address'),
-    path('accounts/login/', views.login_required, name='login'),
 
     path('items/', views.item_list, name='item_list'),
     path('item/entry/', views.item_entry, name='item_entry'),

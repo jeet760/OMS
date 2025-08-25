@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.contrib import messages
@@ -14,7 +15,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
 from datetime import datetime
-from .models import CustomUser, UserShippingAddresses, UserBillingAddresses, FPOServingAddresses, ItemPincodeMap, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, OrderInvoice, OrderDelivery, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder, FPOAuthorisationDocs, UserMessage, SchoolUDISE #LGDData
+from .models import CustomUser, CustomUserOTP, UserShippingAddresses, UserBillingAddresses, FPOServingAddresses, ItemPincodeMap, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, OrderInvoice, OrderDelivery, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder, FPOAuthorisationDocs, UserMessage, SchoolUDISE #LGDData
 from .models import LIST_STATES, USERTYPES, GST_TREATMENT
 from .forms import ItemForm, UserRegistrationForm, UserLoginForm, OrderForm, OrderDetailsForm, InvoiceForm, FPOAuthrisationForm, ItemImportExcelForm
 import json
@@ -34,6 +35,8 @@ from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.generics import ListAPIView
 from .serializers import OrderSerializer
+from .securecomms import SMTPMail, OTPGeneration
+from django.core import signing
 
 #region API Calls from FarHa_AI
 class OrderPagination(PageNumberPagination):
@@ -590,28 +593,39 @@ def fetch_school_info(request):
     return render(request, 'school-udise-info.html', context=return_context)
 
 def registration_form(request):
-    form = UserRegistrationForm()#new register point: opening the registratino page without login
-    user_name = 'Guest!'
-    cart = Cart(request)
-    total_cart_qty = cart.__len__()#display total number quantities added in the basket
-    total_cart_price = cart.get_total_price()
-    register_context = {
-        'userform': form,
-        'login_user':user_name,
-        'total_cart_qty':total_cart_qty,
-        'total_cart_price':total_cart_price,
-        'states':LIST_STATES,
-        'gst_tmts':GST_TREATMENT,
-        'user_types':USERTYPES,
-    }
-    return render(request, 'register.html', context=register_context)
+    if not request.user.is_authenticated:
+        form = UserRegistrationForm()#new register point: opening the registratino page without login
+        user_name = 'Guest!'
+        cart = Cart(request)
+        total_cart_qty = cart.__len__()#display total number quantities added in the basket
+        total_cart_price = cart.get_total_price()
+        register_context = {
+            'userform': form,
+            'login_user':user_name,
+            'total_cart_qty':total_cart_qty,
+            'total_cart_price':total_cart_price,
+            'states':LIST_STATES,
+            'gst_tmts':GST_TREATMENT,
+            'user_types':USERTYPES,
+        }
+        return render(request, 'register.html', context=register_context)
+    else:
+        return redirect('index')
 
 def check_phone_number(request):
-    phone = request.GET.get('phone')
-    check = CustomUser.objects.filter(phone=phone).first()
-    if check:
-        check = check.phone
-    return JsonResponse({'phone':check})
+    try:
+        q_phone = request.GET.get('phone')
+        phone = ''
+        username = ''
+        email = ''
+        check = CustomUser.objects.filter(phone=q_phone).first()
+        if check:
+            phone = check.phone
+            username = check.username
+            email = check.email
+    except Exception as ex:
+        print(ex)
+    return JsonResponse({'phone':phone, 'username':username, 'email':email})
 
 def create_fpo_regn_id(state_code,district_code,subdist_code):
     num = random.randint(1,99)
@@ -623,68 +637,81 @@ def create_fpo_regn_id(state_code,district_code,subdist_code):
     return regn_id
 
 def register(request):
-    if request.method == 'POST':
-        form = UserRegistrationForm(request.POST)#Point: After clicking register button
-        if request.user.is_authenticated == False: #update == None:#New registration
-            if form.is_valid():
-                if request.POST['userType'] == '3':
-                    udise_exists = SchoolUDISE.objects.filter(udise_code=request.POST['udise_code']).exists()
-                    if udise_exists == False:
-                        messages.error(request,'Invalid UDISE Code!\nPlease use valid UDISE code.')
-                        return redirect('register')
-                    
-                    check_reg = CustomUser.objects.filter(udise_code=request.POST['udise_code']).exists()
-                    if check_reg:
-                        messages.error(request, 'UDISE Code exists! Please login using UDISE Code.')
-                        return redirect('register')
-                    else:
-                        user = form.save(param_password=request.POST['udise_code'])
-                        messages.success(request,f'You can use your phone number {request.POST['phone']} or UDISE Code {request.POST['udise_code']} as Username.\nPassword is the UDISE Code.')
-                elif request.POST['userType'] == '1':
-                    regn_no = create_fpo_regn_id(request.POST['userState'],request.POST['userDistrict'],request.POST['userCity'])
-                    user = form.save(param_password=request.POST['phone'], commit=False)
-                    user.username = regn_no
-                    user.save()
-                    messages.success(request,f'Your Registration Code is {regn_no}.\nYou can also use this code or phone number {request.POST['phone']} as Username.\nPassword is your phone number.')
+    try:
+        if request.method == 'POST':
+            form = UserRegistrationForm(request.POST)#Point: After clicking register button
+            if request.user.is_authenticated == False: #update == None:#New registration
+                if form.is_valid():
+                    if request.POST['userType'] == '3':#school
+                        udise_exists = SchoolUDISE.objects.filter(udise_code=request.POST['udise_code']).exists()
+                        if udise_exists == False:
+                            messages.error(request,'Invalid UDISE Code!\nPlease use valid UDISE code.')
+                            return redirect('register')
+                        
+                        check_reg = CustomUser.objects.filter(udise_code=request.POST['udise_code']).exists()
+                        if check_reg:
+                            messages.error(request, 'UDISE Code exists! Please login using UDISE Code.')
+                            return redirect('register')
+                        else:
+                            user = form.save(param_password=request.POST['udise_code'])
+                            messages.success(request,f'You can use your phone number {request.POST['phone']} or UDISE Code {request.POST['udise_code']} as Username.\nPassword is the UDISE Code.')
+                            regn_no = request.POST['udise_code']
+                            type_of_mail = 'approval'
+                    elif request.POST['userType'] == '1':#fpo
+                        regn_no = create_fpo_regn_id(request.POST['userState'],request.POST['userDistrict'],request.POST['userCity'])
+                        user = form.save(param_password=request.POST['phone'], commit=False)
+                        user.username = regn_no
+                        user.save()
+                        messages.success(request,f'Your Registration Code is {regn_no}.\nYou can also use this code or phone number {request.POST['phone']} as Username.\nPassword is your phone number.')
+                        type_of_mail = 'registration'
+                    else:#others
+                        user = form.save(param_password=request.POST['phone'])
+                        messages.success(request,f'You can use phone number {request.POST['phone']} as Username.\nPassword is your phone number.')
+                        regn_no = request.POST['phone']
+                        type_of_mail = 'approval'
+                    contact_person = user.last_name
+                    contact_no = user.phone
+                    regd_name = user.first_name
+
+                    pincode_lat_lon_data = fetch_lat_lon_from_pincode_api(user.pinCode)
+                    loc_lat = pincode_lat_lon_data['lat']
+                    loc_long = pincode_lat_lon_data['lon']
+                    # loc_lat = 20.9517
+                    # loc_long = 85.0985
+                    if user.userType == '3':
+                        school = get_object_or_404(SchoolUDISE, udise_code=user.udise_code)
+                        loc_lat=school.loc_lat
+                        loc_long=school.loc_long
+                        
+                    lgd_data = fetch_lgd_data_from_api(user.userState, user.userDistrict, user.userCity)
+                    userCity_name = lgd_data['sub_dist_name']
+                    userDistrict_name = lgd_data['district_name']
+                    userState_name = lgd_data['state_name']
+
+                    CustomUser.objects.filter(pk=user.id).update(userCity_name=userCity_name, userDistrict_name=userDistrict_name, userState_name=userState_name, bill_address_lat = loc_lat, bill_address_long = loc_long, ship_address_lat = loc_lat, ship_address_long = loc_long)
+                    UserBillingAddresses.objects.create(userID_id=user.pk,userAddress=user.userAddress, userCity=user.userCity, userCity_name=userCity_name, userDistrict=user.userDistrict, userDistrict_name=userDistrict_name, userState=user.userState, userState_name=userState_name, pinCode=user.pinCode, contactPerson=contact_person, contactNo=contact_no, address_lat=loc_lat, address_long=loc_long, setDefault=True)
+                    UserShippingAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress, userCity1=user.userCity, userCity1_name=userCity_name, userDistrict1=user.userDistrict, userDistrict1_name=userDistrict_name, userState1=user.userState, userState1_name=userState_name, pinCode1=user.pinCode, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=loc_lat, address_long1=loc_long, setDefault=True)
+                    if user.userType == '1':
+                        FPOServingAddresses.objects.create(userID_id=user.pk, userAddress1=user.userAddress, userCity1=user.userCity, userCity1_name=userCity_name, userDistrict1=user.userDistrict, userDistrict1_name=userDistrict_name, userState1=user.userState, userState1_name=userState_name, pinCode1=user.pinCode, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=loc_lat, address_long1=loc_long, isActive=True)
+                    if user.userType != '1':
+                        CustomUser.objects.filter(pk=user.id).update(userApproved=True,approvedOn=datetime.today(),isActive=True,activatedOn=datetime.today())
+                    return_response = send_activation_mail(request=request, to_email_id=request.POST['email'], regn_no=regn_no, regd_name=regd_name, type_of_mail=type_of_mail)
+                    if return_response == False:
+                        messages.error(request, 'Error Occured while intimating account activation process')
+                    return redirect('login')  # Redirect to a home page
                 else:
-                    user = form.save(param_password=request.POST['phone'])
-                    messages.success(request,f'You can use phone number {request.POST['phone']} as Username.\nPassword is your phone number.')
-                contact_person = user.last_name
-                contact_no = user.phone
-
-                pincode_lat_lon_data = fetch_lat_lon_from_pincode_api(user.pinCode)
-                loc_lat = pincode_lat_lon_data['lat']
-                loc_long = pincode_lat_lon_data['lon']
-                # loc_lat = 20.9517
-                # loc_long = 85.0985
-                if user.userType == '3':
-                    school = get_object_or_404(SchoolUDISE, udise_code=user.udise_code)
-                    loc_lat=school.loc_lat
-                    loc_long=school.loc_long
-                    
-                lgd_data = fetch_lgd_data_from_api(user.userState, user.userDistrict, user.userCity)
-                userCity_name = lgd_data['sub_dist_name']
-                userDistrict_name = lgd_data['district_name']
-                userState_name = lgd_data['state_name']
-
-                CustomUser.objects.filter(pk=user.id).update(userCity_name=userCity_name, userDistrict_name=userDistrict_name, userState_name=userState_name, bill_address_lat = loc_lat, bill_address_long = loc_long, ship_address_lat = loc_lat, ship_address_long = loc_long)
-                UserBillingAddresses.objects.create(userID_id=user.pk,userAddress=user.userAddress, userCity=user.userCity, userCity_name=userCity_name, userDistrict=user.userDistrict, userDistrict_name=userDistrict_name, userState=user.userState, userState_name=userState_name, pinCode=user.pinCode, contactPerson=contact_person, contactNo=contact_no, address_lat=loc_lat, address_long=loc_long, setDefault=True)
-                UserShippingAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress, userCity1=user.userCity, userCity1_name=userCity_name, userDistrict1=user.userDistrict, userDistrict1_name=userDistrict_name, userState1=user.userState, userState1_name=userState_name, pinCode1=user.pinCode, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=loc_lat, address_long1=loc_long, setDefault=True)
-                if user.userType == '1':
-                    FPOServingAddresses.objects.create(userID_id=user.pk, userAddress1=user.userAddress, userCity1=user.userCity, userCity1_name=userCity_name, userDistrict1=user.userDistrict, userDistrict1_name=userDistrict_name, userState1=user.userState, userState1_name=userState_name, pinCode1=user.pinCode, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=loc_lat, address_long1=loc_long, isActive=True)
-                if user.userType != '1':
-                    CustomUser.objects.filter(pk=user.id).update(userApproved=True,approvedOn=datetime.today(),isActive=True,activatedOn=datetime.today())
-                return redirect('login')  # Redirect to a home page
+                    print(form.errors)
+                    errors = form.errors.get_json_data()
+                    for field, field_errors in errors.items():
+                        for error in field_errors:
+                            messages.error(request, f"{field.capitalize()}: {error['message']}")
+                    return redirect('register')
             else:
-                print(form.errors)
-                errors = form.errors.get_json_data()
-                for field, field_errors in errors.items():
-                    for error in field_errors:
-                        messages.error(request, f"{field.capitalize()}: {error['message']}")
                 return redirect('register')
         else:
             return redirect('register')
-    else:
+    except Exception as ex:
+        print(f'{type(ex).__name__}')
         return redirect('register')
 
 def profile_view(request):
@@ -752,7 +779,7 @@ def profile_view(request):
 
 def fpo_auth(request):
     if request.user.is_authenticated:
-        user_approved = request.user.userApproved
+        user_approved = True if request.user.userApproved else False
         login_user = request.user.last_name
         auth_details = FPOAuthorisationDocs.objects.filter(userID_id=request.user.pk)
         if auth_details.exists():
@@ -786,7 +813,10 @@ def upload_fpo_docs(request):
     return redirect('index')
 
 def approve_user(request, userID):
-    CustomUser.objects.filter(pk=userID).update(userApproved=True, isActive=True, approvedOn=datetime.now())
+    fpo = CustomUser.objects.filter(pk=userID)
+    regn_no, email, regd_name = fpo.values_list('username','email','first_name').first()
+    update = fpo.update(userApproved=True, isActive=True, approvedOn=datetime.now())
+    return_response = send_activation_mail(request=request, to_email_id=email, regn_no=regn_no, regd_name=regd_name, type_of_mail='approval')
     return redirect('admin-master')
 
 def verify_fpo(request, userID):
@@ -1122,8 +1152,8 @@ def login_view(request):
             try:
                 user_login = authenticate(request, username=username, password=password)
                 if user_login:
-                    if user_login.isActive == False:
-                        messages.error(request, 'Your Account is not active! Please, contact administrator to activate your account.')
+                    if not user_login.isActive or user_login.isActive == False:
+                        messages.warning(request, 'Your Account is not active! Please, contact administrator to activate your account.')
                     else:
                         login(request, user_login)
                         if user_login.userType == '0' and user_login.is_superuser:
@@ -1147,6 +1177,37 @@ def login_view(request):
         form = UserLoginForm()
     return render(request, 'login.html', {'loginform': form, 'login_user':'Guest!'})
 
+def login_with_otp(request):
+    if request.method == 'POST':
+        try:
+            username = request.POST['username']
+            password = request.POST['phone']
+            otp = request.POST['otp']
+            #validate the user
+            requested_user_id = CustomUser.objects.filter(username=username,phone=password).values_list('id',flat=True).first()
+            requested_user_otp = CustomUserOTP.objects.filter(username=username).order_by('-otp_created_at').first()
+            #validate the otp w.r.t requested_user_id, username and otp
+            if requested_user_id and requested_user_otp.otp == otp and requested_user_otp.is_valid():
+                #login
+                user_login = authenticate(request, username=username, password=password)
+                if user_login:
+                    login(request, user_login)
+                    if user_login.userType == '1':
+                        requested_user_otp.attempt_count += 1
+                        requested_user_otp.save(update_fields=["attempt_count"])
+                        return redirect('profile-auth')
+                    else:
+                        form = UserLoginForm()
+                else:
+                    form = UserLoginForm()
+            else:
+                messages.error(request, 'Invalid OTP entered! Please enter the OTP sent over the registered email.')
+                form = UserLoginForm()
+        except Exception as ex:
+            print(f'Error: {type(ex).__name__}')
+            form = UserLoginForm()
+    return render(request, 'login.html', {'loginform': form, 'login_user':'Guest!'})
+
 def forgot_password(request):
     return render(request, 'reset_password.html', {})
 
@@ -1166,7 +1227,6 @@ def reset_password_form(request):
     else:
         return render(request, 'reset_password.html', {})
     
-
 def reset_password(request):
     if request.method == 'POST':
         param_username = request.POST.get('username')
@@ -1178,12 +1238,64 @@ def reset_password(request):
     else:
         return render(request, 'reset_password.html', {})
 
-
 @login_required
 def logout_view(request):
     request.session.flush()
     logout(request)
     return redirect('index')
+
+def send_activation_mail(request, to_email_id, regn_no, regd_name, type_of_mail):
+    try:
+        scheme = request.scheme  # "http" or "https"
+        host = request.get_host()  # "127.0.0.1:8000" or "farmerharvest.in"
+        regd_user = CustomUser.objects.filter(username=regn_no).first()
+        if not regd_user:
+            return False
+        elif type_of_mail == 'registration':
+            token = encode_activation_token(regn_no=regn_no)
+            otp_generated = OTPGeneration(6)
+            email_otp = otp_generated.otp
+            regd_user.email_otp.create(username=regn_no, otp=email_otp, otp_for='email')
+            href_url = f"{scheme}://{host}/activate?token={token}"
+        elif type_of_mail == 'approval':
+            href_url = f"{scheme}://{host}/login"
+            token = regn_no
+            email_otp=''
+        mail = SMTPMail(to_emails=[to_email_id], regd_name=regd_name, regn_no=token, href_url=href_url, type_of_mail=type_of_mail, email_otp=email_otp)
+        result = mail.send_email()
+        return result
+    except Exception as ex:
+        return False
+
+def activate_account_from_email(request):
+    token = request.GET.get("token")
+    decode_data = deocde_activation_token(token)
+    username = decode_data['uid']
+    try:
+        last_name, phone, userApproved = CustomUser.objects.filter(username=username).values_list('last_name','phone','userApproved').first()
+        if userApproved:
+            messages.success(request,'Your FPO Hub request has been approved!')
+        return_context = {
+            'last_name':last_name,
+            'phone':phone,
+            'username':username,
+            'userApproved':userApproved,
+        }
+        return render(request, 'activation.html', context = return_context)
+    except Exception as ex:
+        return redirect('login')
+
+def encode_activation_token(regn_no):
+    data = {'uid':regn_no, 'source':'email'}
+    token = signing.dumps(data)
+    return token
+
+def deocde_activation_token(token):
+    try:
+        data = signing.loads(token, max_age=86400)
+        return data
+    except Exception as ex:
+        return None
 #endregion
 
 #region Admin Consoles (application and system admins)

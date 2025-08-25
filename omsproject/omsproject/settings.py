@@ -151,3 +151,18 @@ CART_SESSION_ID = 'cart'
 RAZORPAY_KEY_ID = 'rzp_live_KnDdqDu3539I8x'
 RAZORPAY_KEY_SECRET = 'csucZm0SaksXsHMsVqJI5u0c'
 #RAZORPAY_WEBHOOK_SECRET = '@PDxaBy6J3f7U4p'
+
+#Email Configurations
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+
+EMAIL_HOST_USER = 'connect@farmerharvest.in'
+EMAIL_HOST_PASSWORD = 'ggar fswm mxgn qsqr'
+
+DEFAULT_FROM_EMAIL = 'connect@farmerharvest.in'
+SERVER_EMAIL = 'connect@farmerharvest.in'
+EMAIL_TIMEOUT = 90
+EMAIL_SUBJECT_PREFIX = ''

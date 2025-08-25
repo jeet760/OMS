@@ -3,6 +3,8 @@ from django.db.models import Model, CharField, AutoField, DecimalField, ForeignK
 from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import now
 from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
 #import datetime
 
 
@@ -106,7 +108,7 @@ class CustomUser(AbstractUser):
     first_name = CharField(max_length=50)#name
     last_name = CharField(max_length=50)#displayname
     org_name=CharField(max_length=50, default='', blank=True)#business name
-    email = EmailField(max_length=50, default='', blank=True)#not mandatory
+    email = EmailField(max_length=50)
     phone = CharField(max_length=12, unique=True)
     phone1 = CharField(max_length=12, default='', blank=True)
     gstin = CharField(max_length=15, default='', blank=True)
@@ -148,6 +150,17 @@ class CustomUser(AbstractUser):
                 self.username = self.phone
         super().save(*args, **kwargs)
 
+class CustomUserOTP(Model):
+    id = AutoField(primary_key=True)
+    userID = ForeignKey(CustomUser, on_delete=CASCADE, related_name='email_otp')
+    username = CharField(max_length=11)
+    otp = CharField(max_length=6)
+    otp_created_at = DateTimeField(auto_now_add=True)
+    otp_for = CharField(max_length=6, default='email')
+    attempt_count = IntegerField(default=0)
+
+    def is_valid(self):
+        return timezone.now() <= self.otp_created_at + timedelta(hours=24)
 
 class Login(Model):
     id = AutoField(primary_key=True)
@@ -247,7 +260,7 @@ class FPOAuthorisationDocs(Model):
     bank_verified_on = DateField(null=True, verbose_name='Bank Verified On')
     bank_remark = CharField(max_length=100, null=True, verbose_name='Bank Remark')
     
-    fssai = FileField(null=True, verbose_name='FSSAI', upload_to='fpodocs/')
+    fssai = FileField(null=True, blank=True, verbose_name='FSSAI', upload_to='fpodocs/')
     fssai_verified = BooleanField(null=True, verbose_name='FSSAI Verified')
     fssai_verified_on = DateField(null=True, verbose_name='FSSAI Verified On')
     fssai_remark = CharField(max_length=100, null=True, verbose_name='FSSAI Remark')
@@ -296,7 +309,7 @@ class Item(Model):
         return self.itemID
 #endregion
 
-#regigion Item Pincode Map
+#region Item Pincode Map
 class ItemPincodeMap(Model):
     id = AutoField(primary_key=True)
     itemID = ForeignKey(Item, on_delete=CASCADE, related_name='item_pincode_map')

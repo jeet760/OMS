@@ -80,7 +80,7 @@ class UserRegistrationForm(ModelForm):
                 'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'UDISE Number',
                 'id':'udise_code',
-                'type':'number'
+                'type':'number',
             }),#UDISE code of the school
             'first_name': TextInput(attrs={
                 'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
@@ -106,12 +106,14 @@ class UserRegistrationForm(ModelForm):
             'phone':TextInput(attrs={
                 'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Phone/Mobile Number',
-                'id':'phone'
+                'id':'phone',
+                'type':'number'
             }),
             'phone1':TextInput(attrs={
                 'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'Phone/Mobile Number',
-                'id':'phone1'
+                'id':'phone1',
+                'type':'number', 
             }),
             'gstin':TextInput(attrs={
                 'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',

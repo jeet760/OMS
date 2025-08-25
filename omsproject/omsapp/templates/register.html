@@ -42,7 +42,7 @@
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label class="block mb-1 font-medium text-sm text-gray-700">Email</label>
+              <label class="block mb-1 font-medium text-sm text-gray-700">Email<span class="text-red-500">*</span></label>
               {{ userform.email }}
             </div>
             <div>
@@ -497,6 +497,9 @@
     document.querySelectorAll("#phone").forEach(function (input){
       input.addEventListener("blur", function(event){
         var phone = this.value;
+        if(phone.length === 0){
+          return;
+        }
         if(phone.length < 10 && phone.length != 0){
           alert('Please enter valid mobile number.');
           this.value = "";
@@ -511,8 +514,8 @@
                 alert('Error in fetching phone number!');
             }
             else{
-              var fetched = data.phone;
-              if(fetched){
+              var fetched_value = data.phone;
+              if(fetched_value){
                 alert('Phone number is already registered!\nPlease change the phone number.');
                 this.value = "";
                 this.focus();

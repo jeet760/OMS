@@ -84,7 +84,11 @@
         margin-left: 1.5em;  /* or padding-left */
     }
 </style>
-    <h2 class="text-xl font-semibold mb-4 text-gray-700">FPO Authorisation Details{% if user_approved == False %}<strong>(Yet to Approved!)</strong>{% endif %}</h2>
+    {% if user_approved == False %}
+    <h2 class="text-xl font-semibold mb-4 text-gray-500">Following details and documents are required to activate the FPO Hub.<em class="text-xl font-semibold mb-4 text-red-500">(FPO Hub yet to be activated!)</em></h2>
+    {% else %}
+    <h2 class="text-xl font-semibold mb-4 text-gray-500"><em class="text-xl font-semibold mb-4 text-green-500">FPO Hub is Active.</em></h2>
+    {% endif %}
     <em>
         <p class="text-sm font-semibold mb-4 text-red-500">
             <sup>*</sup>Marks are mandatory fields.<br>
@@ -187,7 +191,7 @@
                 </tr>
                 <tr class="border-b border-gray-300 hover:bg-gray-100">
                     <td class="py-2 px-3">8</td>
-                    <td class="py-2 px-3"><strong>FSSAI License</strong><sup>*#</sup></td>
+                    <td class="py-2 px-3"><strong>FSSAI License</strong></td>
                     <td class="py-2 px-3">{{auth_form.fssai}}</td>
                     <td class="py-2 px-3">{{auth_form.instance.fssai.name|cut:'fpodocs/'}}</td>
                     <td class="py-2 px-3">

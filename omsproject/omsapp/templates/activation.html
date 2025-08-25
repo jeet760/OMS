@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Welcome • Farmer Harvest</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{ color-scheme: light dark; }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }
+  </style>
+</head>
+<body class="bg-gradient-to-b from-emerald-50 to-white min-h-screen">
+  <!-- Header -->
+  <header class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="h-9 w-9 rounded-xl bg-emerald-600 flex items-center justify-center shadow-md">
+          <!-- simple leaf mark -->
+          <svg class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M5 21c6.5 0 14-5.5 14-14 0-.34-.02-.68-.05-1.01a1 1 0 0 0-1.1-.9C9.5 6 3 12.5 3 19a2 2 0 0 0 2 2Zm3.5-3.5a.75.75 0 0 1-1.06-1.06l6.75-6.75a.75.75 0 1 1 1.06 1.06L8.5 17.5Z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <!-- Welcome / Hero -->
+    <section class="text-center mb-10">
+      <h1 class="mt-4 text-3xl sm:text-4xl font-extrabold text-gray-900">
+        Hello <span class="text-[#FF9933]">{{last_name|default:'FPO'}}</span>
+      </h1>
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold">
+        Welcome to 
+        <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
+        Farmer Harvest.
+        <a href="https://farmerharvest.in" class="text-sm font-medium text-emerald-700 hover:text-emerald-900">Go to site →</a>
+      </span>
+    </section>
+
+    <!-- Activation Card -->
+    <section class="bg-white/80 backdrop-blur rounded-2xl shadow-md ring-1 ring-emerald-100 overflow-hidden">
+      <div class="p-6 sm:p-8">
+        <div class="flex items-start gap-4">
+          <div class="hidden sm:flex h-10 w-10 rounded-xl bg-emerald-600 items-center justify-center shrink-0">
+            <svg class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 1-6.32 17.74l-2.4.8a1 1 0 0 1-1.26-1.26l.8-2.4A10 10 0 0 1 12 2Zm-2 7a1 1 0 0 0-1 1v5a1 1 0 1 0 2 0v-5a1 1 0 0 0-1-1Zm2 0a1 1 0 0 0-1 1v1.5a1 1 0 1 0 2 0V10a1 1 0 0 0-1-1Z"/></svg>
+          </div>
+          <div class="w-full">
+            <form action="{% url 'login-otp' %}" method="post">
+                {% csrf_token %}
+                {% if userApproved %}
+                    {% if messages %}
+                        {% for message in messages %}
+                        <h2 class="{% if 'success' in message.tags %}bg-green-100 text-green-800 border-l-4 border-green-500
+                                    {% elif 'error' in message.tags %}bg-red-100 text-red-800 border-l-4 border-red-500
+                                    {% elif 'warning' in message.tags %}bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500
+                                    {% elif 'info' in message.tags %}bg-blue-100 text-blue-800 border-l-4 border-blue-500
+                                    {% else %}bg-gray-100 text-gray-800 border-l-4 border-gray-500{% endif %}
+                                    p-3 rounded my-2">
+                            {{ message }}
+                        </h2>
+                        {% endfor %}
+                    {% endif %}
+                {% else %}
+                <h2 class="text-xl font-bold text-gray-900">Activate your account</h2>
+                <p class="mt-1 text-sm text-gray-600">
+                Click the button below to verify your email and secure your account. This link expires in 24 hours.
+                </p>
+                {% endif %}
+                <!-- or Code -->
+                <div class="mt-6">
+                    <p class="text-sm text-gray-700 font-medium">Your Credentials are:</p>
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 items-center max-w-md">
+                        <!-- Phone -->
+                        <label for="phone" class="text-gray-800 md:text-right">Phone:</label>
+                        <input type="number" name="phone" id="phone"
+                            value="{{ phone|default:'00000000000' }}"
+                            class="w-full rounded-lg bg-gray-50 ring-1 ring-gray-200 px-3 py-2 font-mono text-sm text-gray-800" />
+
+                        <!-- Username -->
+                        <label for="username" class="text-gray-800 md:text-right">Username:</label>
+                        <input type="text" name="username" id="username"
+                            value="{{ username|default:'00000000000' }}"
+                            class="w-full rounded-lg bg-gray-50 ring-1 ring-gray-200 px-3 py-2 font-mono text-sm text-gray-800" />
+
+                        <!-- OTP -->
+                        <label for="otp" class="text-gray-800 md:text-right">OTP:</label>
+                        <input type="text" name="otp" id="otp"
+                            class="w-full rounded-lg bg-gray-50 ring-1 ring-gray-200 px-3 py-2 font-mono text-sm text-gray-800" />
+
+                        <!-- Submit button -->
+                        <div class="col-span-1 md:col-span-2 flex justify-center mt-4">
+                            <button type="submit" 
+                                class="inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[#FF9933] text-white font-semibold hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 transition">
+                                {% if userApproved %}
+                                    Login
+                                {% else %}
+                                    Request for FPO Hub.
+                                {% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="p-4 bg-white text-black">
+                <p class="font-semibold mb-3">
+                    To request for the activation of the FPO Hub, you need to submit the copies of the following documents:
+                </p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="p-4 rounded-xl border border-emerald-100 text-center text-[#FF9933] font-semibold">
+                    Board Resolution
+                    </div>
+                    <div class="p-4 rounded-xl border border-emerald-100 text-center text-[#FF9933] font-semibold">
+                    CIN/Registration Certificate
+                    </div>
+                    <div class="p-4 rounded-xl border border-emerald-100 text-center text-[#FF9933] font-semibold">
+                    PAN
+                    </div>
+                    <div class="p-4 rounded-xl border border-emerald-100 text-center text-[#FF9933] font-semibold">
+                    Bank Account Details
+                    </div>
+                    <div class="p-4 rounded-xl border border-emerald-100 text-center text-[#FF9933] font-semibold">
+                    FSSAI License
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Help / Footer text -->
+            <div class="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div class="text-xs text-gray-500">
+                Need help? <a href="mailto:connect@farmerharvest.in" class="text-emerald-700 hover:text-emerald-900 font-medium">Contact support</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Decorative footer strip -->
+      <div class="h-1 w-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400"></div>
+    </section>
+  </main>
+</body>
+</html>
