@@ -50,14 +50,19 @@ class OrderListAPI(generics.ListAPIView):
     pagination_class = OrderPagination
     
     def get_queryset(self):
-        # Only fetch a page of CustomUser at a time
-        return CustomUser.objects.filter(userType="3").select_related(
-        ).prefetch_related(
+        # Get userType from query params (default = None if not provided)
+        user_type = self.request.query_params.get("userType", None)
+
+        queryset = CustomUser.objects.all().select_related().prefetch_related(
             Prefetch(
                 "customer_orders__orderdetails",
                 queryset=OrderDetails.objects.select_related("itemID")
             )
         )
+        if user_type:
+            queryset = queryset.filter(userType=user_type)
+
+        return queryset
 
 
 # class SchoolDetailsAPI(generics.ListAPIView):
