@@ -20,7 +20,7 @@ class SMTPMail:
     def send_email(self):
         try:
             approved = True if self.type_of_mail == 'approval' else False
-            html_content = render_to_string('activation-mail.html',context={'uid':self.body, 'regd_name':self.regd_name, 'href_url':self.href_url, 'email_otp':self.email_otp, 'approved':approved})
+            html_content = render_to_string('activation-mail.html',context={'type_of_mail':self.type_of_mail,'uid':self.body, 'regd_name':self.regd_name, 'href_url':self.href_url, 'email_otp':self.email_otp, 'approved':approved})
             text_content = strip_tags(html_content)
 
             email = EmailMultiAlternatives(

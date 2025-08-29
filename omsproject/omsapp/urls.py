@@ -38,7 +38,7 @@ urlpatterns = [
     path('bulk-buy-response/<int:bbr_id>/', views.bulk_buy_response_details, name='bulk-buy-response-details'),
     path('bulk-buy/response/accept/<int:bulkBuyID>/<int:response_userID>', views.bulk_buy_response_accept, name='bulk-buy-response-accept'),
 
-
+    path('send-only-otp',views.send_only_otp, name='send-only-otp'),
     path('email-comm',views.send_activation_mail, name='email-comm'),
     path('activate/',views.activate_account_from_email, name='activate-account'),
     path('check-phone/', views.check_phone_number, name='check-phone'),
@@ -57,7 +57,7 @@ urlpatterns = [
     path('activate-user/<int:userID>/<str:activate>', views.activate_user, name='activate-user'),
     path('fetch-school/<str:udise>', views.fetch_school, name='fetch-school'),
     path('track-coordinate/', views.show_fpo_customers_in_map, name='track-coordinate'),
-    path('change-phone/<str:new_phone>', views.change_mobile_number, name='change-phone'),
+    path('change-phone/', views.change_mobile_number, name='change-phone'),
 
     path('school-info/', views.fetch_school_info, name='school-info'),
     path('user-form/', views.profile_view, name='user-form'),

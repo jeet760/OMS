@@ -37,6 +37,7 @@ from rest_framework.generics import ListAPIView
 from .serializers import OrderSerializer
 from .securecomms import SMTPMail, OTPGeneration
 from django.core import signing
+from simple_history.utils import update_change_reason
 
 #region API Calls from FarHa_AI
 class OrderPagination(PageNumberPagination):
@@ -907,11 +908,37 @@ def activate_user(request, userID, activate):
     else:
         return redirect('logout')
 
-def change_mobile_number(request, new_phone):
-    if request.user.is_authenticated:
-        exist_phone = get_object_or_404(CustomUser, pk=request.user.pk).phone
-        update_records = CustomUser.objects.filter(pk = request.user.pk,phone = exist_phone).update(phone=new_phone)
-    return redirect('user-form')
+def change_mobile_number(request):
+    try:
+        if request.user.is_authenticated and request.method == 'POST':
+            new_phone = request.POST['new_phone']
+            existing_phone = request.POST['existing_phone']
+            entered_otp = request.POST['entered_otp']
+            change_reason = request.POST['change_reason']
+            regd_user = CustomUser.objects.get(pk=request.user.pk)
+            regd_user_id = regd_user.id
+            regd_user_phone = regd_user.phone
+            if existing_phone != regd_user_phone:
+                messages.error(request, 'Existing phone number does not match with our records!')
+                return redirect('user-form')
+            change_otp = CustomUserOTP.objects.filter(userID_id=regd_user_id, otp_for='chapho', otp_used=False).order_by('-id').first()
+            if not change_otp:
+                messages.error(request, 'No OTP request found! Please request for OTP again.')
+                return redirect('user-form')
+            if entered_otp == change_otp.otp:
+                phone_update = CustomUser.objects.filter(pk=request.user.pk, phone=existing_phone).update(phone = new_phone)
+                if phone_update:
+                    change_otp.otp_used = True
+                    change_otp.otp_used_on = datetime.now()
+                    change_otp.save()
+                    messages.success(request, 'Mobile number updated successfully!')
+            else:
+                messages.error(request, 'Invalid OTP entered!')
+        return redirect('user-form')
+    except Exception as ex:
+        messages.error(request, 'Error occured while updating history!')
+        return redirect('user-form')
+    
 
 def add_address(request):
     if request.user.is_authenticated:
@@ -1244,6 +1271,26 @@ def logout_view(request):
     logout(request)
     return redirect('index')
 
+def generate_OTP(request,otp_for=None):
+    if not otp_for:
+        otp_for = request.GET.get('otp_for')
+    otp_generated = OTPGeneration(6)
+    email_otp = otp_generated.otp
+    regd_user = CustomUser.objects.filter(id=request.user.pk).first()
+    regd_user.email_otp.create(username=regd_user.username, otp=email_otp, otp_for=otp_for)
+    return email_otp
+
+def send_only_otp(request):
+    to_email_id = request.user.email
+    regd_name = request.user.first_name
+    token = ''
+    href_url = ''
+    type_of_mail = 'chapho'
+    email_otp = generate_OTP(request, otp_for='chapho')
+    mail = SMTPMail(to_emails=[to_email_id], regd_name=regd_name, regn_no=token, href_url=href_url, type_of_mail=type_of_mail, email_otp=email_otp)
+    result = mail.send_email()
+    return JsonResponse({'success':result})
+
 def send_activation_mail(request, to_email_id, regn_no, regd_name, type_of_mail):
     try:
         scheme = request.scheme  # "http" or "https"
@@ -1253,9 +1300,7 @@ def send_activation_mail(request, to_email_id, regn_no, regd_name, type_of_mail)
             return False
         elif type_of_mail == 'registration':
             token = encode_activation_token(regn_no=regn_no)
-            otp_generated = OTPGeneration(6)
-            email_otp = otp_generated.otp
-            regd_user.email_otp.create(username=regn_no, otp=email_otp, otp_for='email')
+            email_otp = generate_OTP(request, otp_for='email')
             href_url = f"{scheme}://{host}/activate?token={token}"
         elif type_of_mail == 'approval':
             href_url = f"{scheme}://{host}/login"

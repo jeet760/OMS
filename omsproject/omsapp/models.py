@@ -1,10 +1,11 @@
 from django.db import models
-from django.db.models import Model, CharField, AutoField, DecimalField, ForeignKey, CASCADE, OneToOneField, DateTimeField, PositiveIntegerField, DateField, FloatField, IntegerField, EmailField, BooleanField, ImageField, FileField
+from django.db.models import Model, CharField, AutoField, DecimalField, ForeignKey, CASCADE, OneToOneField, DateTimeField, PositiveIntegerField, DateField, FloatField, IntegerField, EmailField, BooleanField, ImageField, FileField, TextField
 from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import now
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
+from simple_history.models import HistoricalRecords
 #import datetime
 
 
@@ -138,6 +139,8 @@ class CustomUser(AbstractUser):
     ship_address_long = FloatField(null=True, blank=True)
     USERNAME_FIELD = 'phone'
     REQUIRED_FIELDS=['first_name']
+    change_history = TextField(null=True, blank=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.phone
@@ -158,6 +161,8 @@ class CustomUserOTP(Model):
     otp_created_at = DateTimeField(auto_now_add=True)
     otp_for = CharField(max_length=6, default='email')
     attempt_count = IntegerField(default=0)
+    otp_used = BooleanField(default=False)
+    otp_used_on = DateTimeField(null=True, blank=True)
 
     def is_valid(self):
         return timezone.now() <= self.otp_created_at + timedelta(hours=24)

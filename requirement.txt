@@ -2,6 +2,7 @@ asgiref==3.8.1
 certifi==2025.4.26
 charset-normalizer==3.4.2
 Django==5.1.4
+django-simple-history==3.10.1
 djangorestframework==3.16.1
 djangorestframework_simplejwt==5.5.1
 et_xmlfile==2.0.0
