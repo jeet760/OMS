@@ -1276,22 +1276,23 @@ def logout_view(request):
     logout(request)
     return redirect('index')
 
-def generate_OTP(request,otp_for=None):
+def generate_OTP(request, username=None, otp_for=None):
     if not otp_for:
         otp_for = request.GET.get('otp_for')
     otp_generated = OTPGeneration(6)
     email_otp = otp_generated.otp
-    regd_user = CustomUser.objects.filter(id=request.user.pk).first()
+    regd_user = CustomUser.objects.get(username=username)
     regd_user.email_otp.create(username=regd_user.username, otp=email_otp, otp_for=otp_for)
     return email_otp
 
 def send_only_otp(request):
     to_email_id = request.user.email
     regd_name = request.user.first_name
+    regn_no = request.user.username
     token = ''
     href_url = ''
     type_of_mail = 'chapho'
-    email_otp = generate_OTP(request, otp_for='chapho')
+    email_otp = generate_OTP(request, username=regn_no, otp_for='chapho')
     mail = SMTPMail(to_emails=[to_email_id], regd_name=regd_name, regn_no=token, href_url=href_url, type_of_mail=type_of_mail, email_otp=email_otp)
     result = mail.send_email()
     return JsonResponse({'success':result})
@@ -1305,7 +1306,7 @@ def send_activation_mail(request, to_email_id, regn_no, regd_name, type_of_mail)
             return False
         elif type_of_mail == 'registration':
             token = encode_activation_token(regn_no=regn_no)
-            email_otp = generate_OTP(request, otp_for='email')
+            email_otp = generate_OTP(request, username=regn_no, otp_for='email')
             href_url = f"{scheme}://{host}/activate?token={token}"
         elif type_of_mail == 'approval':
             href_url = f"{scheme}://{host}/login"
