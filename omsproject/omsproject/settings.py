@@ -150,9 +150,9 @@ LOGOUT_URL = "logout"
 CART_SESSION_ID = 'cart'
 
 #razorpay payment environment variables
-RAZORPAY_KEY_ID = 'rzp_live_KnDdqDu3539I8x'
-RAZORPAY_KEY_SECRET = 'csucZm0SaksXsHMsVqJI5u0c'
-#RAZORPAY_WEBHOOK_SECRET = '@PDxaBy6J3f7U4p'
+RAZORPAY_KEY_ID = ''
+RAZORPAY_KEY_SECRET = ''
+#RAZORPAY_WEBHOOK_SECRET = ''
 
 #Email Configurations
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
