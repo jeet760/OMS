@@ -301,6 +301,37 @@
             </td>
             <td class="py-2 px-3">{{auth_form.instance.exim_remark}}</td>
         </tr>
+        <tr class="border-b border-gray-300 hover:bg-gray-600">
+            <td class="py-2 px-3">12</td>
+            <td class="py-2 px-3">Fertiliser License</td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.ferli %}
+                    {% if auth_form.instance.ferli_verified == True %}
+                    <a href="{{auth_form.instance.ferli.url}}" target="_blank">{{auth_form.instance.ferli.name|cut:'fpodocs/'}}</a>
+                    {% else %}
+                    <a href="{{auth_form.instance.ferli.url}}" target="_blank" style="color: greenyellow;">{{auth_form.instance.ferli.name|cut:'fpodocs/'}}</a>
+                    {% endif %}
+                {% else %}
+                None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">
+                {% if auth_form.instance.ferli %}
+                    {% if auth_form.instance.ferli_verified == False %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=ferli&action=verify&remark=ok">Verify</a>
+                        <span class="px-2 py-1 text-xs bg-red-700 rounded">Rejected</span>
+                    {%elif auth_form.instance.ferli_verified == True%}
+                        <span class="px-2 py-1 text-xs bg-green-600 rounded">Verified</span>
+                    {% else %}
+                        <a class="px-2 py-1 text-xs bg-blue-600 rounded hover:bg-blue-700" href="?doc=ferli&action=verify&remark=ok">Verify</a>
+                        <button type="button" onclick="rejectFPODocument('ferli')" class="px-2 py-1 text-xs bg-red-600 rounded hover:bg-red-700">Reject</button>
+                    {% endif %}
+                {% else %}
+                    None
+                {% endif %}
+            </td>
+            <td class="py-2 px-3">{{auth_form.instance.ferli_remark}}</td>
+        </tr>
     </tbody>
 </table>
 <div class="mt-4 flex justify-center">

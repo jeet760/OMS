@@ -328,11 +328,14 @@ class InvoiceForm(ModelForm):
             invoice.suborderID_id = suborderID
             invoice.save()
         return invoice
-    
+
+#endregion
+
+#region FPO authorisation and document upload form
 class FPOAuthrisationForm(ModelForm):
     class Meta:
         model = FPOAuthorisationDocs
-        fields = ['auth_name','auth_contact','auth_email','board_resolution','cin','pan','bank','fssai','gst','apmc','exim']
+        fields = ['auth_name','auth_contact','auth_email','board_resolution','cin','pan','bank','fssai','gst','apmc','exim','ferli']
         widgets = {
             'auth_name': TextInput(attrs={
                 'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
@@ -340,11 +343,9 @@ class FPOAuthrisationForm(ModelForm):
             }),
             'auth_contact': TextInput(attrs={
                 'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
-                'autofocus': True
             }),
             'auth_email': TextInput(attrs={
                 'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
-                'autofocus': True
             }),
             'board_resolution': FileInput(attrs={
                 'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
@@ -370,6 +371,9 @@ class FPOAuthrisationForm(ModelForm):
             'exim': FileInput(attrs={
                 'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
             }),
+            'ferli': FileInput(attrs={
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
+            }),
         }
     def save(self, commit = True, userID=None):
         fpodoc = super().save(commit=False)
@@ -377,4 +381,4 @@ class FPOAuthrisationForm(ModelForm):
             fpodoc.userID_id = userID
             fpodoc.save()
         return fpodoc
-#endregion
+#end region

@@ -284,6 +284,12 @@ class FPOAuthorisationDocs(Model):
     exim_verified = BooleanField(null=True, verbose_name='EXIM Verified')
     exim_verified_on = DateField(null=True, verbose_name='EXIM Verified On')
     exim_remark = CharField(max_length=100, null=True, verbose_name='EXIM Remark')
+
+    ferli = FileField(null=True, blank=True, verbose_name='Fertiliser License', upload_to='fpodocs/')
+    ferli_verified = BooleanField(null=True, verbose_name='Fertiliser License Verified')
+    ferli_verified_on = DateField(null=True, verbose_name='Fertiliser License Verified On')
+    ferli_remark = CharField(max_length=100, null=True, verbose_name='Fertiliser License Remark')
+    
     def __str__(self):
         return self.userID
 #endregion

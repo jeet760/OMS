@@ -684,6 +684,7 @@ def register(request):
                     loc_long = pincode_lat_lon_data['lon']
                     # loc_lat = 20.9517
                     # loc_long = 85.0985
+                    school = None
                     if user.userType == '3':
                         school = get_object_or_404(SchoolUDISE, udise_code=user.udise_code)
                         loc_lat=school.loc_lat
@@ -694,7 +695,7 @@ def register(request):
                     userDistrict_name = lgd_data['district_name']
                     userState_name = lgd_data['state_name']
 
-                    CustomUser.objects.filter(pk=user.id).update(userCity_name=userCity_name, userDistrict_name=userDistrict_name, userState_name=userState_name, bill_address_lat = loc_lat, bill_address_long = loc_long, ship_address_lat = loc_lat, ship_address_long = loc_long)
+                    CustomUser.objects.filter(pk=user.id).update(userCity_name=userCity_name, userDistrict_name=userDistrict_name, userState_name=userState_name, bill_address_lat = loc_lat, bill_address_long = loc_long, ship_address_lat = loc_lat, ship_address_long = loc_long, school=school)
                     UserBillingAddresses.objects.create(userID_id=user.pk,userAddress=user.userAddress, userCity=user.userCity, userCity_name=userCity_name, userDistrict=user.userDistrict, userDistrict_name=userDistrict_name, userState=user.userState, userState_name=userState_name, pinCode=user.pinCode, contactPerson=contact_person, contactNo=contact_no, address_lat=loc_lat, address_long=loc_long, setDefault=True)
                     UserShippingAddresses.objects.create(userID_id=user.pk,userAddress1=user.userAddress, userCity1=user.userCity, userCity1_name=userCity_name, userDistrict1=user.userDistrict, userDistrict1_name=userDistrict_name, userState1=user.userState, userState1_name=userState_name, pinCode1=user.pinCode, contactPerson1=contact_person, contactNo1=contact_no, address_lat1=loc_lat, address_long1=loc_long, setDefault=True)
                     if user.userType == '1':
@@ -848,6 +849,8 @@ def verify_fpo(request, userID):
         fpo_docs.update(apmc_verified=fpo_action, apmc_remark=remark, apmc_verified_on=datetime.today())
     elif fpo_doc == 'exim':
         fpo_docs.update(exim_verified=fpo_action, exim_remark=remark, exim_verified_on=datetime.today())
+    elif fpo_doc == 'ferli':
+        fpo_docs.update(ferli_verified=fpo_action, ferli_remark=remark, ferli_verified_on=datetime.today())
 
     fpo_form = FPOAuthrisationForm(instance=fpo_docs.first())
     fpo_check = fpo_approve_check(userID)
@@ -871,6 +874,7 @@ def fpo_approve_check(userID):
         {'column':'gst', 'value':''},
         {'column':'apmc', 'value':''},
         {'column':'exim', 'value':''},
+        {'column':'ferli', 'value':''},
     ]
 
     if user.userType == '1':

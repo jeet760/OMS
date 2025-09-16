@@ -232,7 +232,7 @@
                     <td class="py-2 px-3">{{auth_form.instance.apmc_remark}}</td>
                 </tr>
                 <tr class="border-b border-gray-300 hover:bg-gray-100">
-                    <td class="py-2 px-3">11</td>
+                    <td class="py-2 px-3">12</td>
                     <td class="py-2 px-3"><strong>Export/Import License</strong></td>
                     <td class="py-2 px-3">{{auth_form.exim}}</td>
                     <td class="py-2 px-3">{{auth_form.instance.exim.name|cut:'fpodocs/'}}</td>
@@ -244,6 +244,22 @@
                         {% endif %}
                     </td>
                     <td class="py-2 px-3">{{auth_form.instance.exim_remark}}</td>
+                </tr>
+                <tr class="border-b border-gray-300 hover:bg-gray-100">
+                    <td class="py-2 px-3">11</td>
+                    <td class="py-2 px-3"><strong>Fertiliser License</strong>
+                        <em>(Only in case of selling Fertilisers)</em>
+                    </td>
+                    <td class="py-2 px-3">{{auth_form.ferli}}</td>
+                    <td class="py-2 px-3">{{auth_form.instance.ferli.name|cut:'fpodocs/'}}</td>
+                    <td class="py-2 px-3">
+                        {% if auth_form.instance.ferli_verified %}
+                        <span class="px-2 py-1 text-xs bg-green-600 text-white rounded">Verified</span>
+                        {% else %}
+                        None
+                        {% endif %}
+                    </td>
+                    <td class="py-2 px-3">{{auth_form.instance.ferli_remark}}</td>
                 </tr>
             </tbody>
             <tfoot>
