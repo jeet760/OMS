@@ -150,8 +150,8 @@ LOGOUT_URL = "logout"
 CART_SESSION_ID = 'cart'
 
 #razorpay payment environment variables
-RAZORPAY_KEY_ID = 'rzp_live_RIa3s9zvaJexWp'
-RAZORPAY_KEY_SECRET = '1lkI3GKb4C0JWWaihWlmxHVj'
+RAZORPAY_KEY_ID = 'rzp_live_RKcxTkgNmHAGNh'
+RAZORPAY_KEY_SECRET = 'B7kDjv5PujvhnRebCLTg30s1'
 #RAZORPAY_WEBHOOK_SECRET = ''
 
 #Email Configurations

@@ -452,7 +452,7 @@ class OrderInvoice(Model):
 class OrderDelivery(Model):
     deliveryID = AutoField(primary_key=True)
     orderID = ForeignKey(Order, on_delete=CASCADE)
-    suborderID = ForeignKey(SubOrder, on_delete=CASCADE, null=True)
+    suborderID = OneToOneField(SubOrder, on_delete=CASCADE, null=True, related_name='orderdelivery')
     deliveryDate = DateTimeField(default=now)
     deliveryImg = ImageField(upload_to='deliveryimg/', null=True, blank=True)
     latitude = FloatField(null=True)

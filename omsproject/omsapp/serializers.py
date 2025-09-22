@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, OrderDetails, SchoolUDISE
+from .models import CustomUser, OrderDetails, SchoolUDISE, SubOrder
 
 
 class SchoolInfoSerializer(serializers.ModelSerializer):
@@ -22,9 +22,22 @@ class OrderDetailSerializer(serializers.ModelSerializer):
         fields = ["item_cat", "item_name", "itemQty", "item_unit"]
 
 
+class SubOrderWithDeliverySerializer(serializers.ModelSerializer):
+    delivery_date = serializers.DateTimeField(source="orderdelivery.deliveryDate", read_only=True)
+    details = OrderDetailSerializer(source="orderdetails", many=True, read_only=True)
+
+    class Meta:
+        model = SubOrder
+        fields = ["delivery_date", "details"]
+
+
 class OrderSerializer(serializers.ModelSerializer):
     school_info = SchoolInfoSerializer(source="school", read_only=True)
-    order_details = serializers.SerializerMethodField()
+    order_details = SubOrderWithDeliverySerializer(
+        source="customer_orders",  # use related_name
+        many=True,
+        read_only=True
+    )
 
     class Meta:
         model = CustomUser
@@ -33,7 +46,10 @@ class OrderSerializer(serializers.ModelSerializer):
     def get_order_details(self, obj):
         orders = []
         for suborder in obj.customer_orders.filter(orderStatus='Delivered'):  # use related_name
-            orders.extend(suborder.orderdetails.all())  # use related_name
+            orders.append({
+                "delivery_date": suborder.orderdelivery.deliveryDate,
+                "details": OrderDetailSerializer(suborder.orderdetails.all(), many=True).data
+            })
         return OrderDetailSerializer(orders, many=True).data
 
     def get_school_info(self, obj):

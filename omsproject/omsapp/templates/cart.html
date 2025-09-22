@@ -30,7 +30,7 @@
                     <form method="post" action="{% url 'update_cart' %}?item={{item.product.pk}}" class="flex items-center space-x-2">
                         {% csrf_token %}
                         <button type="button" class="px-2 py-1 bg-gray-200 rounded text-lg font-bold" onclick="changeQty(this, -1)">−</button>
-                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="w-12 text-center border rounded px-1 py-1" readonly />
+                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="1000" class="w-24 text-center border rounded px-1 py-1" readonly />
                         <button type="button" class="px-2 py-1 bg-gray-200 rounded text-lg font-bold" onclick="changeQty(this, 1)">+</button>
                         <button type="submit" name="action" value="update" class="hidden"></button>
                     </form>

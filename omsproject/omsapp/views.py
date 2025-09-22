@@ -53,10 +53,14 @@ class OrderListAPI(generics.ListAPIView):
         # Get userType from query params (default = None if not provided)
         user_type = self.request.query_params.get("userType", None)
 
-        queryset = CustomUser.objects.filter(customer_orders__isnull=False).distinct().select_related().prefetch_related(
+        queryset = CustomUser.objects.filter(customer_orders__orderStatus='Delivered').distinct().select_related().prefetch_related(
             Prefetch(
                 "customer_orders__orderdetails",
                 queryset=OrderDetails.objects.select_related("itemID")
+            ),
+            Prefetch(
+                "customer_orders__orderdelivery",  # follow suborders → orderdelivery
+                queryset=OrderDelivery.objects.only("deliveryDate")
             )
         )
         if user_type:
