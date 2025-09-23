@@ -52,17 +52,40 @@ class OrderListAPI(generics.ListAPIView):
     def get_queryset(self):
         # Get userType from query params (default = None if not provided)
         user_type = self.request.query_params.get("userType", None)
-
-        queryset = CustomUser.objects.filter(customer_orders__orderStatus='Delivered').distinct().select_related().prefetch_related(
-            Prefetch(
-                "customer_orders__orderdetails",
-                queryset=OrderDetails.objects.select_related("itemID")
-            ),
-            Prefetch(
-                "customer_orders__orderdelivery",  # follow suborders → orderdelivery
-                queryset=OrderDelivery.objects.only("deliveryDate")
-            )
+        
+        # Prefetch only delivered suborders (and their details + delivery)
+        delivered_suborders = Prefetch(
+            "customer_orders",
+            queryset=SubOrder.objects.filter(orderStatus="Delivered")
+                .prefetch_related(
+                    Prefetch(
+                        "orderdetails",
+                        queryset=OrderDetails.objects.select_related("itemID")
+                    ),
+                    Prefetch(
+                        "orderdelivery",
+                        queryset=OrderDelivery.objects.only("deliveryDate")
+                    )
+                )
         )
+
+        # Only users who have delivered orders,
+        # and only their delivered suborders will be attached
+        queryset = CustomUser.objects.filter(
+            customer_orders__orderStatus="Delivered"
+        ).distinct().prefetch_related(delivered_suborders)
+
+        # queryset = CustomUser.objects.filter(customer_orders__orderStatus='Delivered').distinct().select_related().prefetch_related(
+        #     Prefetch(
+        #         "customer_orders__orderdetails",
+        #         queryset=OrderDetails.objects.select_related("itemID")
+        #     ),
+        #     Prefetch(
+        #         "customer_orders__orderdelivery",  # follow suborders → orderdelivery
+        #         queryset=OrderDelivery.objects.only("deliveryDate")
+        #     )
+        # )
+        # print(queryset.query)
         if user_type:
             queryset = queryset.filter(userType=user_type)
 
