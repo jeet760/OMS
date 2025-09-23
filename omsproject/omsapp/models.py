@@ -470,6 +470,7 @@ class BulkBuy(Model):
     bulkBuyExpDate = DateField(null=True)
     userID = ForeignKey(CustomUser, on_delete=CASCADE) #customer who has placed the bulk order
     response_accept = BooleanField(null=True) #True when bulk buy offer of the vendor is accepted by the customer
+    order_frequency = CharField(max_length=20, default='Once')
     def __str__(self):
         return f"{self.bulkBuyID}"
     

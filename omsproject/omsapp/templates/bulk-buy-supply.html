@@ -28,7 +28,8 @@
                 <th class="py-2 px-3 cursor-pointer" onclick="sortTable(5, 'bulkorderTable')">Phone</th>
                 <th class="py-2 px-3 cursor-pointer" onclick="sortTable(6, 'bulkorderTable')">Responded</th>
                 <th class="py-2 px-3 cursor-pointer" onclick="sortTable(7, 'bulkorderTable')">No. of Items Enquired</th>
-                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(8, 'bulkorderTable')">Accepted</th>
+                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(8, 'bulkorderTable')">Frequency</th>
+                <th class="py-2 px-3 cursor-pointer" onclick="sortTable(9, 'bulkorderTable')">Accepted</th>
                 <th class="py-2 px-3 cursor-pointer">Actions</th>
             </tr>
         </thead>
@@ -45,6 +46,7 @@
                     {% if order.count_response > 0 %}<label class="px-4 py-2 text-sm text-green-600">Yes</label>{% else %}<label class="px-4 py-2 text-sm text-red-600">No</label>{% endif %}
                 </td>
                 <td class="py-2 px-3">{{order.count_items}}</td>
+                <td class="py-2 px-3">{{order.order_frequency}}</td>
                 <td>
                     {% if order.response_accept == True %}
                     <label class="px-4 py-2 text-sm text-green-600">Yes</label>

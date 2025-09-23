@@ -2477,13 +2477,15 @@ def bulk_buy_order_place(request):
             data = json.loads(request.body)
             delivery_date = data.get('delivery_date')
             user_id = request.user.pk
+            bulk_order_frequency = data.get('order_frequency')
 
             with transaction.atomic():
                 # Create a temporary BulkBuy object
                 bulkBuy = BulkBuy.objects.create(
                     userID_id=user_id,
                     bulkBuyExpDate=delivery_date,
-                    bulkBuyNo="TEMP"  # Will be updated after getting ID
+                    bulkBuyNo="TEMP",  # Will be updated after getting ID
+                    order_frequency = bulk_order_frequency
                 )
 
                 # Generate order number based on the ID
@@ -2502,7 +2504,7 @@ def bulk_buy_order_place(request):
                     )
 
             return JsonResponse({
-                "message": "Bulk buy order placed successfully.",
+                "message": "Bulk buy request placed successfully.",
                 "redirect_url": f"{reverse('order_successful')}?success=Bulk"
             })
 

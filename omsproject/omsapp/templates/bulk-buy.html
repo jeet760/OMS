@@ -2,7 +2,7 @@
 {% load static %}
 {% block bulk_buy %}
   <div class="max-w-7xl mx-auto px-4 py-10">
-    <h1 class="text-3xl font-bold text-green-700 mb-8">Bulk Buy Order Place</h1>
+    <h1 class="text-3xl font-bold text-green-700 mb-8">Bulk Buy Request</h1>
 
     <form id="formBulkBuy" onsubmit="return false;" class="bg-white p-6 rounded shadow space-y-6">
       {% csrf_token %}
@@ -18,8 +18,8 @@
           </div>
 
           <div>
-            <label for="address1" class="block text-sm font-medium text-gray-700">Address1</label>
-            <input type="text" id="address1" name="address1" value="{{user_address}}" placeholder="Address1"
+            <label for="address1" class="block text-sm font-medium text-gray-700">Billing Address</label>
+            <input type="text" id="address1" name="address1" value="{{user_address1}}" placeholder="Address1"
                   class="mt-1 block w-full h-10 rounded border-gray-300 shadow-sm focus:ring-green-600 focus:border-green-600">
           </div>
 
@@ -39,9 +39,17 @@
           </div>
 
           <div>
-            <label for="address2" class="block text-sm font-medium text-gray-700">Address2</label>
-            <input type="text" id="address2" name="address2" value="{{user_address1}}" placeholder="Address2"
-                  class="mt-1 block w-full h-10 rounded border-gray-300 shadow-sm focus:ring-green-600 focus:border-green-600">
+            <label for="address2" class="block text-sm font-medium text-gray-700">Select Frequency</label>
+            <select name="order_frequency" id="order_frequency" class="mt-1 block w-full h-10 rounded border-gray-300 shadow-sm focus:ring-green-600 focus:border-green-600">
+              <option>Once</option>
+              <option>Daily</option>
+              <option>Weekly</option>
+              <option>Fortnightly</option>
+              <option>Monthly</option>
+              <option>Quarterly</option>
+            </select>
+            <!-- <input type="hidden" id="address2" name="address2" value="{{user_address1}}" placeholder="Address2"
+                  class="mt-1 block w-full h-10 rounded border-gray-300 shadow-sm focus:ring-green-600 focus:border-green-600"> -->
           </div>
 
           <div>
@@ -161,6 +169,7 @@
     let validate = true;
     const formBulkBuy = document.getElementById('formBulkBuy');
     const delivery_date = document.getElementById('delivery-date').value;
+    const order_frequency = document.getElementById('order_frequency').value;
     const cardRows = document.querySelectorAll('.card-row');
     const rows = [];
 
@@ -188,7 +197,7 @@
             'Content-Type': 'application/json',
             'X-CSRFToken': getCookie('csrftoken')
         },
-        body: JSON.stringify({ rows, delivery_date })
+        body: JSON.stringify({ rows, delivery_date, order_frequency })
         })
         .then(response => response.json())
         .then(data => {
