@@ -386,7 +386,7 @@ class CartItem(Model):
 #region Order Model, Invoice Model, Delivery Model
 class Order(Model):
     orderID = AutoField(primary_key=True)
-    orderNo = CharField(max_length=11)
+    orderNo = CharField(max_length=11,blank=True,null=True)
     orderDate = DateField(auto_now_add=True)
     orderStatus = CharField(max_length=25, default='Pending Order')
     orderAmount = FloatField()

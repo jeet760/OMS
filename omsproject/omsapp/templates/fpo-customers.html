@@ -22,7 +22,7 @@
             </div>
         </a>
     </div>
-    <div class="bg-white p-4 shadow rounded border border-gray-300">
+    <div x-data="orderModal()" x-init="loadItems()" class="bg-white p-4 shadow rounded border border-gray-300">
         <table id="customerTable" class="w-full text-left text-sm border border-gray-300 bg-white">
             <thead class="text-gray-700 border-b border-gray-300">
                 <tr>
@@ -32,6 +32,7 @@
                     <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'customerTable')">Phone</th>
                     <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'customerTable')">No. of Orders</th>
                     <th class="py-2 px-3 cursor-pointer" onclick="sortTable(0, 'customerTable')">Receivables(in ₹)</th>
+                    <th class="py-2 px-3 cursor-pointer">Create Order</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,23 +41,312 @@
                     <td class="py-2 px-3">{{forloop.counter}}</td>
                     <td class="py-2 px-3">{{customer.customerID_id__last_name}}</td>
                     <td class="py-2 px-3">
-                        {% if customer.customerID_id__userType == 3 %}
-                        School
-                        {% else %}
-                        Others
-                        {% endif %}
+                        {% if customer.customerID_id__userType == 3 %} School {% else %} Others {% endif %}
                     </td>
                     <td class="py-2 px-3">{{customer.customerID_id__phone}}</td>
                     <td class="py-2 px-3">{{customer.total_orders}}</td>
                     <td class="py-2 px-3">{{customer.order_amount}}</td>
+                    <td class="py-2 px-3">
+                        <button type="button"
+                                @click="openModal('{{ customer.customerID_id__last_name|escapejs }}', '{{ customer.customerID_id__id }}' )"
+                                class="p-2 bg-green-600 hover:bg-green-700 text-white rounded-full">
+                            click
+                        </button>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr class="border-b border-gray-300 hover:bg-gray-100">
-                    <td colspan="6">Order not found!</td>
+                    <td colspan="7">Order not found!</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        <!-- Modal -->
+        <div x-show="showModal" 
+            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-[95%]">
+                <h2 class="text-xl font-bold mb-4">Create Order for <span x-text="selectedCustomer"></span></h2>
+                <!-- Item Input -->
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <!-- Item Select -->
+                    <select x-model="itemId" @change="selectItem($event)" class="border p-1 rounded">
+                        <option value="">-- Select Item --</option>
+                        <template x-for="item in availableItems" :key="item.itemID">
+                            <option :value="item.itemID" x-text="item.itemName"></option>
+                        </template>
+                    </select>
+                    <input type="number" placeholder="Price" x-model.number="price"
+                        class="border p-1 rounded" disabled/>
+                    <input type="text" placeholder="Unit" x-model="unit"
+                        class="border p-1 rounded" disabled/>
+                    <input type="number" placeholder="Quantity" x-model.number="quantity"
+                        class="border p-1 rounded"/>
+                    <div class="col-span-2">
+                        <button type="button" @click="addItem()"
+                                class="w-full p-2 bg-blue-600 hover:bg-blue-700 text-white rounded">
+                            Add Item
+                        </button>
+                    </div>
+                </div>
+                <!-- Items Table -->
+                <table id="itemTable" class="w-full text-left text-sm border border-gray-300 mb-4">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-1 px-2 border">Item Name</th>
+                            <th class="py-1 px-2 border">Quantity</th>
+                            <th class="py-1 px-2 border">Unit</th>
+                            <th class="py-1 px-2 border">Price</th>
+                            <th class="py-1 px-2 border">Total Price</th>
+                            <th class="py-1 px-2 border">Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="(item, index) in orderItems" :key="index">
+                            <tr class="border-b">
+                                <td class="py-1 px-2 border" x-text="item.name"></td>
+                                <td class="py-1 px-2 border" x-text="item.quantity"></td>
+                                <td class="py-1 px-2 border" x-text="item.unit"></td>
+                                <td class="py-1 px-2 border" x-text="item.price"></td>
+                                <td class="py-1 px-2 border" x-text="item.quantity * item.price"></td>
+                                <td class="py-1 px-2 border">
+                                    <button type="button" @click="removeItem(index)"
+                                            class="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <!-- Left Column: Delivery Date & Time -->
+                    <div class="flex flex-col space-y-2">
+                        <select id="dateSeriesSelect" x-model="selectedDate" class="border p-1 rounded">
+                            <option>Deilvery Date</option>
+                            <template x-for="ds in dateSeries" :key="ds">
+                                <option :value="ds" x-text="ds"></option>
+                            </template>
+                        </select>
+                        <select id="timeSeriesSelect" x-model="selectedTime" class="border p-1 rounded">
+                            <option>Deilvery Time</option>
+                            <template x-for="ts in timeSeries" :key="ts">
+                                <option :value="ts" x-text="ts"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <!-- Right Column: Totals & Buttons -->
+                    <div class="flex flex-col justify-between space-y-4">
+                        <!-- Totals: Right-aligned -->
+                        <div class="text-right">
+                            <span class="font-bold block">Total: ₹<span x-text="subTotal()"></span></span>
+                            <span class="font-bold block">Transportation: ₹<span x-text="transportation()"></span></span>
+                            <span class="font-bold block">Grand Total: ₹<span x-text="grandTotal()"></span></span>
+                        </div>
+                        <!-- Buttons: Centered -->
+                        <div class="flex justify-center space-x-2 mt-2">
+                            <button @click="sendDataToServer()" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded">
+                                Create Order
+                            </button>
+                            <button @click="showModal=false" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Message Dialog -->
+        <!-- <div 
+            x-init="setTimeout(() => show = false, 4000)"
+            x-data="{ show: true }" 
+            x-show="show"
+            x-transition 
+            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+            {% if messages %}
+            {% for message in messages %}
+            <div 
+                class="w-96 rounded-xl shadow-xl p-6 bg-white border-l-8
+                {% if 'success' in message.tags %} border-green-500
+                {% elif 'error' in message.tags %} border-red-500
+                {% elif 'warning' in message.tags %} border-yellow-500
+                {% elif 'info' in message.tags %} border-blue-500
+                {% else %} border-gray-500 {% endif %}">
+                <h2 class="text-lg font-semibold mb-2 
+                    {% if 'success' in message.tags %} text-green-700
+                    {% elif 'error' in message.tags %} text-red-700
+                    {% elif 'warning' in message.tags %} text-yellow-700
+                    {% elif 'info' in message.tags %} text-blue-700
+                    {% else %} text-gray-700 {% endif %}">
+                    {{ message }}
+                </h2>
+                <div class="flex justify-end mt-4">
+                    <button 
+                        @click="show = false" 
+                        class="px-4 py-2 rounded bg-gray-600 text-white hover:bg-gray-700">
+                        Close
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div> -->
+
+        {{ fpo_items_list|json_script:"fpo_items_list" }}
+        {{ dateSeries|json_script:"dateSeries" }}
+        {{ timeSeries|json_script:"timeSeries" }}
+        <script>
+            function orderModal() {
+                return {
+                    showModal: false,
+                    selectedCustomer: '',
+                    customerID : '',
+
+                    // dropdown fields
+                    itemId: '',
+                    quantity: null,
+                    unit: '',
+                    price: null,
+                    sub_total:null,
+                    transport:null,
+                    grand_total:null,
+
+                    // arrays
+                    availableItems: [],   // from Django JSON
+                    orderItems: [],       // user-selected items
+                    dateSeries:[],
+                    timeSeries:[],
+                    selectedDate: '',
+                    selectedTime: '',
+
+                    // load items from json_script
+                    loadItems() {
+                        let el = document.getElementById("fpo_items_list");
+                        if (el) {
+                            this.availableItems = JSON.parse(el.textContent);
+                        }
+
+                        //date and time schedule
+                        let dt = document.getElementById("dateSeries");
+                        let tm = document.getElementById("timeSeries");
+                        this.dateSeries = JSON.parse(dt.textContent);
+                        this.timeSeries = JSON.parse(tm.textContent);
+                    },
+
+                    openModal(name, id) {
+                        this.selectedCustomer = name;
+                        this.customerID = id;
+                        this.showModal = true;
+                        this.orderItems = [];
+                        this.itemId = '';
+                        this.quantity = null;
+                        this.unit = '';
+                        this.price = null;
+                    },
+
+                    selectItem(event) {
+                        let id = parseInt(event.target.value);
+                        let selected = this.availableItems.find(i => i.itemID === id);
+                        if (selected) {
+                            this.itemId = selected.itemID;
+                            this.unit = selected.itemUnit;
+                            this.price = selected.itemPrice;
+                        }
+                    },
+
+                    addItem() {
+                        if (this.itemId && this.quantity) {
+                            let selected = this.availableItems.find(i => i.itemID === this.itemId);
+                            this.orderItems.push({
+                                name: selected.itemName,
+                                quantity: this.quantity,
+                                unit: selected.itemUnit,
+                                price: selected.itemPrice,
+                                itemID: selected.itemID
+                            });
+                            // reset form
+                            this.itemId = '';
+                            this.quantity = null;
+                            this.unit = '';
+                            this.price = null;
+                        } else {
+                            alert("Please select item and enter quantity");
+                        }
+                    },
+
+                    removeItem(index) {
+                        this.orderItems.splice(index, 1);
+                    },
+
+                    subTotal() {
+                        this.sub_total = this.orderItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+                        return this.sub_total;
+                    },
+                    transportation(){
+                        if (this.sub_total > 999){
+                            this.transport = 0;
+                        }
+                        else{
+                            this.transport = 99;
+                        }
+                        return this.transport;
+                    },
+                    grandTotal(){
+                        this.grand_total = this.sub_total + this.transport;
+                        return this.grand_total;
+                    },
+
+                    sendDataToServer(){
+                        const data = this.orderItems; // or this.orderItems if inside Alpine component
+                        const rows = [];
+                        data.forEach((item, index) => {
+                            var item_name = item.name;
+                            var item_qty = item.quantity;
+                            var item_unit = item.unit;
+                            var item_price = item.price;
+                            var total = item.quantity * item.price;
+                            var itemID = item.itemID;
+                            rows.push({item_name, item_qty, item_unit, item_price, total, itemID});
+                        });
+                        console.log(rows);
+                        // Send data to server via fetch API
+                        fetch('createorderbyfpo', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({
+                                customer: this.selectedCustomer,
+                                customerID: this.customerID,
+                                items: rows,
+                                delivery_date: this.selectedDate,
+                                delivery_time: this.selectedTime,
+                                sub_total: this.sub_total,
+                                transportation: this.transport,
+                                grand_total: this.grand_total
+                            })
+                        }).then(response => {
+                            if (response.ok) {
+                                alert('Order created successfully!');
+                                this.showModal = false;
+                            } else {
+                                alert('Error creating order-1.');
+                            }
+                        }).catch(error => {
+                            console.error('Error:', error);
+                            alert('Error creating order-2.');
+                        });
+                    }
+                }
+            }
+            </script>
+
     </div>
 </div>
 {% endblock %}

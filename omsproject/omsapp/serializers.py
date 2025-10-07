@@ -56,3 +56,11 @@ class OrderSerializer(serializers.ModelSerializer):
         if obj.school:
             return SchoolInfoSerializer(obj.school).data
         return None
+
+class FPOSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ["id", "userType", "first_name", "last_name", "org_name", "email", "phone", "phone1", "gstin", 
+                  "supply_place", "gst_tmt", "contactPerson", "contactNo", 
+                  "userAddress", "userCity", "userCity_name", "userState", "userState_name", "userDistrict", "userDistrict_name", "pinCode",
+                  "userApproved", "approvedOn", "isActive", "activatedOn"]

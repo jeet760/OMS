@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import OrderListAPI
+from .views import OrderListAPI, FPOProfileAPI
 
 urlpatterns = [
 #region new UI urls
@@ -87,6 +87,7 @@ urlpatterns = [
     path('search/', views.SearchItems, name='SearchItems'),
     path('search/results/', views.SearchItemView, name='SearchItemView'),
     path('createorder/<str:param_transportation_cost>/<str:param_total_price>/<str:param_gst_amount>/<str:param_deduction>', views.CreateOrder, name='createorder'),
+    
     path('placedorders', views.PlacedOrders, name='orders'),
     path('placedorders/<int:orderID>/view', views.placed_order_details, name='orderdetails'),
     path('orderplace/',views.order_successful, name='order_successful'),
@@ -101,6 +102,7 @@ urlpatterns = [
     
     path('revenue/', views.fpo_revenue, name='fpo-revenue'),
     path('customers/', views.fpo_customers, name='fpo-customers'),
+    path('customers/createorderbyfpo', views.create_order_by_fpo, name='createorderbyfpo'),
 
     path('receivedorders/', views.ReceivedOrders, name='receivedorders'),
     path('invoicedorders/', views.invoiced_orders, name='invoicedorders'),
@@ -125,5 +127,6 @@ urlpatterns = [
     path('analytics/', views.user_analytics_items, name='analytics-items'),
 
     #API Calls
-    path('api/orders/', OrderListAPI.as_view(), name='api-orders'),
+    path('api/orders', OrderListAPI.as_view(), name='api-orders'),
+    path('api/fpo', FPOProfileAPI.as_view(), name='api-fpo-profile'),
 ]

@@ -34,20 +34,20 @@ import base64
 from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.generics import ListAPIView
-from .serializers import OrderSerializer
+from .serializers import OrderSerializer, FPOSerializer
 from .securecomms import SMTPMail, OTPGeneration
 from django.core import signing
 from simple_history.utils import update_change_reason
 
 #region API Calls from FarHa_AI
-class OrderPagination(PageNumberPagination):
+class APIPagination(PageNumberPagination):
     page_size = 20  # number of users per page
     page_size_query_param = "page_size"
     max_page_size = 1000
 
 class OrderListAPI(generics.ListAPIView):
     serializer_class = OrderSerializer
-    pagination_class = OrderPagination
+    pagination_class = APIPagination
     
     def get_queryset(self):
         # Get userType from query params (default = None if not provided)
@@ -69,32 +69,23 @@ class OrderListAPI(generics.ListAPIView):
                 )
         )
 
-        # Only users who have delivered orders,
-        # and only their delivered suborders will be attached
+        # Only users who have delivered orders,and only their delivered suborders will be attached
         queryset = CustomUser.objects.filter(
             customer_orders__orderStatus="Delivered"
         ).distinct().prefetch_related(delivered_suborders)
-
-        # queryset = CustomUser.objects.filter(customer_orders__orderStatus='Delivered').distinct().select_related().prefetch_related(
-        #     Prefetch(
-        #         "customer_orders__orderdetails",
-        #         queryset=OrderDetails.objects.select_related("itemID")
-        #     ),
-        #     Prefetch(
-        #         "customer_orders__orderdelivery",  # follow suborders → orderdelivery
-        #         queryset=OrderDelivery.objects.only("deliveryDate")
-        #     )
-        # )
-        # print(queryset.query)
         if user_type:
             queryset = queryset.filter(userType=user_type)
 
         return queryset
 
 
-# class SchoolDetailsAPI(generics.ListAPIView):
-#     queryset = SchoolUDISE.objects.all()
-#     serializer_class = OrderingSchoolSerializer
+class FPOProfileAPI(generics.ListAPIView):
+    serializer_class = FPOSerializer
+    pagination_class = APIPagination
+
+    def get_queryset(self):
+        fpo_queryset = CustomUser.objects.filter(userType='1').prefetch_related()
+        return fpo_queryset
 #endregion
 
 #region New index page and shop page
@@ -1971,7 +1962,7 @@ def cart_view(request):
 
 #region Order Mechanism
 #region Create Order No. and Invoice No.
-def create_order_invoice(param_order_no, param_invoice_no, param_user_id):
+def create_order_invoice_no(param_order_no, param_invoice_no, param_user_id):
     user_id = param_user_id
     date_string = datetime.now().strftime('%y%m%d')
     order_no_string = str(param_order_no)
@@ -2063,7 +2054,7 @@ def create_order(request, param_transportation_cost, param_total_price, param_gs
             else:
                 fetched_order_id = 1
 
-        dict_order_invoice = create_order_invoice(fetched_order_id, fetched_invoice_no, user_id)
+        dict_order_invoice = create_order_invoice_no(fetched_order_id, fetched_invoice_no, user_id)
         view_orderNo = dict_order_invoice['orderNo']+'N'
         view_orderDate = datetime.now()
         view_orderStatus = 'Pending Order'
@@ -2512,7 +2503,7 @@ def bulk_buy_order_place(request):
                 )
 
                 # Generate order number based on the ID
-                dict_order_invoice = create_order_invoice(bulkBuy.pk, 0, user_id)
+                dict_order_invoice = create_order_invoice_no(bulkBuy.pk, 0, user_id)
                 bulkBuy.bulkBuyNo = dict_order_invoice['orderNo'] + 'B'
                 bulkBuy.save()
 
@@ -2904,21 +2895,97 @@ def fpo_revenue(request):
 #endregion
 
 #region FPO Customers
+@login_required
 def fpo_customers(request):
     fpo_id = request.user.pk
     qs_so_customers = SubOrder.objects.filter(vendorID_id=fpo_id)
     total_customers = qs_so_customers.values('customerID_id').distinct().count()
     total_schools = qs_so_customers.values('customerID_id').filter(customerID_id__userType='3').distinct().count()
     total_others = total_customers - total_schools
-    tab_so_customers = qs_so_customers.filter(orderStatus='Delivered').values('customerID','customerID_id__last_name','customerID_id__userType','customerID_id__phone').annotate(total_orders=Count('suborderID', distinct=True),order_amount=Sum('orderdetails__itemPricewithGST'))
+    tab_so_customers = qs_so_customers.filter(orderStatus='Delivered').values('customerID', 'customerID_id__id','customerID_id__last_name','customerID_id__userType','customerID_id__phone').annotate(total_orders=Count('suborderID', distinct=True),order_amount=Sum('orderdetails__itemPricewithGST'))
+    #fetch the items of FPO
+    fpo_items_list = list(Item.objects.filter(userID=fpo_id, itemActive=True, itemInStock=True).values('itemID','itemName','itemUnit','itemPrice', 'itemTaxRate', 'itemCostPrice').order_by('itemName'))
+
+    ds = DeliverySchedule()
     cust_contxt = {
         'qs_so_customers':qs_so_customers,
         'total_customers':total_customers,
         'total_schools':total_schools,
         'total_others':total_others,
-        'tab_so_customers':tab_so_customers
+        'tab_so_customers':tab_so_customers,
+        'fpo_items_list':fpo_items_list,
+        'dateSeries':ds.dateSeries, 
+        'timeSeries':ds.timeSeries, 
     }
     return render(request, 'fpo-customers.html', context=cust_contxt)
+
+@login_required
+def create_order_by_fpo(request):
+    if request.user.is_authenticated and request.method == 'POST':
+        #retrieve the data
+        fpo_id = request.user.pk
+        data = json.loads(request.body)
+        customer= data.get('customer')
+        customerID=data.get('customerID')
+        delivery_date = data.get('delivery_date')
+        delivery_time= data.get('delivery_time')
+        sub_total= data.get('sub_total')
+        transportation= data.get('transportation')
+        grand_total= data.get('grand_total')
+        order_items = data.get('items')
+        #create order
+        with transaction.atomic():
+            order_place = Order.objects.create(
+                userID_id=customerID,
+                orderAmount = sub_total,
+                orderGSTAmount = 0,
+                orderDeduction = 0,
+                orderTransportation = transportation,
+                orderGrandTotal = grand_total,
+                schDeliveryDate = delivery_date,
+                schDeliveryTime = delivery_time
+            )
+            suborder_place = SubOrder.objects.create(
+                orderID_id = order_place.orderID,
+                vendorID_id = fpo_id,
+                customerID_id = customerID,
+            )
+            for item in order_items:
+                print(item)
+                print(item['itemID'])
+                print(item['item_qty'])
+                print(item['item_unit'])
+                print(item['item_price'])
+
+                # item_gst = Item.objects.get(itemID=item['itemID'])
+                orderdetails_place = OrderDetails.objects.create(
+                    orderID_id = order_place.orderID,
+                    suborderID_id = suborder_place.suborderID,
+                    itemID_id = item['itemID'],
+                    itemQty = item['item_qty'],
+                    itemPrice = item['item_price'],
+                    itemGST = 0,
+                    itemGSTAmount = 0,
+                    #amount * (1 + gst / 100) * quantity
+                    itemPricewithGST = item['item_price'] #assuming gst is included in the price
+                )
+
+            fetched_invoice_no = 0
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT seq FROM sqlite_sequence WHERE name = %s", ['omsapp_order'])
+                row = cursor.fetchone()
+                if row:
+                    fetched_order_id = row[0]
+                else:
+                    fetched_order_id = 1
+
+            dict_order_invoice = create_order_invoice_no(fetched_order_id, fetched_invoice_no, fpo_id)
+            order_no = dict_order_invoice['orderNo']
+            order_no_update = Order.objects.filter(orderID=order_place.orderID).update(orderNo=order_no)
+            # messages.success(request, f'Order {order_no} placed successfully!')
+        return JsonResponse({'message':'Order placed successfully!'})
+    else:
+        return redirect('login')
 #endregion
 
 #region Payment module (Razorpay integration)
