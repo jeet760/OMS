@@ -127,6 +127,6 @@ urlpatterns = [
     path('analytics/', views.user_analytics_items, name='analytics-items'),
 
     #API Calls
-    path('api/orders', OrderListAPI.as_view(), name='api-orders'),
-    path('api/fpo', FPOProfileAPI.as_view(), name='api-fpo-profile'),
+    path('api/orders/', OrderListAPI.as_view(), name='api-orders'),
+    path('api/fpo/', FPOProfileAPI.as_view(), name='api-fpo-profile'),
 ]
