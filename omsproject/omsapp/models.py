@@ -169,9 +169,11 @@ class CustomUserOTP(Model):
 
 class Login(Model):
     id = AutoField(primary_key=True)
-    email = CharField(max_length=50)
-    phone = CharField(max_length=15)
-    password = CharField(max_length=10)
+    userID = ForeignKey(CustomUser, on_delete=CASCADE,null=True, related_name='login_user')
+    last_name = CharField(max_length=50,null=True)
+    login_time = DateTimeField(auto_now_add=True,null=True,blank=True)
+    logout_time = DateTimeField(null=True, blank=True)
+    login_ip = CharField(max_length=20, null=True, blank=True)
     def __str__(self):
         return self.id
 

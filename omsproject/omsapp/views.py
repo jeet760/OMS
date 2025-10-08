@@ -1210,6 +1210,7 @@ def login_view(request):
                         messages.warning(request, 'Your Account is not active! Please, contact administrator to activate your account.')
                     else:
                         login(request, user_login)
+                        Login.objects.create(userID_id=user_login.pk, last_name=user_login.last_name, login_time=datetime.now(), login_ip=get_client_ip(request))
                         if user_login.userType == '0' and user_login.is_superuser:
                             return redirect('admin-master')
                         elif user_login.userType == '1':
@@ -1230,6 +1231,15 @@ def login_view(request):
     else:
         form = UserLoginForm()
     return render(request, 'login.html', {'loginform': form, 'login_user':'Guest!'})
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        # X-Forwarded-For can contain multiple IPs; the first one is the client
+        ip = x_forwarded_for.split(',')[0].strip()
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
 def login_with_otp(request):
     if request.method == 'POST':
