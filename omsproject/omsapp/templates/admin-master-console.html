@@ -488,6 +488,35 @@
           <div class="bg-gray-800 p-4 shadow rounded">
             <p>Configuration options here.</p>
           </div>
+          <h2 class="text-xl font-semibold mb-4">Logins</h2>
+          <div class="bg-gray-800 p-4 shadow rounded">
+            <table id="messageTable" class="w-full text-left text-sm">
+              <thead>
+                <th class="py-2 cursor-pointer">#</th>
+                <th class="py-2 cursor-pointer">Login User</th>
+                <th class="py-2 cursor-pointer">User ID</th>
+                <th class="py-2 cursor-pointer">Login IP</th>
+                <th class="py-2 cursor-pointer">Login Date</th>
+              </thead>
+              <tbody>
+                {% for login in logins %}
+                <tr class="border-b border-gray-700 hover:bg-gray-700">
+                  <td class="py-2">{{forloop.counter}}</td>
+                  <td class="py-2">{{login.last_name}}</td>
+                  <td class="py-2">{{login.userID}}</td>
+                  <td class="py-2">{{login.login_ip}}</td>
+                  <td class="py-2">{{login.login_time}}</td>
+                </tr>
+                {%empty%}
+                <tr class="border-b border-gray-700 hover:bg-gray-700">
+                  <td class="py-2" colspan="5">
+                    No login record found!
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <!-- Notifications -->

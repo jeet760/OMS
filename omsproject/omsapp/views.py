@@ -1633,6 +1633,7 @@ def admin_master(request):
         no_of_orders = Order.objects.all().__len__()
         no_of_bulkbuys = BulkBuy.objects.all().__len__()
         enquiries = UserMessage.objects.all()
+        logins = Login.objects.all().order_by('-login_time')
         
         master_console_context = {
             'total_users':total_users,
@@ -1647,6 +1648,7 @@ def admin_master(request):
             'total_orders':no_of_orders,
             'total_bulkbuys':no_of_bulkbuys,
             'enquiries':enquiries,
+            'logins':logins,
             'item_labels': json.dumps(item_labels),
             'item_counts': json.dumps(item_counts),
             'cust_labels':json.dumps(cust_labels),
