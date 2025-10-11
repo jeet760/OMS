@@ -2909,6 +2909,15 @@ def fpo_revenue(request):
 #region FPO Customers
 @login_required
 def fpo_customers(request):
+    if request.user.is_authenticated:
+        user_name = request.user.last_name
+        user_approved=request.user.userApproved
+        #"""if the user is not an FPO then the page should not be displayed"""
+        if request.user.userType != '1':
+            return redirect('index')
+    else:
+        user_name = 'Guest!'
+        user_approved=''
     fpo_id = request.user.pk
     qs_so_customers = SubOrder.objects.filter(vendorID_id=fpo_id)
     total_customers = qs_so_customers.values('customerID_id').distinct().count()
@@ -2920,6 +2929,8 @@ def fpo_customers(request):
 
     ds = DeliverySchedule()
     cust_contxt = {
+        'login_user':user_name,
+        'user_approved':user_approved,
         'qs_so_customers':qs_so_customers,
         'total_customers':total_customers,
         'total_schools':total_schools,
