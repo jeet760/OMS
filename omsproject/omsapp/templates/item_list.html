@@ -1,8 +1,8 @@
 {% extends 'admin-console.html' %}
 {% load static %}
 {% block item_list %}
-<div class="bg-white p-4 shadow rounded border border-gray-300">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div x-data="itemModal()" x-init="displayRows()" class="bg-white p-4 shadow rounded border border-gray-300">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-2">
         <div class="bg-yellow-500 text-white p-4 rounded shadow">
             <h3 class="text-sm">Total Categories</h3>
             <p class="text-2xl font-semibold mt-1">{{total_item_categories}}</p>
@@ -24,32 +24,20 @@
             <p class="text-2xl font-semibold mt-1">{{total_active_items}}</p>
         </div>
     </div>
-    <br>
-    <div class="flex justify-between items-center mb-4">
-        {% if user_approved %}
-        <a href="{% url 'item_entry' %}" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add Item</a>
-        {% else %}
-        <a href="#" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled-inputs">Add Item</a>
-        {% endif %}
-        <form method="post" action="{% url 'item_import' %}" enctype="multipart/form-data" class="flex items-center space-x-2">
-            {% csrf_token %}
-            {% if messages %}
-            {% for message in messages %}
-            <script>
-                alert("{{ message|escapejs }}");
-            </script>
-            {% endfor %}
-            {% endif %}
-            <!-- Style file input for better appearance -->
-            <div class="relative">
-                {{ excel_form.excel_file }}
-            </div>
-            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                Import Item
-            </button>
-        </form>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-2">
+        <button type="button" @click="openModal()" class="flex items-center justify-center space-x-2 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="none">
+                <path d="M3 10C3 8.34315 4.34315 7 6 7H14C15.6569 7 17 8.34315 17 10V18C17 19.6569 15.6569 21 14 21H6C4.34315 21 3 19.6569 3 18V10Z" 
+                    stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M10 14V11M10 14V17M10 14H13M10 14H7" 
+                    stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7 3L18 3C19.6569 3 21 4.34315 21 6L21 17" 
+                    stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="text-sm font-medium">Add Item</span>
+        </button>
     </div>
-    
+
     <div class="mb-4">
         <input type="text" id="itemSearch" onkeyup="searchItems()" placeholder="Search item..." class="w-full p-2 rounded border border-gray-300 focus:outline-none">
     </div>
@@ -102,5 +90,203 @@
         </tbody>
     </table>
     <div id="pagination" class="mt-4 flex justify-center"></div>
+    <div x-show="showModal" 
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0">
+
+        <!-- Modal box -->
+        <div class="bg-white p-6 rounded-lg shadow-2xl w-full sm:w-3/4 md:w-1/2 h-1/2 flex flex-col justify-between">
+            <div class="bg-white rounded-lg p-6 shadow-md">
+                <!-- Header -->
+                <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6 border-b pb-3">
+                    Add New Item
+                </h2>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+                    <!-- Add Item Button -->
+                    {% if user_approved %}
+                    <a href="{% url 'item_entry' %}" 
+                    class="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>Add Item</span>
+                    </a>
+                    {% else %}
+                    <a href="#" 
+                    class="flex items-center justify-center gap-2 bg-green-400 text-white px-4 py-2 rounded-lg cursor-not-allowed opacity-70 shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>Add Item</span>
+                    </a>
+                    {% endif %}
+
+                    <!-- Download Template -->
+                    <a href="{% url 'download_item_import_template' %}" 
+                    class="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+                        </svg>
+                        <span>Download Template</span>
+                    </a>
+
+                    <!-- Import Form -->
+                    <form method="post" action="{% url 'item_import' %}" enctype="multipart/form-data" 
+                        class="flex items-center gap-3 bg-gray-50 p-2 rounded-lg border border-gray-200 shadow-sm">
+                        {% csrf_token %}
+                        {% if messages %}
+                        {% for message in messages %}
+                        <script>
+                            alert("{{ message|escapejs }}");
+                        </script>
+                        {% endfor %}
+                        {% endif %}
+
+                        <label class="block text-sm font-medium text-gray-700">
+                            {{ excel_form.excel_file }}
+                        </label>
+
+                        <button type="submit" 
+                                class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow">
+                            Import
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Info Tip (Optional) -->
+                <div class="text-sm text-gray-600 text-center bg-gray-50 p-3 rounded-md border">
+                    💡 Tip: You can manually add a new item or bulk import using the Excel template.
+                </div>
+            </div>
+
+            <!-- Close Button -->
+            <div class="flex justify-center mt-4">
+                <button @click="showModal=false" 
+                        class="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function itemModal() {
+            return {
+                showModal: false,
+                openModal() {
+                    this.showModal = true;
+                }
+            }
+        }
+    </script>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const table = document.getElementById("itemTable");
+        const tbody = table.querySelector("tbody");
+        const searchInput = document.getElementById("itemSearch");
+
+        let rows = Array.from(tbody.getElementsByTagName("tr"));
+        let currentPage = 1;
+        const rowsPerPage = 20;
+
+        // ✅ Function: Display rows for a specific page
+        function displayRows(filteredRows = rows) {
+            const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+            if (currentPage > totalPages) currentPage = totalPages || 1;
+
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+
+            tbody.innerHTML = "";
+            filteredRows.slice(start, end).forEach(row => tbody.appendChild(row));
+
+            renderPagination(totalPages, filteredRows);
+        }
+
+        // ✅ Function: Search rows dynamically
+        window.searchItems = function () {
+            const query = searchInput.value.toLowerCase().trim();
+            const filteredRows = rows.filter(row => {
+                return Array.from(row.getElementsByTagName("td")).some(td =>
+                    td.textContent.toLowerCase().includes(query)
+                );
+            });
+            currentPage = 1;
+            displayRows(filteredRows);
+        };
+
+        // ✅ Function: Render pagination controls
+        function renderPagination(totalPages, filteredRows) {
+            let paginationDiv = document.getElementById("pagination");
+            if (!paginationDiv) {
+                paginationDiv = document.createElement("div");
+                paginationDiv.id = "pagination";
+                paginationDiv.className = "flex justify-center mt-4 space-x-2";
+                table.parentNode.appendChild(paginationDiv);
+            }
+            paginationDiv.innerHTML = "";
+
+            if (totalPages <= 1) return;
+
+            const makeButton = (text, disabled, onClick, isActive = false) => {
+                const btn = document.createElement("button");
+                btn.textContent = text;
+                btn.className = `px-3 py-1 rounded text-sm transition ${
+                    isActive
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`;
+                btn.disabled = disabled;
+                if (!disabled) btn.addEventListener("click", onClick);
+                return btn;
+            };
+
+            // Prev button
+            paginationDiv.appendChild(
+                makeButton("« Prev", currentPage === 1, () => {
+                    currentPage--;
+                    displayRows(filteredRows);
+                })
+            );
+
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                paginationDiv.appendChild(
+                    makeButton(i, false, () => {
+                        currentPage = i;
+                        displayRows(filteredRows);
+                    }, i === currentPage)
+                );
+            }
+
+            // Next button
+            paginationDiv.appendChild(
+                makeButton("Next »", currentPage === totalPages, () => {
+                    currentPage++;
+                    displayRows(filteredRows);
+                })
+            );
+        }
+
+        // ✅ Rebuild rows after Django template renders
+        function initializeTable() {
+            rows = Array.from(tbody.getElementsByTagName("tr"));
+            displayRows(rows);
+        }
+
+        // Delay initialization to ensure Django rendered content
+        setTimeout(initializeTable, 100); // ⏱ small delay to ensure DOM stability
+    });
+</script>
+
+
+
 {% endblock %}

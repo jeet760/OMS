@@ -18,17 +18,12 @@ from datetime import datetime
 from .models import CustomUser, CustomUserOTP, UserShippingAddresses, UserBillingAddresses, FPOServingAddresses, ItemPincodeMap, Login, Item, ItemStock, Order, OrderDetails, Cart, CartItem, OrderInvoice, OrderDelivery, BulkBuy, BulkBuyDetails, BulkBuyResponse, BulkBuyResponseDetails, SubOrder, FPOAuthorisationDocs, UserMessage, SchoolUDISE #LGDData
 from .models import LIST_STATES, USERTYPES, GST_TREATMENT
 from .forms import ItemForm, UserRegistrationForm, UserLoginForm, OrderForm, OrderDetailsForm, InvoiceForm, FPOAuthrisationForm, ItemImportExcelForm
-import json
-import requests
+import json, requests, socket, hmac, hashlib, random, io
 from .cart import Cart
 from .deliveryschedule import DeliverySchedule
 import razorpay
 from urllib.parse import urlparse
 import pandas as pd
-import socket
-import hmac
-import hashlib
-import random
 from django.core.files.base import ContentFile
 import base64
 from rest_framework import generics
@@ -1678,6 +1673,27 @@ ITEM_TYPE = [
     ('1','Goods'),
     ('2','Services'),
 ]
+
+def download_item_import_template(request):
+    if request.user.is_authenticated:
+        # Create a DataFrame with the required columns
+        df = pd.DataFrame(columns=[
+            'itemType', 'itemName', 'itemCat', 'itemSku', 'itemHSNCode', 'itemUnit', 'itemTaxPref', 'itemTaxRate', 'itemCostPrice', 'itemPrice', 'stockValue', 'itemImg', 'itemDesc'
+        ])
+        # Create an in-memory bytes buffer
+        buffer = io.BytesIO()
+        # Write the DataFrame to the buffer as an Excel file
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Items')
+        # Set the buffer's position to the beginning
+        buffer.seek(0)
+        # Create a response with the appropriate content type and headers
+        response = HttpResponse(buffer, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="item_import_template.xlsx"'
+        return response
+    else:
+        return redirect('login')
+    
 @login_required
 def item_import(request):
     if request.method == 'POST' and request.user.is_authenticated:
