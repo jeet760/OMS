@@ -50,7 +50,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware', commented for the mobile app accessibility
     'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
@@ -58,6 +58,12 @@ AUTHENTICATION_BACKENDS = [
     'omsapp.backends.PhoneOrUdiseBackend',   # your custom backend
     'django.contrib.auth.backends.ModelBackend',  # optional fallback
 ]
+
+#included for the login purpose in the mobile app
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
 
 
 ROOT_URLCONF = 'omsproject.urls'
