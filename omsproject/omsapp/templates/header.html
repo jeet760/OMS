@@ -9,16 +9,6 @@
         <span class="text-xl font-semibold whitespace-nowrap">Farmer <span class="text-[#FF9933]">HARVEST</span></span>
       </a>
     </div>
-    <button id="menu-toggle"
-      class="fixed top-2 left-4 z-50 p-1 md:hidden bg-gray-100 rounded shadow">
-      <!-- Icon (e.g., 3 lines) -->
-      <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" stroke-width="2"
-          viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path stroke-linecap="round" stroke-linejoin="round"
-              d="M4 6h16M4 12h16M4 18h16"></path>
-      </svg>
-    </button>
-
     <!-- Search Bar (now well positioned) -->
     <div class="w-full md:w-auto">
       <form method="GET" action="{% url 'shop' %}?search={search}" class="flex items-center bg-white rounded-md px-2 py-1 text-sm w-full md:w-80">
@@ -54,6 +44,11 @@
             class="absolute right-0 mt-2 w-44 bg-white rounded shadow-lg z-50 text-sm text-gray-700 overflow-hidden">
             {% if request.user.userType == '1' %}
               {% if request.user.userApproved %}
+                <!-- <a href="http://127.0.0.1:8001" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-gray-700">
+                  <svg class="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M3 3h14v2H3V3zm0 4h14v2H3V7zm0 4h9v2H3v-2zm0 4h14v2H3v-2z"/>
+                  </svg> FPO Hub
+                </a> -->
                 <a href="{% url 'dashboard' %}" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-sm text-gray-700">
                   <svg class="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M3 3h14v2H3V3zm0 4h14v2H3V7zm0 4h9v2H3v-2zm0 4h14v2H3v-2z"/>
@@ -135,51 +130,54 @@
           title="Enter 6-digit pincode" />
         <button type="submit" class="ml-1 text-green-700 hover:text-green-800 font-medium">Set</button>
       </form>
-      <!-- Hamburger Button -->
+    </nav>
+    <!-- Bottom Navigation Bar (Mobile Only) -->
+    <nav class="fixed bottom-0 left-0 w-full bg-[#047857] text-white shadow-lg z-50 md:hidden">
+      <ul class="flex justify-around items-center py-2">
+
+        <li>
+          <a href="/" class="flex flex-col items-center text-xs">
+            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6"/>
+            </svg>
+            Home
+          </a>
+        </li>
+
+        <li>
+          <a href="/shop" class="flex flex-col items-center text-xs">
+            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9h14l-2-9m-10 0h10"/>
+            </svg>
+            Shop
+          </a>
+        </li>
+
+        <li>
+          <a href="/bulk-buy" class="flex flex-col items-center text-xs">
+            <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M20 13V7a2 2 0 00-2-2h-3l-2-2H9L7 5H4a2 2 0 00-2 2v6m18 0v6a2 2 0 01-2 2H4a2 2 0 01-2-2v-6m18 0H2"/>
+            </svg>
+            Bulk Buy
+          </a>
+        </li>
+
+      </ul>
     </nav>
 
-    <!-- Slide-in Mobile Menu -->
-    <div id="mobile-menu" class="fixed top-0 left-0 w-64 h-full bg-[#047857] shadow transform -translate-x-full transition-transform duration-300 ease-in-out z-50 md:hidden">
-      <!-- Close Button -->
-      <div class="flex justify-end p-4">
-        <button id="menu-close" class="text-gray-800">
-          <!-- X Icon -->
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
-              viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-      <!-- Mobile Menu Content -->
-      <ul class="p-4 space-y-4">
-        <span class="border-b border-gray-700 text-xl font-semibold whitespace-nowrap">Farmer <span class="text-[#FF9933]">HARVEST</span></span>
-        <li><a href="/" class="block text-white">Home</a></li>
-        <li><a href="/shop" class="block text-white">Shop</a></li>
-        <li><a href="/bulk-buy" class="block text-white">Bulk Buy</a></li>
-      </ul>
-    </div>
      <!-- Gray Overlay -->
     <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden md:hidden"></div>
-
-
   </div>
   <!-- </header> -->
   <script>
-    const toggleBtn = document.getElementById('menu-toggle');
-    const closeBtn = document.getElementById('menu-close');
     const mobileMenu = document.getElementById('mobile-menu');
     const overlay = document.getElementById('overlay');
-
-    toggleBtn.addEventListener('click', () => {
-      mobileMenu.classList.remove('-translate-x-full');
-      overlay.classList.remove('hidden');
-    });
-
-    closeBtn.addEventListener('click', () => {
-      mobileMenu.classList.add('-translate-x-full');
-      overlay.classList.add('hidden');
-    });
 
     // Optional: clicking on overlay also closes menu
     overlay.addEventListener('click', () => {
