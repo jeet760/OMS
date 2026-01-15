@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-&l%@!&l0bq-ab^rvj_&se)2pkv)a+uv$#fdo5x$fn@maze42h!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1','3.7.69.40', 'farmerharvest.in', 'www.farmerharvest.in']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','3.108.63.187', 'farmerharvest.in', 'www.farmerharvest.in']
 
 
 # Application definition
