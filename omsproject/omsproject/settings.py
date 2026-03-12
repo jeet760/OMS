@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-&l%@!&l0bq-ab^rvj_&se)2pkv)a+uv$#fdo5x$fn@maze42h!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1','3.108.63.187', 'farmerharvest.in', 'www.farmerharvest.in']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','43.204.238.201', 'farmerharvest.in', 'www.farmerharvest.in']
 
 
 # Application definition
@@ -143,7 +143,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'omsapp/templates/static')]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Media files (Uploaded by users)
+#Media files settings
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -174,3 +174,13 @@ DEFAULT_FROM_EMAIL = 'connect@farmerharvest.in'
 SERVER_EMAIL = 'connect@farmerharvest.in'
 EMAIL_TIMEOUT = 90
 EMAIL_SUBJECT_PREFIX = ''
+
+SESSION_COOKIE_NAME = "farmerharvest_sessionid"
+CSRF_COOKIE_NAME = "farmerharvest_csrftoken"
+
+ONEFPO_SYNC_BASE_URL = "http://127.0.0.1:8001/api/sync/"
+ONEFPO_SYNC_ORDER_URL = "http://127.0.0.1:8001/api/sync-order/"
+ONEFPO_SYNC_TOKEN = "onefpo-secret"
+ONEFPO_SYNC_CUSTOMER_URL = "http://127.0.0.1:8001/api/sync-customers/"
+ONEFPO_PUSH_BULK_ORDER_URL = "http://127.0.0.1:8001/api/sync-bulk-buy-requests/"
+ONEFPO_PUSH_ACCEPTED_BULK_ORDER_RESPONSE = "http://127.0.0.1:8001/api/accept-bulkbuy-response/"

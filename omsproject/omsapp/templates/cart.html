@@ -8,21 +8,26 @@
             {% for item in cart %}
             <div class="bg-white shadow rounded p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                 <!-- Item Info -->
-                {% if item.product.itemInStock and item.product.userID_id != request.user.pk %}
+                {% if item.in_stock and item.product.userID_id != request.user.pk %}
                 <div class="flex items-center space-x-4">
                 {% else %}
                 <div class="flex items-center space-x-4 opacity-50 pointer-events-none">
                 {% endif %}
-                    <img src="{{ item.product.itemImg.url }}" alt="{{ item.product.itemName }}" class="w-20 h-20 object-cover rounded border" />
+                    <img src="{{ item.product.itemImg }}" alt="{{ item.product.itemName }}" class="w-20 h-20 object-cover rounded border" />
                     <div>
                         <h2 class="font-semibold text-lg">{{ item.product.itemName }}</h2>
-                        <p class="text-sm text-gray-600">₹{{ item.product.itemPrice }}/{{ item.product.itemUnit }}</p>
+                        <p class="text-sm text-gray-600">₹{{ item.price }}/{{ item.product.itemUnit }}</p>
                         <p class="text-sm text-gray-500">From: {{ item.product.userID.userCity_name }}</p>
                     </div>
+                    {% if not item.in_stock %}
+                        <p class="text-red-600 text-sm mt-2">
+                            <sup>*</sup> Out of Stock Item.
+                        </p>
+                    {% endif %}
                 </div>
                 
                 <!-- Quantity Controls -->
-                {% if item.product.itemInStock %}
+                {% if item.in_stock %}
                 <div class="flex items-center justify-center sm:justify-start space-x-2">
                 {% else %}
                 <div class="flex items-center justify-center sm:justify-start space-x-2 opacity-50 pointer-events-none">

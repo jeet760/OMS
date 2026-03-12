@@ -195,7 +195,7 @@
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
+            'X-CSRFToken': getCookie('farmerharvest_csrftoken')
         },
         body: JSON.stringify({ rows, delivery_date, order_frequency })
         })

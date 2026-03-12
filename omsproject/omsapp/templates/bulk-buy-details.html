@@ -79,7 +79,7 @@
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')  // use this in production
+            'X-CSRFToken': getCookie('farmerharvest_csrftoken')  // use this in production
         },
         body: JSON.stringify({ rows, bulkBuyID })
         })

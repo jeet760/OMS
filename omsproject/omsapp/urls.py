@@ -3,6 +3,10 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import OrderListAPI, FPOProfileAPI
+from .onefpo_sync_views import sync_item, push_orders_to_onefpo,\
+    sync_customers_to_onefpo, sync_order_status_from_onefpo,\
+    sync_invoices_from_onefpo, sync_delivery_from_onefpo,\
+    sync_bulk_buy_reponses
 
 urlpatterns = [
 #region new UI urls
@@ -130,4 +134,14 @@ urlpatterns = [
     #API Calls
     path('api/orders/', OrderListAPI.as_view(), name='api-orders'),
     path('api/fpo/', FPOProfileAPI.as_view(), name='api-fpo-profile'),
+
+    #API calls for item, order sync (push) from OneFPO
+    path("api/sync/item/", sync_item, name="sync_item"),
+    path("api/sync/orders/", push_orders_to_onefpo, name="sync_order"),
+    path("api/sync/sync-order-status/", sync_order_status_from_onefpo, name="sync_order_status"),
+    path("api/sync/customer/<str:username>/",sync_customers_to_onefpo,name="sync-customer"),
+    path("api/sync/invoices/", sync_invoices_from_onefpo, name="sync-invoice-status"),
+    path("api/sync/delivery/",sync_delivery_from_onefpo, name="sync-delivery-status"),
+    #bulk buy requests and responses
+    path("api/sync/bulk-buy-reponse/",sync_bulk_buy_reponses, name="bulk-buy-reponse")
 ]

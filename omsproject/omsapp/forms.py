@@ -61,14 +61,16 @@ GST_TREATMENT=[
     ('1', 'Registered Business (Regular)'),
     ('2', 'Registered Business (Composition)'),
     ('3', 'Unregistered Business'),
-    ('4', 'Individual'),
+    ('4', 'Consumer/Individual'),
+    ('5', 'SEZ Unit'),
+    ('6', 'Deemed Export'),
 ]
 
 CustomUser = get_user_model()
 class UserRegistrationForm(ModelForm):
     class Meta:
         model = CustomUser
-        fields = ['userType','udise_code','first_name','last_name','org_name','email', 'phone','phone1','gstin','supply_place','gst_tmt','userAddress','userCity','userState','userDistrict','pinCode']#,'userAddress1','userCity1','userState1','userDistrict1','pinCode1','userNote'
+        fields = ['userType','udise_code','first_name','last_name','org_name','email', 'phone','phone1','gstin','pan','supply_place','gst_tmt','userAddress','userCity','userState','userDistrict','pinCode']#,'userAddress1','userCity1','userState1','userDistrict1','pinCode1','userNote'
         widgets = {
             'userType':Select(attrs={
                 'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
@@ -119,6 +121,11 @@ class UserRegistrationForm(ModelForm):
                 'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
                 'placeholder': 'GSTIN',
                 'id':'gstin'
+            }),
+            'pan':TextInput(attrs={
+                'class': 'w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
+                'placeholder': 'PAN',
+                'id':'pan'
             }),
             'supply_place':Select(attrs={
                 'class': 'supply_place w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
@@ -335,16 +342,22 @@ class InvoiceForm(ModelForm):
 class FPOAuthrisationForm(ModelForm):
     class Meta:
         model = FPOAuthorisationDocs
-        fields = ['auth_name','auth_contact','auth_email','board_resolution','cin','pan','bank','fssai','gst','apmc','exim','ferli']
+        fields = ['fpo_regn_no','auth_name','auth_contact','auth_email','auth_designation','board_resolution','cin','pan','bank','fssai','gst','apmc','exim','ferli']
         widgets = {
-            'auth_name': TextInput(attrs={
+            'fpo_regn_no': TextInput(attrs={
                 'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
                 'autofocus': True
+            }),
+            'auth_name': TextInput(attrs={
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
             }),
             'auth_contact': TextInput(attrs={
                 'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
             }),
             'auth_email': TextInput(attrs={
+                'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
+            }),
+            'auth_designation': TextInput(attrs={
                 'class': 'w-full p-2 rounded border border-gray-300 focus:outline-none',
             }),
             'board_resolution': FileInput(attrs={

@@ -30,13 +30,13 @@
     {% if orderType == 'Order' %}
       <h1 class="text-2xl md:text-3xl font-bold text-green-700 mb-2">Order Placed Successfully!</h1>
       <p class="text-gray-700 text-sm md:text-base mb-6">
-        Thank you for shopping with FarmerHarvest. Your order with Order # <a href="{% url 'orderdetails' orderID %}">{{orderNo}}</a> has been confirmed and will be delivered as scheduled.
+        Thank you for shopping with FarmerHarvest. Your order with Order # <a href="{% url 'orderdetails' orderID %}?type=retail">{{orderNo}}</a> has been confirmed and will be delivered as scheduled.
       </p>
       <p class="text-gray-700 text-sm md:text-base mb-6">Payment Reference Number: {{pay_ref}}</p>
     {% elif orderType == 'Bulk' %}
       <h1 class="text-2xl md:text-3xl font-bold text-green-700 mb-2">Bulk Buy Request Placed Successfully!</h1>
       <p class="text-gray-700 text-sm md:text-base mb-6">
-        Thank you for shopping with FarmerHarvest. Your Bulk Buy Request Order # <a href="{% url 'orderdetails' orderID %}">{{orderNo}}</a> has been placed and will be responded by suppliers.
+        Thank you for shopping with FarmerHarvest. Your Bulk Buy Request Order # <a href="{% url 'orderdetails' orderID %}?type=bulk">{{orderNo}}</a> has been placed and will be responded by suppliers.
       </p>
     {% else %}
       <h1 class="text-2xl md:text-3xl font-bold text-green-700 mb-2">Bulk Buy Response Accepted!</h1>

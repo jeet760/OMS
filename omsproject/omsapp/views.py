@@ -33,6 +33,10 @@ from .serializers import OrderSerializer, FPOSerializer
 from .securecomms import SMTPMail, OTPGeneration
 from django.core import signing
 from simple_history.utils import update_change_reason
+import uuid
+from decimal import Decimal
+from .onefpo_sync_views import push_orders_to_onefpo, push_bulk_requests_to_onefpo, push_bulk_buy_acceptance_to_onefpo
+
 
 #region API Calls from FarHa_AI
 class APIPagination(PageNumberPagination):
@@ -105,10 +109,39 @@ def featured_product(request):
             pincode = request.user.pinCode
             request.session['pincode'] = pincode
 
-    featureItems = Item.objects.filter(featureItem=True, userID_id__isActive=True, itemActive=True).order_by('-itemInStock')#featured items whose owner/seller is active and is in stock from seller's side
+    #featureItems = Item.objects.filter(featureItem=True, userID_id__isActive=True, itemActive=True).order_by('-itemInStock')#featured items whose owner/seller is active and is in stock from seller's side
+    featureItems = (
+        Item.objects
+        .filter(
+            pincode_maps__in_feature=True,
+            pincode_maps__is_active=True
+        )
+        .annotate(
+            has_stock=Max("pincode_maps__in_stock"),
+            selling_price=F("pincode_maps__selling_price"),
+            city_name=F("pincode_maps__pinCode1__userCity1_name")
+        )
+        .order_by("-has_stock")
+    )
+
     #irrespective of the login status, the explicitly entered pincode will prevails
     if pincode:
-        featureItems = featureItems.exclude(userID_id = request.user.pk).filter(item_pincode_map__pincode=pincode, item_pincode_map__isActive=True).distinct()#exclude the logged in user and filter by pincode 
+        featureItems = (
+            Item.objects
+            .filter(
+                pincode_maps__in_feature=True,
+                pincode_maps__in_stock=True,
+                pincode_maps__is_active=True,
+                pincode_maps__pinCode1__pinCode1=pincode
+            )
+            .exclude(userID=request.user)
+            .annotate(
+                selling_price=F("pincode_maps__selling_price"),
+                city_name=F("pincode_maps__pinCode1__userCity1_name")
+            )
+            .prefetch_related("pincode_maps__pinCode1")
+            .distinct()
+        )#exclude the logged in user and filter by pincode 
         #featureItems = featureItems.exclude(userID_id = request.user.pk).filter(userID_id__pinCode=pincode)
 
     #pagination in featured items
@@ -120,31 +153,50 @@ def featured_product(request):
     total_cart_qty = cart.__len__()#display total number quantities added in the basket
     total_cart_price = cart.get_total_price()
 
-    if pincode:
-        #to display in the stats section
-        veg_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Vegetables', item_pincode_map__pincode=pincode).__len__()
-        fru_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Fruits', item_pincode_map__pincode=pincode).__len__()
-        dai_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Dairy', item_pincode_map__pincode=pincode).__len__()
-        spi_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Spices', item_pincode_map__pincode=pincode).__len__()
-        cer_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Cereals', item_pincode_map__pincode=pincode).__len__()
-        pul_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Pulses', item_pincode_map__pincode=pincode).__len__()
-        ani_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Animal Sourced', item_pincode_map__pincode=pincode).__len__()
-        for_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Forest Produces', item_pincode_map__pincode=pincode).__len__()
-        pac_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Packaged Foods', item_pincode_map__pincode=pincode).__len__()
-        oth_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Others', item_pincode_map__pincode=pincode).__len__()
-    else:
-        #to display in the stats section
-        veg_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Vegetables').__len__()
-        fru_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Fruits').__len__()
-        dai_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Dairy').__len__()
-        spi_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Spices').__len__()
-        cer_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Cereals').__len__()
-        pul_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Pulses').__len__()
-        ani_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Animal Sourced').__len__()
-        for_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Forest Produces').__len__()
-        pac_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Packaged Foods').__len__()
-        oth_value = Item.objects.filter(userID_id__isActive=True, itemActive=True, itemCat='Others').__len__()
+    stats_orm = []
+    stats_orm_dict = {}
 
+    if pincode:#if pincode is given, show stats_orm based on that pincode
+        stats_orm = (
+            Item.objects
+            .filter(
+                userID__isActive=True,
+                itemCat__isnull=False,
+                pincode_maps__pinCode1__pinCode1=pincode,
+                pincode_maps__in_stock=True,
+                pincode_maps__is_active=True,
+            )
+            .values("itemCat")
+            .annotate(total=Count("itemID", distinct=True))
+        )
+    else:#else show overall stats_orm
+        stats_orm = (
+            Item.objects
+            .filter(
+                userID__isActive=True,
+                itemCat__isnull=False,
+                pincode_maps__in_stock=True,
+                pincode_maps__is_active=True,
+            )
+            .values("itemCat")
+            .annotate(total=Count("itemID", distinct=True))
+        )
+
+    stats_orm_dict = {
+        row["itemCat"]: row["total"]
+        for row in stats_orm
+    }
+    veg_value = stats_orm_dict.get("Vegetables", 0)
+    fru_value = stats_orm_dict.get("Fruits", 0)
+    dai_value = stats_orm_dict.get("Dairy", 0)
+    spi_value = stats_orm_dict.get("Spices", 0)
+    cer_value = stats_orm_dict.get("Cereals", 0)
+    pul_value = stats_orm_dict.get("Pulses", 0)
+    ani_value = stats_orm_dict.get("Animal Sourced", 0)
+    for_value = stats_orm_dict.get("Forest Produces", 0)
+    pac_value = stats_orm_dict.get("Packaged Foods", 0)
+    oth_value = stats_orm_dict.get("Others", 0)
+    
     stats = [
         {"value": veg_value, "label": "Vegetables"},
         {"value": fru_value, "label": "Fruits"},
@@ -191,10 +243,49 @@ def marketplace(request):
             request.session['pincode'] = pincode
 
     #all active and in stock items
-    items = Item.objects.filter(userID_id__isActive=True, itemActive=True).order_by('-itemInStock')
+    items = (
+        Item.objects
+        .filter(
+            pincode_maps__in_stock=True,
+            pincode_maps__is_active=True,
+        )
+        .annotate(
+            has_stock=Max("pincode_maps__in_stock")
+        )
+        .order_by("-has_stock")
+    )
     #irrespective the login status, the explicitly entered picode will previal    
     if pincode:
-        items = items.exclude(userID_id = request.user.pk).filter(item_pincode_map__pincode=pincode, item_pincode_map__isActive=True).distinct()#exclude the logged in user and filter by pincode
+        items = (
+            Item.objects
+            .filter(
+                pincode_maps__in_stock=True,
+                pincode_maps__is_active=True,
+                pincode_maps__pinCode1__pinCode1=pincode
+            )
+            .exclude(userID=request.user)
+            .annotate(
+                selling_price=F("pincode_maps__selling_price"),
+                city_name=F("pincode_maps__pinCode1__userCity1_name")
+            )
+            .prefetch_related("pincode_maps__pinCode1")
+            .distinct()
+        )
+    else:
+        items = (
+            Item.objects
+            .filter(
+                pincode_maps__in_stock=True,
+                pincode_maps__is_active=True
+            )
+            .annotate(
+                selling_price=F("pincode_maps__selling_price"),
+                city_name=F("pincode_maps__pinCode1__userCity1_name")
+            )
+            .prefetch_related("pincode_maps__pinCode1")
+            .distinct()
+        )
+        #items = items.exclude(userID_id = request.user.pk).filter(item_pincode_map__pincode=pincode, item_pincode_map__isActive=True).distinct()#exclude the logged in user and filter by pincode
         #items = items.exclude(userID_id = request.user.pk).filter(userID_id__pinCode=pincode)
 
     if request.GET.__len__() > 0:
@@ -222,7 +313,7 @@ def marketplace(request):
     items_page_obj = paginator.get_page(page_number)
 
     cart = Cart(request)
-    total_cart_qty = cart.__len__()#display total number quantities added in the basket
+    total_cart_qty = cart.cart.__len__()#display total number quantities added in the basket
     total_cart_price = cart.get_total_price()
 
     shop_context = {
@@ -256,8 +347,36 @@ def shop_item_details(request, item_id):
             pincode = request.user.pinCode
             request.session['pincode'] = pincode
 
-    item = get_object_or_404(Item, pk=item_id)
-    related_items = Item.objects.filter(itemCat = item.itemCat).filter(item_pincode_map__pincode=pincode, item_pincode_map__isActive=True).exclude(pk=item_id)
+    item = (
+        Item.objects.filter(
+            pk=item_id
+        )
+        .annotate(
+            selling_price=F("pincode_maps__selling_price"),
+            city_name=F("pincode_maps__pinCode1__userCity1_name"),
+            district_name=F("pincode_maps__pinCode1__userDistrict1_name")
+        )
+        .first()
+    )
+    related_items = (
+        Item.objects
+        .filter(
+            itemCat=item.itemCat,
+            pincode_maps__in_stock=True,
+            pincode_maps__is_active=True,
+            pincode_maps__pinCode1__pinCode1=pincode
+        )
+        .exclude(
+            pk=item_id
+        )
+        .annotate(
+            selling_price=F("pincode_maps__selling_price"),
+            city_name=F("pincode_maps__pinCode1__userCity1_name")
+        )
+        .prefetch_related("pincode_maps__pinCode1")
+        .distinct()
+    )
+    #Item.objects.filter(itemCat = item.itemCat).filter(item_pincode_map__pincode=pincode, item_pincode_map__isActive=True).exclude(pk=item_id)
     item_details_context = {
         'item':item,
         'related_items':related_items
@@ -735,6 +854,9 @@ def register(request):
         return redirect('register')
 
 def profile_view(request):
+    if request.user.is_authenticated and request.user.is_superuser and request.user.userApproved and request.user.isActive:
+        return redirect('admin-master')
+
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)#Point: After clicking register button
         if request.user.is_authenticated == False: #update == None:#New registration
@@ -833,10 +955,56 @@ def upload_fpo_docs(request):
     return redirect('index')
 
 def approve_user(request, userID):
-    fpo = CustomUser.objects.filter(pk=userID)
-    regn_no, email, regd_name = fpo.values_list('username','email','first_name').first()
-    update = fpo.update(userApproved=True, isActive=True, approvedOn=datetime.now())
-    return_response = send_activation_mail(request=request, to_email_id=email, regn_no=regn_no, regd_name=regd_name, type_of_mail='approval')
+    # the fpo is locally stored in farmerharvest and getting approved by the super admin
+    fpo = CustomUser.objects.get(pk=userID)
+    fpo.userApproved = True
+    fpo.isActive = True
+    fpo.approvedOn = datetime.now()
+    fpo.save()
+    fpo_docs = fpo.fpo_auth_docs.first()
+
+    fpo_data_push = {
+        "username": fpo.username,
+        "FPOName": fpo.first_name,
+        "legalStatus":'Company',
+        "registrationNo":fpo_docs.fpo_regn_no,
+        "dateOfRegistration":datetime.today().strftime('%Y-%m-%d'),
+        "PAN":fpo.pan,
+        "GSTIN": fpo.gstin,
+        "contactNumber": fpo.phone,
+        "emailID": fpo.email,
+        "primaryContactPersion":fpo_docs.auth_name,
+        "designationOfprimaryContactPersion":fpo_docs.auth_designation,
+        "contactNumberofprimaryContactPersion": fpo_docs.auth_contact,
+        "AlternativecontactNumberofprimaryContactPersion":fpo.phone,
+        "addressLineOne":fpo.userAddress,
+        "addressLineTwo": fpo.userAddress,
+        "state": fpo.userState,
+        "userState_name": fpo.userState_name,
+        "district": fpo.userDistrict,
+        "userDistrict_name": fpo.userDistrict_name,
+        "block": fpo.userCity,
+        "userCity_name": fpo.userCity_name,
+        "gramPanchayat": fpo.userAddress,
+        "village":fpo.userAddress,
+        "pincode": fpo.pinCode,
+        "FPOstartDate":datetime.today().strftime('%Y-%m-%d'),
+    }
+    return_response = send_activation_mail(request=request, to_email_id=fpo_data_push.get('emailID'), regn_no=fpo_data_push.get('username'), regd_name=fpo_data_push.get('FPOName'), type_of_mail='approval')
+
+    #sending the data to the OneFPO for storing the FPO profile.
+    onefpo_api_url = 'http://127.0.0.1:8001/api/register_fpo/'  # Replace with the actual API endpoint URL
+
+    try:
+        print(json.dumps(fpo_data_push, indent=2))
+        response = requests.post(onefpo_api_url, json=fpo_data_push, timeout=10)
+        response.raise_for_status()  # raises exception for HTTP errors
+        fpo.synced = True
+        fpo.save()
+    except Exception as ex:
+        return JsonResponse({'status':'error','message':f'Error occured while pushing data to OneFPO: {str(ex)}'})
+
+    
     return redirect('admin-master')
 
 def verify_fpo(request, userID):
@@ -1015,40 +1183,59 @@ def update_profile(request):
     return redirect('user-form')
 
 def fetch_lgd_data_from_api(state_code,district_code,sub_dist_code):
-    api = f'https://api.data.gov.in/resource/6be51a29-876a-403a-a6da-42fde795e751?api-key=579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b&format=json&limit=1000&filters%5Bstate_code%5D={state_code}&filters%5Bdistrict_code%5D={district_code}&filters%5Bsubdistrict_code%5D={sub_dist_code}'
-    api_response = requests.get(api) 
-    lgd_data = api_response.json()
-    state_name = lgd_data['records'][0]['state_name_english']
-    district_name = lgd_data['records'][0]['district_name_english']
-    sub_dist_name = lgd_data['records'][0]['subdistrict_name_english']
-    return_context = {
-        'state_name':state_name,
-        'district_name':district_name,
-        'sub_dist_name':sub_dist_name,
-        'state_code':state_code,
-        'district_code':district_code,
-        'sub_dist_code':sub_dist_code
-    }
+    try:
+        api = f'https://api.data.gov.in/resource/6be51a29-876a-403a-a6da-42fde795e751?api-key=579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b&format=json&limit=1000&filters%5Bstate_code%5D={state_code}&filters%5Bdistrict_code%5D={district_code}&filters%5Bsubdistrict_code%5D={sub_dist_code}'
+        api_response = requests.get(api) 
+        lgd_data = api_response.json()
+        state_name = lgd_data['records'][0]['state_name_english']
+        district_name = lgd_data['records'][0]['district_name_english']
+        sub_dist_name = lgd_data['records'][0]['subdistrict_name_english']
+        return_context = {
+            'state_name':state_name,
+            'district_name':district_name,
+            'sub_dist_name':sub_dist_name,
+            'state_code':state_code,
+            'district_code':district_code,
+            'sub_dist_code':sub_dist_code
+        }
+    except Exception as e:
+        print('Exception raised while fetching LGD data from API!')
+        return_context = {
+            'state_name':'state_name',
+            'district_name':'district_name',
+            'sub_dist_name':'sub_dist_name',
+            'state_code':state_code,
+            'district_code':district_code,
+            'sub_dist_code':sub_dist_code
+        }
     return return_context
 
 def fetch_lat_lon_from_pincode_api(pincode):
-    api = f'https://api.data.gov.in/resource/5c2f62fe-5afa-4119-a499-fec9d604d5bd?api-key=579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b&format=json&filters%5Bpincode%5D={pincode}'
-    api_response = requests.get(api)
-    pincode_data = api_response.json()
-    lat = pincode_data['records'][0]['latitude']
-    lon = pincode_data['records'][0]['longitude']
-    if lat == 'NA':
-        if pincode_data['count'] > 1:
-            lat = pincode_data['records'][1]['latitude']
-            lon = pincode_data['records'][1]['longitude']
-        else:
-            lat = 0.0
-            lon = 0.0
+    try:
+        api = f'https://api.data.gov.in/resource/5c2f62fe-5afa-4119-a499-fec9d604d5bd?api-key=579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b&format=json&filters%5Bpincode%5D={pincode}'
+        api_response = requests.get(api)
+        pincode_data = api_response.json()
+        lat = pincode_data['records'][0]['latitude']
+        lon = pincode_data['records'][0]['longitude']
+        if lat == 'NA':
+            if pincode_data['count'] > 1:
+                lat = pincode_data['records'][1]['latitude']
+                lon = pincode_data['records'][1]['longitude']
+            else:
+                lat = 0.0
+                lon = 0.0
 
-    lat_lon_context = {
-        'lat':lat,
-        'lon':lon
-    }
+        lat_lon_context = {
+            'lat':lat,
+            'lon':lon
+        }
+    except Exception as e:
+        print('Exception raised!')
+        lat_lon_context = {
+            'lat':0.0,
+            'lon':0.0
+        }
+    
     return lat_lon_context
 
 def fetch_address(request, id):
@@ -1771,7 +1958,7 @@ def create_item(request):
                 stockEntry = ItemStock(itemID_id=item_ID,stockValue=itemStock)
                 stockEntry.save()
                 for selected_pincode in selected_pincodes:
-                    picodeMapEntry = ItemPincodeMap.objects.create(itemID_id=item_ID, pincode=selected_pincode, isActive=True)
+                    picodeMapEntry = ItemPincodeMap.objects.create(item_id_id=item_ID, pincode=selected_pincode, is_active=True, in_stock=True, in_feature=True)
                 return redirect('item_list')#JsonResponse({'success': True})
                 #return redirect('admin-console')#JsonResponse({'success': True})
             else:
@@ -1788,10 +1975,10 @@ def edit_item(request, item_id):
         if form.is_valid():
             selected_pincodes = request.POST.getlist('servingPincode')
             form.save(userid=request.user.pk)
-            pincode_map_update = ItemPincodeMap.objects.filter(itemID_id=item_id).update(isActive=False)  # Clear existing mappings
+            pincode_map_update = ItemPincodeMap.objects.filter(item_id_id=item_id).update(is_active=False)  # Clear existing mappings
             for selected_pincode in selected_pincodes:
-                picodeMapEntry = ItemPincodeMap.objects.update_or_create(itemID_id=item_id, pincode=selected_pincode)
-                pincode_map_update = ItemPincodeMap.objects.filter(itemID_id=item_id, pincode=selected_pincode).update(isActive=True)
+                picodeMapEntry = ItemPincodeMap.objects.update_or_create(item_id_id=item_id, pincode=selected_pincode)
+                pincode_map_update = ItemPincodeMap.objects.filter(item_id_id=item_id, pincode=selected_pincode).update(is_active=True)
             messages.success(request, 'Item updated successfully.')
             return redirect('item_list')
             # return redirect('admin-console')#JsonResponse({'success': True})
@@ -1801,7 +1988,7 @@ def edit_item(request, item_id):
         form = ItemForm(instance=item)
     user_name = request.user.last_name
     serving_pincodes = FPOServingAddresses.objects.filter(userID_id=request.user.pk).values_list('pinCode1', flat=True).distinct()
-    mapped_pincodes = ItemPincodeMap.objects.filter(itemID_id=item_id, isActive=True).values_list('pincode', flat=True)
+    mapped_pincodes = ItemPincodeMap.objects.filter(item_id_id=item_id, is_active=True).values_list('pincode', flat=True)
     # Prepare list with a 'checked' flag
     pincodes_with_status = [
         {'code': pincode, 'checked': pincode in mapped_pincodes}
@@ -1937,7 +2124,7 @@ def cart_view(request):
     item_stock = True
     item_seller = False
     for cart_item in cart_items:
-        stock = cart_item['product'].itemInStock
+        stock = cart_item['in_stock']
         user_id_item = cart_item['product'].userID_id
         if stock == False:
             item_stock = False
@@ -2021,7 +2208,7 @@ def CreateOrder(request, param_transportation_cost, param_total_price, param_gst
             request.session['gst_amount']=param_gst_amount
             request.session['deduction']=param_deduction
             request.session['delivery_date']=request.POST['selectDeliveryDate']
-            request.session['deliery_time']=request.POST['selectDeliveryTime']
+            request.session['delivery_time']=request.POST['selectDeliveryTime']
             request.session['order_note'] = request.POST['orderNote']
             request.session['pay_method'] = request.POST['paymentMode']
             request.session['pay_status'] = False
@@ -2060,7 +2247,7 @@ def clear_session_variables(request):
     del request.session['gst_amount']
     del request.session['deduction']
     del request.session['delivery_date']
-    del request.session['deliery_time']
+    del request.session['delivery_time']
     del request.session['order_note']
     del request.session['pay_method']
     del request.session['pay_status']
@@ -2068,109 +2255,226 @@ def clear_session_variables(request):
     del request.session['pay_ref']
     return True
 
-def create_order(request, param_transportation_cost, param_total_price, param_gst_amount, param_deduction):
+# def create_order(request, param_transportation_cost, param_total_price, param_gst_amount, param_deduction):
+#     form = OrderForm(request.POST)
+#     if form.is_valid():
+#         userdetails = get_object_or_404(CustomUser, id = request.user.id)
+#         user_id = userdetails
+#         fetched_invoice_no = 0
+#         with connection.cursor() as cursor:
+#             cursor.execute("SELECT seq FROM sqlite_sequence WHERE name = %s", ['omsapp_order'])
+#             row = cursor.fetchone()
+#             if row:
+#                 fetched_order_id = row[0]
+#             else:
+#                 fetched_order_id = 1
+
+#         dict_order_invoice = create_order_invoice_no(fetched_order_id, fetched_invoice_no, user_id)
+#         view_orderNo = dict_order_invoice['orderNo']+'N'
+#         view_orderDate = datetime.now()
+#         view_orderStatus = 'Pending Order'
+#         view_orderAmount = param_total_price
+#         view_orderGSTAmount = param_gst_amount
+#         view_orderDeduction = param_deduction
+#         view_transportationCost = param_transportation_cost
+#         view_orderGrandTotal = float(view_orderAmount)+float(view_orderGSTAmount)-float(view_orderDeduction)+float(view_transportationCost)
+#         view_orderDeliveryDate = request.session.get('delivery_date')
+#         view_orderDeliveryTime = request.session.get('delivery_time')
+#         view_orderNote = request.session.get('order_note')
+#         view_pay_method = request.session.get('pay_method')
+#         view_pay_status = request.session.get('pay_status')
+#         view_pay_date = request.session.get('pay_date')
+#         view_pay_ref = request.session.get('pay_ref')
+#         order_context = Order(orderNo= view_orderNo,
+#                         orderDate=view_orderDate, 
+#                         orderStatus=view_orderStatus,
+#                         orderAmount=view_orderAmount,
+#                         orderGSTAmount=view_orderGSTAmount,
+#                         orderDeduction=view_orderDeduction,
+#                         orderTransportation = view_transportationCost,
+#                         orderGrandTotal=view_orderGrandTotal,
+#                         schDeliveryDate = view_orderDeliveryDate,
+#                         schDeliveryTime = view_orderDeliveryTime,
+#                         orderNote = view_orderNote,
+#                         paymentMode = view_pay_method,
+#                         paymentStatus = view_pay_status,
+#                         paymentDate = view_pay_date,
+#                         paymentRefNo = view_pay_ref,
+#                         userID_id=request.user.pk)
+#         try:
+#             order_context.save()
+#             order_id = Order.objects.all().latest('orderID').orderID
+#             if SaveOrderDetails(request, order_id, user_id) == True:
+#                 if view_pay_method == '3':
+#                     return view_orderNo
+#                     return redirect(f"{reverse('order_successful')}?success={'Order'}")
+#                 else:
+#                     return redirect(f"{reverse('order_successful')}?success={'Order'}")
+#                 #return render(request,'success.html',success_context)#HttpResponse('<h2>Order Placed Successfully!</h2>')
+#             else:
+#                 return render(request,'404.html',{'source':'Order'})
+#         except Exception as ex:
+#             return render(request,'404.html',{'source':'Order'})
+#     else:
+#         return render(request,'404.html',{'source':'Invalid Form'})
+
+
+@transaction.atomic
+def create_order(request, transport_cost, total_price, gst_amount, deduction):
     form = OrderForm(request.POST)
-    if form.is_valid():
-        userdetails = get_object_or_404(CustomUser, id = request.user.id)
-        user_id = userdetails
-        fetched_invoice_no = 0
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT seq FROM sqlite_sequence WHERE name = %s", ['omsapp_order'])
-            row = cursor.fetchone()
-            if row:
-                fetched_order_id = row[0]
-            else:
-                fetched_order_id = 1
+    if not form.is_valid():
+        return render(request, '404.html', {'source': 'Invalid Form'})
+    user = request.user
+    order = Order.objects.create(
+        orderDate=timezone.now(),
+        orderStatus='Pending Order',
+        orderAmount=Decimal(total_price),
+        orderGSTAmount=Decimal(gst_amount),
+        orderDeduction=Decimal(deduction),
+        orderTransportation=Decimal(transport_cost),
+        orderGrandTotal=(
+            Decimal(total_price)
+            + Decimal(gst_amount)
+            - Decimal(deduction)
+            + Decimal(transport_cost)
+        ),
+        schDeliveryDate=request.session.get('delivery_date'),
+        schDeliveryTime=request.session.get('delivery_time'),
+        orderNote=request.session.get('order_note'),
+        paymentMode=request.session.get('pay_method'),
+        paymentStatus=request.session.get('pay_status'),
+        paymentDate=request.session.get('pay_date'),
+        paymentRefNo=request.session.get('pay_ref'),
+        userID=user
+    )
 
-        dict_order_invoice = create_order_invoice_no(fetched_order_id, fetched_invoice_no, user_id)
-        view_orderNo = dict_order_invoice['orderNo']+'N'
-        view_orderDate = datetime.now()
-        view_orderStatus = 'Pending Order'
-        view_orderAmount = param_total_price
-        view_orderGSTAmount = param_gst_amount
-        view_orderDeduction = param_deduction
-        view_transportationCost = param_transportation_cost
-        view_orderGrandTotal = float(view_orderAmount)+float(view_orderGSTAmount)-float(view_orderDeduction)+float(view_transportationCost)
-        view_orderDeliveryDate = request.session.get('delivery_date')
-        view_orderDeliveryTime = request.session.get('deliery_time')
-        view_orderNote = request.session.get('order_note')
-        view_pay_method = request.session.get('pay_method')
-        view_pay_status = request.session.get('pay_status')
-        view_pay_date = request.session.get('pay_date')
-        view_pay_ref = request.session.get('pay_ref')
-        order_context = Order(orderNo= view_orderNo,
-                        orderDate=view_orderDate, 
-                        orderStatus=view_orderStatus,
-                        orderAmount=view_orderAmount,
-                        orderGSTAmount=view_orderGSTAmount,
-                        orderDeduction=view_orderDeduction,
-                        orderTransportation = view_transportationCost,
-                        orderGrandTotal=view_orderGrandTotal,
-                        schDeliveryDate = view_orderDeliveryDate,
-                        schDeliveryTime = view_orderDeliveryTime,
-                        orderNote = view_orderNote,
-                        paymentMode = view_pay_method,
-                        paymentStatus = view_pay_status,
-                        paymentDate = view_pay_date,
-                        paymentRefNo = view_pay_ref,
-                        userID_id=request.user.pk)
-        try:
-            order_context.save()
-            order_id = Order.objects.all().latest('orderID').orderID
-            if SaveOrderDetails(request, order_id, user_id) == True:
-                if view_pay_method == '3':
-                    return view_orderNo
-                    return redirect(f"{reverse('order_successful')}?success={'Order'}")
-                else:
-                    return redirect(f"{reverse('order_successful')}?success={'Order'}")
-                #return render(request,'success.html',success_context)#HttpResponse('<h2>Order Placed Successfully!</h2>')
-            else:
-                return render(request,'404.html',{'source':'Order'})
-        except Exception as ex:
-            return render(request,'404.html',{'source':'Order'})
-    else:
-        return render(request,'404.html',{'source':'Invalid Form'})
+    success = save_order_details(request, order, user)
 
-def SaveOrderDetails(request,param_orderID,param_user_id):
-    #if request.method == 'POST':
-        #cart_id = Cart.objects.filter(user_id=param_user_id)[0]
-    cart_items =  Cart(request) #CartItem.objects.filter(cart_id=cart_id)
+    if not success:
+        raise Exception("Order details failed")
+
+    return redirect(
+        f"{reverse('order_successful')}?success=Order"
+    )
+
+@transaction.atomic
+def save_order_details(request, order, user):
+
+    cart = Cart(request)
+    suborder_map = {}
+    order_details_bulk = []
+
     try:
-        vendor_ids = []
-        suborderID=0
-        for eachitem in cart_items:
-            if [param_orderID, eachitem['product'].userID_id, param_user_id.pk] not in vendor_ids:
-                vendor_ids.append([param_orderID, eachitem['product'].userID_id, param_user_id.pk])
-                SubOrder.objects.create(
-                    orderID_id = param_orderID,
-                    vendorID_id = eachitem['product'].userID_id,
-                    customerID_id = param_user_id.pk,
-                    orderNote = request.session.get('order_note'),#request.POST['orderNote'],
-                    paymentMode= request.session.get('pay_method'),#request.POST['selectPaymentMethod']
-                    paymentStatus = request.session.get('pay_status'),
-                    paymentDate = request.session.get('pay_date'),
-                    paymentRefNo = request.session.get('pay_ref')
+
+        for item in cart:
+
+            vendor_id = item['product'].userID_id
+
+            # Create suborder only once per vendor
+            if vendor_id not in suborder_map:
+
+                suborder = SubOrder.objects.create(
+                    orderID=order,
+                    vendorID_id=vendor_id,
+                    customerID=user,
+                    orderNote=request.session.get('order_note'),
+                    paymentMode=request.session.get('pay_method'),
+                    paymentStatus=request.session.get('pay_status'),
+                    paymentDate=request.session.get('pay_date'),
+                    paymentRefNo=request.session.get('pay_ref')
                 )
-                suborderID = SubOrder.objects.all().latest('suborderID').suborderID
-            else:
-                suborderID = SubOrder.objects.get(orderID_id = param_orderID, vendorID_id = eachitem['product'].userID_id, customerID_id=param_user_id.pk).suborderID
-            OrderDetails.objects.create(
-                suborderID_id = suborderID,
-                orderID_id = param_orderID,
-                itemID_id = eachitem['product'].itemID,
-                itemQty = eachitem['quantity'],
-                itemPrice = eachitem['price'],
-                itemGST = 0,
-                itemGSTAmount = 0,
-                itemPricewithGST = eachitem['total_price'],
+
+                suborder_map[vendor_id] = suborder
+
+            suborder = suborder_map[vendor_id]
+
+            # GST calculation (placeholder logic)
+            base_price = Decimal(item['price'])
+            quantity = Decimal(item['quantity'])
+            total_base = base_price * quantity
+
+            gst_amount = Decimal("0.00")  # replace with real GST logic
+            total_with_gst = total_base + gst_amount
+
+            order_details_bulk.append(
+                OrderDetails(
+                    orderID=order,
+                    suborderID=suborder,
+                    itemID=item['product'],
+                    itemQty=quantity,
+                    itemPrice=base_price,
+                    itemGST=0,
+                    itemGSTAmount=gst_amount,
+                    itemPricewithGST=total_with_gst
+                )
             )
-            cart_items.remove(eachitem['product'])
-            del eachitem
+
+        # Bulk insert for performance
+        OrderDetails.objects.bulk_create(order_details_bulk)
+
+        # 🔥 Recalculate suborder totals
+        for sub in suborder_map.values():
+            sub.recalculate_totals()
+
+        cart.clear()
         return True
-    except Exception as ex:
-        print(ex)
-        return False
-        #print(ex)
+
+    except Exception as e:
+        print("Order detail error:", e)
+        raise  # rollback automatically due to atomic
+
+
+# def generate_suborder_no(self, username):
+#     """
+#     create suborder number for the unique referencing
+#     """
+#     while True:
+#         random_part = uuid.uuid4().hex[:6].upper()
+#         sub_no = f"SO-{username}-{random_part}"
+
+#         if not SubOrder.objects.filter(suborder_no=sub_no).exists():
+#             return sub_no
+
+# def SaveOrderDetails(request,param_orderID,param_user_id):
+#     #if request.method == 'POST':
+#         #cart_id = Cart.objects.filter(user_id=param_user_id)[0]
+#     cart_items =  Cart(request) #CartItem.objects.filter(cart_id=cart_id)
+#     try:
+#         vendor_ids = []
+#         suborderID=0
+#         for eachitem in cart_items:
+#             if [param_orderID, eachitem['product'].userID_id, param_user_id.pk] not in vendor_ids:
+#                 vendor_ids.append([param_orderID, eachitem['product'].userID_id, param_user_id.pk])
+#                 SubOrder.objects.create(
+#                     orderID_id = param_orderID,
+#                     vendorID_id = eachitem['product'].userID_id,
+#                     customerID_id = param_user_id.pk,
+#                     orderNote = request.session.get('order_note'),#request.POST['orderNote'],
+#                     paymentMode= request.session.get('pay_method'),#request.POST['selectPaymentMethod']
+#                     paymentStatus = request.session.get('pay_status'),
+#                     paymentDate = request.session.get('pay_date'),
+#                     paymentRefNo = request.session.get('pay_ref')
+#                 )
+#                 suborderID = SubOrder.objects.all().latest('suborderID').suborderID
+#             else:
+#                 suborderID = SubOrder.objects.get(orderID_id = param_orderID, vendorID_id = eachitem['product'].userID_id, customerID_id=param_user_id.pk).suborderID
+#             OrderDetails.objects.create(
+#                 suborderID_id = suborderID,
+#                 orderID_id = param_orderID,
+#                 itemID_id = eachitem['product'].itemID,
+#                 itemQty = eachitem['quantity'],
+#                 itemPrice = eachitem['price'],
+#                 itemGST = 0,
+#                 itemGSTAmount = 0,
+#                 itemPricewithGST = eachitem['total_price'],
+#             )
+#             cart_items.remove(eachitem['product'])
+#             del eachitem
+#         return True
+#     except Exception as ex:
+#         print(ex)
+#         return False
+#         #print(ex)
 
 def order_successful(request):
     type = request.GET.get('success')
@@ -2180,13 +2484,15 @@ def order_successful(request):
     if type == 'Bulk':
         orderID = BulkBuy.objects.all().latest('bulkBuyID').bulkBuyID
         orderNo = BulkBuy.objects.all().latest('bulkBuyID').bulkBuyNo
+        push_bulk_requests_to_onefpo(request,orderNo)
     elif type == 'Order':
         orderID = Order.objects.all().latest('orderID').orderID
         orderNo = Order.objects.all().latest('orderID').orderNo
+        push_orders_to_onefpo(request, orderID)
     else:
         orderID = ''
         orderNo = ''
-
+    
     success_context = {
         'orderID': orderID,
         'orderNo': orderNo,
@@ -2544,12 +2850,10 @@ def bulk_buy_order_place(request):
                         itemUnit=row.get("itemUnit"),
                         itemPrice=row.get("itemPrice")
                     )
-
             return JsonResponse({
                 "message": "Bulk buy request placed successfully.",
                 "redirect_url": f"{reverse('order_successful')}?success=Bulk"
             })
-
         except Exception as e:
             return JsonResponse({"message": f"Error: {str(e)}"}, status=500)
 
@@ -2621,6 +2925,8 @@ def bulk_buy_response_accept(request, bulkBuyID, response_userID):
     BulkBuyResponse.objects.filter(bulkBuyID_id=bulkBuyID, response_userID_id=response_userID).update(response_remark='Accepted',response_remark_date=datetime.today())
     BulkBuyResponse.objects.filter(bulkBuyID_id=bulkBuyID).exclude(response_userID_id=response_userID).update(response_remark='Not Accepted',response_remark_date=datetime.today())
     BulkBuy.objects.filter(pk=bulkBuyID).update(response_accept='True')
+    bulk_order_no = get_object_or_404(BulkBuy, pk=bulkBuyID).bulkBuyNo
+    push_bulk_buy_acceptance_to_onefpo(request=request, order_no = bulk_order_no)
     return redirect('order_successful')
 
 def bulk_buy_details(request, bulk_order_id):
@@ -2795,38 +3101,41 @@ def PlacedOrders(request):
         return render(request,'orders.html',{})
 
 def placed_order_details(request,orderID):
-    orderNote = Order.objects.get(pk=orderID).orderNote
-    paymentStatus = Order.objects.get(pk=orderID).paymentStatus
-    paymentRefNo = Order.objects.get(pk=orderID).paymentRefNo
-    paymentMode = Order.objects.get(pk=orderID).paymentMode
-    order_details = OrderDetails.objects.select_related('itemID').filter(orderID_id=orderID)
-    invoice_details = OrderInvoice.objects.filter(orderID_id=orderID)
-    delivery_order = OrderDelivery.objects.filter(orderID_id=orderID) if OrderDelivery.objects.filter(orderID_id=orderID).count() > 0 else 0
-    #query = str(order_details.query)
-    pincode='Pincode'
-    user_name = 'Guest!'
-    if request.user.is_authenticated:
-        user_name = request.user.last_name
-        pincode = request.user.pinCode
-        #order_invoices = order_invoices(request, orderID)
-    cart = Cart(request)
-    total_cart_qty = cart.__len__()#display total number quantities added in the basket
-    total_cart_price = cart.get_total_price()
-    render_context = {
-        'order_details':order_details,
-        'login_user':user_name,
-        'invoices':invoice_details,
-        'delivery':delivery_order,
-        'total_cart_qty':total_cart_qty,
-        'total_cart_price':total_cart_price,
-        'pincode':pincode,
-        'orderNote':orderNote,
-        'paymentStatus':paymentStatus,
-        'paymentRefNo':paymentRefNo,
-        'paymentMode':paymentMode
-    }
-    return render(request, 'orderdetails.html', context=render_context)
-
+    order_type = request.GET['type']
+    if order_type == 'retail':
+        orderNote = Order.objects.get(pk=orderID).orderNote
+        paymentStatus = Order.objects.get(pk=orderID).paymentStatus
+        paymentRefNo = Order.objects.get(pk=orderID).paymentRefNo
+        paymentMode = Order.objects.get(pk=orderID).paymentMode
+        order_details = OrderDetails.objects.select_related('itemID').filter(orderID_id=orderID)
+        invoice_details = OrderInvoice.objects.filter(orderID_id=orderID)
+        delivery_order = OrderDelivery.objects.filter(orderID_id=orderID) if OrderDelivery.objects.filter(orderID_id=orderID).count() > 0 else 0
+        #query = str(order_details.query)
+        pincode='Pincode'
+        user_name = 'Guest!'
+        if request.user.is_authenticated:
+            user_name = request.user.last_name
+            pincode = request.user.pinCode
+            #order_invoices = order_invoices(request, orderID)
+        cart = Cart(request)
+        total_cart_qty = cart.__len__()#display total number quantities added in the basket
+        total_cart_price = cart.get_total_price()
+        render_context = {
+            'order_details':order_details,
+            'login_user':user_name,
+            'invoices':invoice_details,
+            'delivery':delivery_order,
+            'total_cart_qty':total_cart_qty,
+            'total_cart_price':total_cart_price,
+            'pincode':pincode,
+            'orderNote':orderNote,
+            'paymentStatus':paymentStatus,
+            'paymentRefNo':paymentRefNo,
+            'paymentMode':paymentMode
+        }
+        return render(request, 'orderdetails.html', context=render_context)
+    elif order_type == 'bulk':
+        return redirect('bulk-buy-order-response', bulkBuyID=orderID)
 def order_invoices(request, order_id):
     pass
 #endregion

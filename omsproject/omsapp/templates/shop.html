@@ -55,9 +55,9 @@
       <section class="md:col-span-3">
         <h1 class="text-2xl font-bold mb-4">Shop</h1>
         {% if items|length > 0 %}
-        <p>Showing items for: {{pincode}}</p>
+        <p>Showing items for: {% if pincode %}{{ pincode }}{% else %}All Locations{% endif %}</p>
         {% else %}
-        <p>No item found for: {{pincode}}</p>
+        <p>No item found for: {% if pincode %}{{ pincode }}{% else %}All Locations{% endif %}</p>
         {% endif %}
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="items-container">
           {% for item in items %}
@@ -70,12 +70,12 @@
               {% endif %}
 
               <!-- Item Image -->
-              <img src="{{ item.itemImg.url }}" alt="{{ item.itemName }}" class="w-full h-48 object-cover">
+              <img src="{{ item.itemImg }}" alt="{{ item.itemName }}" class="w-full h-48 object-cover">
 
               <!-- Item Info -->
               <div class="p-4 flex-1">
                   <h3 class="font-semibold text-lg mb-1">{{ item.itemName }}</h3>
-                  <p class="text-sm text-gray-600">₹{{ item.itemPrice }}/{{ item.itemUnit }} | by {{ item.userID.last_name }} | {{ item.userID.userCity_name }}</p>
+                  <p class="text-sm text-gray-600">₹{{ item.selling_price }}/{{ item.itemUnit }} | by {{ item.userID.last_name }} | {{ item.city_name }}</p>
               </div>
 
               <!-- Action Buttons -->

@@ -339,7 +339,7 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRFToken': '{{ csrf_token }}'
+                                'X-CSRFToken': getCookie('farmerharvest_csrftoken')
                             },
                             body: JSON.stringify({
                                 customer: this.selectedCustomer,
@@ -363,6 +363,20 @@
                             alert('Error creating order-2.');
                         });
                     }
+                }
+                function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let cookie of cookies) {
+                        const trimmed = cookie.trim();
+                        if (trimmed.startsWith(name + '=')) {
+                            cookieValue = decodeURIComponent(trimmed.substring(name.length + 1));
+                            break;
+                        }
+                        }
+                    }
+                    return cookieValue;
                 }
             }
             </script>

@@ -341,6 +341,10 @@
             class="block p-2 rounded {% if request.resolver_match.url_name == 'user-form' %}bg-green-100 text-2xl font-bold{% endif %} hover:bg-green-100">
             Settings
           </a>
+          <a href="http://127.0.0.1:8001/"
+            class="block p-2 rounded {% if request.resolver_match.url_name == 'user-form' %}bg-green-100 text-2xl font-bold{% endif %} hover:bg-green-100">
+            OneFPO
+          </a>
         </nav>
         {% elif user.userType == '3'%}
         <nav class="p-4 space-y-2">
