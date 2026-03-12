@@ -89,7 +89,7 @@
             <div>
               <span class="font-medium">#{{ forloop.counter }}</span> – 
               <a href="{{ invoice.invoiceFile }}" target="_blank" download class="text-blue-600 hover:underline">
-                {{ invoice.invoiceFile|cut:'http://127.0.0.1:8001/media/invoices/' }}
+                {{ invoice.invoiceFile|cut:'https://onefpo.com/media/invoices/' }}
               </a>
             </div>
             <span class="text-gray-500">{{ invoice.suborderID.vendorID.last_name }}</span>

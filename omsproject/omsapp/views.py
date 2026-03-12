@@ -993,7 +993,7 @@ def approve_user(request, userID):
     return_response = send_activation_mail(request=request, to_email_id=fpo_data_push.get('emailID'), regn_no=fpo_data_push.get('username'), regd_name=fpo_data_push.get('FPOName'), type_of_mail='approval')
 
     #sending the data to the OneFPO for storing the FPO profile.
-    onefpo_api_url = 'http://127.0.0.1:8001/api/register_fpo/'  # Replace with the actual API endpoint URL
+    onefpo_api_url = 'https://onefpo.com/api/register_fpo/'  # Replace with the actual API endpoint URL
 
     try:
         print(json.dumps(fpo_data_push, indent=2))
